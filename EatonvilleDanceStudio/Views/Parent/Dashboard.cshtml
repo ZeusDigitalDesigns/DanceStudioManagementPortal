@@ -1,6 +1,3 @@
-<!-- Gemini Supplied Code -->
-
-
 @model EatonvilleDanceStudio.ViewModels.ParentDashboardViewModel
 
 @{
@@ -115,23 +112,25 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @if (Model.RecentPayments.Any())
-                                        {
-                                            foreach (var payment in Model.RecentPayments)
-                                            {
-                                                <tr class="border-secondary">
-                                                    <td class="text-muted small">@payment.TransactionDate.ToShortDateString()</td>
-                                                    <td>@payment.Description</td>
-                                                    <td class="text-success text-end">@payment.Amount.ToString("C")</td>
-                                                </tr>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <tr>
-                                                <td colspan="3" class="text-center text-muted py-2">No payments received.</td>
-                                            </tr>
-                                        }
+                                    @foreach (var enrollment in Model.EnrolledClasses)
+                                    {
+                                        <tr class="border-secondary">
+                                            <td class="ps-4">@enrollment.Dancer?.FirstName</td>
+                                            <td>
+                                                @enrollment.DanceClass?.ClassName
+                                                <a asp-controller="Parent" asp-action="Board" asp-route-id="@enrollment.DanceClass?.Id" 
+                                                   class="badge bg-neon text-dark text-decoration-none ms-2">
+                                                    Class Board
+                                                </a>
+                                            </td>
+                                            <td class="text-light small">@enrollment.DanceClass?.DayOfWeek @@@enrollment.DanceClass?.StartTime.ToString(@"hh\:mm")</td>
+                                            <td class="pe-4">
+                                                <span class="badge @(enrollment.Status == "Enrolled" ? "bg-success" : "bg-warning text-dark")">
+                                                    @enrollment.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
                                     </tbody>
                                 </table>
                             </div>

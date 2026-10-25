@@ -51,4 +51,5 @@ public class Dancer
     
     // Navigation property for enrollments, representing the dancer's enrollments in one or more dance classes.
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public string ParentId { get; set; }
 }
