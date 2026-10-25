@@ -1,0 +1,106 @@
+@model EatonvilleDanceStudio.ViewModels.ClassBoardViewModel
+
+@{
+    ViewData["Title"] = Model.DanceClass.ClassName + " - Board";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="text-neon mb-0">@Model.DanceClass.ClassName Board</h1>
+            <p class="text-light mb-0">
+                Message board for enrolled students
+            </p>
+        </div>
+        <a asp-action="Dashboard" class="btn btn-outline-light">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row g-4">
+        
+        <!-- Post a New Message -->
+        <div class="col-md-5">
+            <div class="card card-dark shadow-lg border-secondary h-100">
+                <div class="card-header border-secondary bg-transparent">
+                    <h5 class="text-light mb-0">Post an Update</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="PostAnnouncement" method="post">
+                        
+                        <!-- Hidden ID to link the post to this class -->
+                        <input type="hidden" 
+                               asp-for="NewAnnouncement.DanceClassId" 
+                               value="@Model.DanceClass.Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="NewAnnouncement.Title" 
+                                   class="form-label text-neon">
+                                Title
+                            </label>
+                            <input asp-for="NewAnnouncement.Title" 
+                                   class="form-control bg-dark text-light border-secondary" 
+                                   placeholder="e.g. Bring Recital Shoes!" 
+                                   required />
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="NewAnnouncement.Message" 
+                                   class="form-label text-neon">
+                                Message / Links
+                            </label>
+                            <textarea asp-for="NewAnnouncement.Message" 
+                                      class="form-control bg-dark text-light border-secondary" 
+                                      rows="4" 
+                                      placeholder="Drop your notes or YouTube links here..." 
+                                      required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-neon w-100">
+                            Post to Board
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Announcement Feed -->
+        <div class="col-md-7">
+            <div class="card card-dark shadow-lg border-secondary h-100">
+                <div class="card-header border-secondary bg-transparent">
+                    <h5 class="text-light mb-0">Recent Announcements</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Announcements.Count == 0)
+                    {
+                        <div class="p-4 text-center">
+                            <p class="text-muted mb-0">
+                                You haven't posted any announcements yet.
+                            </p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-column gap-3">
+                            @foreach (ClassAnnouncement post in Model.Announcements)
+                            {
+                                <div class="p-3 border border-secondary rounded">
+                                    <div class="d-flex justify-content-between">
+                                        <h5 class="text-neon mb-1">
+                                            @post.Title
+                                        </h5>
+                                        <small class="text-muted">
+                                            @post.DatePosted.ToShortDateString()
+                                        </small>
+                                    </div>
+                                    <p class="text-light mb-0 mt-2">
+                                        @post.Message
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -117,6 +117,36 @@ namespace EatonvilleDanceStudio.Migrations
                     b.ToTable("AttendanceRecords");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.ClassAnnouncement", b =>
+                {
+                    b.Property<int>("ClassId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClassId"));
+
+                    b.Property<int>("DanceClassId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DatePosted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("ClassId");
+
+                    b.HasIndex("DanceClassId");
+
+                    b.ToTable("ClassAnnouncements");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.DanceClass", b =>
                 {
                     b.Property<int>("Id")
@@ -540,6 +570,17 @@ namespace EatonvilleDanceStudio.Migrations
                         .IsRequired();
 
                     b.Navigation("Enrollment");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.ClassAnnouncement", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.DanceClass", "DanceClass")
+                        .WithMany()
+                        .HasForeignKey("DanceClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DanceClass");
                 });
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.DanceClass", b =>

@@ -47,6 +47,7 @@ public class DanceClass
     
     // Links the class to a specific instructor
     public string? InstructorId { get; set; }
+    
     [System.ComponentModel.DataAnnotations.Schema.ForeignKey("InstructorId")]
     public ApplicationUser? Instructor { get; set; }
     

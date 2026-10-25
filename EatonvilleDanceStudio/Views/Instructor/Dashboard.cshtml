@@ -46,7 +46,17 @@
                                         <tr class="border-secondary">
                                             <td class="ps-4 text-light">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</td>
                                             <td>
-                                                <a asp-action="Roster" asp-route-id="@c.Id" class="text-neon text-decoration-none fw-bold">@c.ClassName &rarr;</a>
+                                                <strong>@c.ClassName</strong><br/>
+                                                <div class="mt-1">
+                                                    <a asp-action="Roster" asp-route-id="@c.Id" 
+                                                       class="badge border border-neon text-neon text-decoration-none me-2">
+                                                        Roster
+                                                    </a>
+                                                    <a asp-action="Board" asp-route-id="@c.Id" 
+                                                       class="badge bg-neon text-dark text-decoration-none">
+                                                        Board
+                                                    </a>
+                                                </div>
                                             </td>
                                             <td class="text-muted">@c.MinimumAge - @c.MaximumAge</td>
                                             <td><span class="badge bg-secondary text-light">@c.RequiredSkillLevel</span></td>
@@ -87,15 +97,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var c in Model.UpcomingSchedule)
-                                    {
-                                        <tr class="border-secondary">
-                                            <td class="ps-4 text-light">@c.DayOfWeek</td>
-                                            <td class="text-muted">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</td>
-                                            <td>@c.ClassName</td>
-                                            <td class="pe-4"><span class="badge border border-secondary text-muted">@c.RequiredSkillLevel</span></td>
-                                        </tr>
-                                    }
+                                @foreach (var c in Model.UpcomingSchedule)
+                                {
+                                    <tr class="border-secondary">
+                                        <td class="ps-4 text-light">@c.DayOfWeek</td>
+                                        <td class="text-muted">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</td>
+                                        <td>
+                                            <strong>@c.ClassName</strong><br/>
+                                            <div class="mt-1">
+                                                <a asp-action="Roster" asp-route-id="@c.Id" 
+                                                   class="badge border border-neon text-neon text-decoration-none me-2">
+                                                    Roster
+                                                </a>
+                                                <a asp-action="Board" asp-route-id="@c.Id" 
+                                                   class="badge bg-neon text-dark text-decoration-none">
+                                                    Board
+                                                </a>
+                                            </div>
+                                        </td>
+                                        <td class="pe-4"><span class="badge border border-secondary text-muted">@c.RequiredSkillLevel</span></td>
+                                    </tr>
+                                }
                                 </tbody>
                             </table>
                         </div>
