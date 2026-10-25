@@ -1,7 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace EatonvilleDanceStudio.Models;
+
+/// <summary>
+/// Represents an announcement made for a specific dance class.
+/// Includes details such as the announcement title, message, associated class,
+/// and the date the announcement was posted.
+/// </summary>
 
 public class ClassAnnouncement
 {
@@ -13,6 +20,7 @@ public class ClassAnnouncement
     public int DanceClassId { get; set; }
     
     [ForeignKey("DanceClassId")]
+    [BindNever] // Explicitly blocks the model binder from mapping this from a web request.
     public DanceClass? DanceClass { get; set; }
     
     [Required]

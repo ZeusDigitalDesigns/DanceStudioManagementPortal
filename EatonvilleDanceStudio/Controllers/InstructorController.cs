@@ -346,14 +346,20 @@ public class InstructorController : Controller
         
         if (danceClass != null)
         {
-            
-            // Stamp the current time before saving
-            model.NewAnnouncement.DatePosted = DateTime.Now;
-            
-            _context.ClassAnnouncements.Add(model.NewAnnouncement);
+            // Construct a fresh entity server-side to prevent over-posting attacks.
+            // Only extract the specific string values the user is allowed to edit.
+            ClassAnnouncement safeAnnouncement = new ClassAnnouncement
+            {
+                DanceClassId = danceClass.Id, // Use the verified ID from the database
+                Title = model.NewAnnouncement.Title,
+                Message = model.NewAnnouncement.Message,
+                DatePosted = DateTime.Now
+            };
+
+            _context.ClassAnnouncements.Add(safeAnnouncement);
             await _context.SaveChangesAsync();
             
-            TempData["SuccessMessage"] = "Announcement Successfully Posted";
+            TempData["SuccessMessage"] = "Announcement successfully posted!";
         }
         else
         {
