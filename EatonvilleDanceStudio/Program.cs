@@ -92,4 +92,24 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    ApplicationDbContext dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        // This applies any pending migrations
+        dbcontext.Database.Migrate();
+    }
+    catch(Exception ex)
+    {
+        // Logs the error and intentionally crashes the app startup
+        ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        logger.LogCritical(ex, "Database migration failed on startup.");
+
+        throw; // Tells the app to crash
+    }
+}
+
 app.Run();
