@@ -9,73 +9,78 @@
      to automatically generate the HTML inputs and validation spans. -->
 
 <div class="container mt-5">
-    <h2>Register a New Studio Account</h2>
-    <hr />
-    <div class="row">
+    <div class="row justify-content-center mt-5">
         <div class="col-md-6">
-            <form asp-controller="Account" asp-action="Register" method="post">
-                
-                <div asp-validation-summary="ModelOnly" 
-                     class="text-danger"></div>
-                
-                <!-- Email Field -->
-                <div class="form-group mb-3">
-                    <label asp-for="Email" class="control-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" 
-                          class="text-danger"></span>
+            <div class="card card-dark border-neon shadow-lg">
+                <div class="card-header bg-transparent text-center" style="border-bottom: 1px solid rgba(255, 16, 240, 0.3);">
+                    <h2 class="text-neon mb-0">Create an Account</h2>
                 </div>
+                <div class="card-body p-4">
+                    <form id="registerForm" method="post">
+                        
+                        <div asp-validation-summary="ModelOnly" 
+                             class="text-danger mb-3"></div>
 
-                <!-- Password Field -->
-                <div class="form-group mb-3">
-                    <label asp-for="Password" class="control-label"></label>
-                    <input asp-for="Password" class="form-control" />
-                    <span asp-validation-for="Password" 
-                          class="text-danger"></span>
-                </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" 
+                                   class="form-control form-control-dark" 
+                                   autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Email" class="text-muted">
+                                Email
+                            </label>
+                            <span asp-validation-for="Email" 
+                                  class="text-danger"></span>
+                        </div>
 
-                <!-- Confirm Password Field -->
-                <div class="form-group mb-3">
-                    <label asp-for="ConfirmPassword" 
-                           class="control-label"></label>
-                    <input asp-for="ConfirmPassword" class="form-control" />
-                    <span asp-validation-for="ConfirmPassword" 
-                          class="text-danger"></span>
-                </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="Password" 
+                                   class="form-control form-control-dark" 
+                                   autocomplete="new-password" aria-required="true" placeholder="password" />
+                            <label asp-for="Password" class="text-muted">
+                                Password
+                            </label>
+                            <span asp-validation-for="Password" 
+                                  class="text-danger"></span>
+                        </div>
 
-                <!-- The ToS Checkbox Shield -->
-                <div class="form-check mb-4">
-                    <input asp-for="HasAgreedToTerms" 
-                           class="form-check-input" />
-                    
-                    <label asp-for="HasAgreedToTerms" 
-                           class="form-check-label">
-                        I have read and agree to the 
-                        <a asp-controller="Home" asp-action="TermsOfService" 
-                           target="_blank">Terms of Service</a>
-                    </label>
-                    
-                    <!-- This span catches the strict [Range] validation -->
-                    <span asp-validation-for="HasAgreedToTerms" 
-                          class="text-danger d-block mt-1"></span>
-                </div>
+                        <div class="form-floating mb-3">
+                            <input asp-for="ConfirmPassword" 
+                                   class="form-control form-control-dark" 
+                                   autocomplete="new-password" aria-required="true" placeholder="confirm password" />
+                            <label asp-for="ConfirmPassword" class="text-muted">
+                                Confirm Password
+                            </label>
+                            <span asp-validation-for="ConfirmPassword" 
+                                  class="text-danger"></span>
+                        </div>
 
-                <!-- Submit Button -->
-                <div class="form-group">
-                    <input type="submit" value="Register Account" 
-                           class="btn btn-primary" />
+                        <div class="form-check mb-4">
+                            <input asp-for="HasAgreedToTerms" class="form-check-input" />
+                            <label asp-for="HasAgreedToTerms" class="form-check-label text-light">
+                                I agree to the <a asp-controller="Home" asp-action="TermsOfService" class="text-neon text-decoration-none" target="_blank">Terms of Service</a>
+                            </label>
+                            <div>
+                                <span asp-validation-for="HasAgreedToTerms" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" 
+                                class="btn btn-neon w-100 btn-lg">
+                            Register
+                        </button>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- This section injects the jQuery validation scripts so the ToS 
      checkbox shows the red error instantly without a page reload -->
-     @section Scripts {
-         @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
-         <script>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
         // High-level summary: Wires up the custom MustBeTrue attribute 
         // to jQuery client-side validation so it works instantly.
         $.validator.addMethod("mustbetrue", function (value, element) {
@@ -84,4 +89,4 @@
         
         $.validator.unobtrusive.adapters.addBool("mustbetrue");
     </script>
-     }
+}

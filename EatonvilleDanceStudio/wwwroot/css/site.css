@@ -1,68 +1,76 @@
+/* =========================================
+             GLOBAL VARIABLES
+   ========================================= */
+
+:root {
+    /* Standardized aggressive hot neon pink */
+    --neon-pink: #ff10f0;
+    --neon-pink-glow: rgba(255, 16, 240, 0.4);
+    --neon-pink-glow-strong: rgba(255, 16, 240, 0.6);
+
+    /* Dark mode surfaces */
+    --bg-dark: #0a0a0a;
+    --bg-surface: #1a1a1a;
+    --bg-surface-alt: #121212;
+}
+
+/* =========================================
+                BASE STYLES
+   ========================================= */
+
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: var(--bg-dark);
+    color: #f8f9fa;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
+/* =========================================
+           TYPOGRAPHY & UTILITIES
+   ========================================= */
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-body {
-    background-color: #0a0a0a; /* Deep black background */
-    color: #f8f9fa; /* Light text for contrast */
-}
-
-/* glowing text */
 .text-neon {
     color: var(--neon-pink) !important;
-    text-shadow: 0 0 5px #ff10f0, 0 0 10px #ff10f0;
+    text-shadow: 0 0 5px var(--neon-pink), 0 0 10px var(--neon-pink);
     font-weight: 600;
 }
 
-/* glowing button */
-.btn-neon {
-    background-color: transparent;
-    color: #ff10f0;
-    border: 2px solid #ff10f0;
-    box-shadow: 0 0 8px #ff10f0 inset, 0 0 8px #ff10f0;
-    transition: all 0.2s ease-in-out;
+.border-neon {
+    border: 1px solid var(--neon-pink) !important;
+    box-shadow: 0 0 15px var(--neon-pink-glow) !important;
 }
 
-.btn-neon:hover, .btn-neon:focus {
-    background-color: #ff10f0;
-    color: #000;
-    box-shadow: 0 0 15px #ff10f0 inset, 0 0 15px #ff10f0;
+.hero-border {
+    border: 2px solid var(--neon-pink) !important;
+    box-shadow: 0 0 20px var(--neon-pink-glow) !important;
 }
 
-/* Dark card background to pop off the black body */
-.card-dark {
-    background-color: #1a1a1a;
-    border: 1px solid #ff10f0; /* Pink border */
+/* =========================================
+               FORMS & INPUTS
+   ========================================= */
+
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
-/* Make inputs look cool on dark backgrounds */
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
 .form-control-dark {
     background-color: #222;
     color: white;
@@ -72,72 +80,48 @@ body {
 .form-control-dark:focus {
     background-color: #2a2a2a;
     color: white;
-    border-color: #ff10f0;
-    box-shadow: 0 0 5px #ff10f0;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 5px var(--neon-pink);
 }
 
 .form-control-dark::placeholder {
-    color: #999 !important; /* Light gray so it shows up on the dark background */
+    color: #999 !important;
     opacity: 1;
 }
 
-/* Make the floating label glow neon pink when the input is focused or filled out */
+/* Floating label glows neon when focused or filled */
 .form-floating > .form-control-dark:focus ~ label,
 .form-floating > .form-control-dark:not(:placeholder-shown) ~ label {
-    color: #ff10f0;
-    text-shadow: 0 0 5px #ff10f0;
+    color: var(--neon-pink);
+    text-shadow: 0 0 5px var(--neon-pink);
     background-color: transparent;
 }
 
-/* Custom Neon Pink & Dark Card Theme */
-:root {
-    --neon-pink: #ff2d95;
-    --neon-pink-glow: rgba(255, 45, 149, 0.4);
-    --dark-surface: #121212;
+/* =========================================
+                   BUTTONS
+   ========================================= */
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-.card-neon {
-    background-color: var(--dark-surface, #121212) !important;
-    border: 1px solid #ff10f0 !important;
-    box-shadow: 0 0 15px rgba(255, 16, 240, 0.35) !important;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+.btn-neon {
+    background-color: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    box-shadow: 0 0 8px var(--neon-pink) inset, 0 0 8px var(--neon-pink);
+    transition: all 0.2s ease-in-out;
 }
 
-.card-neon:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0 25px rgba(255, 16, 240, 0.6) !important;
-}
-
-.card-neon .card-header,
-.card-neon .card-footer {
-    background-color: rgba(255, 45, 149, 0.1) !important;
-    border-color: rgba(255, 45, 149, 0.3) !important;
-}
-
-.card-neon .card-title,
-.card-neon h3,
-.card-neon h4,
-.card-neon h5 {
-    color: var(--neon-pink) !important;
-    font-weight: 700;
-}
-
-.card-neon .btn-neon {
+.btn-neon:hover,
+.btn-neon:focus {
     background-color: var(--neon-pink);
-    color: #fff;
-    border: none;
-    font-weight: 600;
-}
-
-.card-neon .btn-neon:hover {
-    background-color: #e01b80;
-    color: #fff;
-    box-shadow: 0 0 10px var(--neon-pink);
-}
-
-.border-neon {
-    border: 1px solid #ff10f0 !important;
-    box-shadow: 0 0 15px rgba(255, 16, 240, 0.35) !important;
+    color: #000;
+    box-shadow: 0 0 15px var(--neon-pink) inset, 0 0 15px var(--neon-pink);
 }
 
 .btn-outline-neon {
@@ -148,13 +132,68 @@ body {
     transition: all 0.2s ease-in-out;
 }
 
-.btn-outline-neon:hover{
+.btn-outline-neon:hover {
     background-color: var(--neon-pink);
     color: #000;
     box-shadow: 0 0 10px var(--neon-pink-glow);
 }
 
-.hero-border {
-    border: 2px solid #ff10f0 !important;
-    box-shadow: 0 0 20px rgba(255, 16, 240, 0.45) !important;
+/* =========================================
+                    CARDS
+   ========================================= */
+
+.card-dark {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--neon-pink);
+}
+
+.card-neon {
+    background-color: var(--bg-surface-alt) !important;
+    border: 1px solid var(--neon-pink) !important;
+    box-shadow: 0 0 15px var(--neon-pink-glow) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-neon:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 25px var(--neon-pink-glow-strong) !important;
+}
+
+.card-neon .card-header,
+.card-neon .card-footer {
+    background-color: rgba(255, 16, 240, 0.1) !important;
+    border-color: rgba(255, 16, 240, 0.3) !important;
+}
+
+.card-neon .card-title,
+.card-neon h3,
+.card-neon h4,
+.card-neon h5 {
+    color: var(--neon-pink) !important;
+    font-weight: 700;
+}
+
+/* =========================================
+                    NAVBAR
+   ========================================= */
+
+.navbar .nav-link,
+.navbar .navbar-brand {
+    color: #000000 !important;
+    font-weight: 800;
+    text-shadow:
+            0 0 4px var(--neon-pink),
+            0 0 8px var(--neon-pink),
+            0 0 12px var(--neon-pink);
+    transition: all 0.3s ease-in-out;
+}
+
+.navbar .nav-link:hover,
+.navbar .navbar-brand:hover {
+    color: #000000 !important;
+    text-shadow:
+            0 0 8px var(--neon-pink),
+            0 0 16px var(--neon-pink),
+            0 0 24px var(--neon-pink);
+    transform: scale(1.05);
 }
