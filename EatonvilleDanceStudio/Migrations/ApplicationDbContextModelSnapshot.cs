@@ -219,6 +219,10 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ParentId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ParentProfileId")
                         .HasColumnType("int");
 
