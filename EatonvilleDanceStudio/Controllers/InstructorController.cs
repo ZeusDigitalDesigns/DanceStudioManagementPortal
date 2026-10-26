@@ -296,7 +296,7 @@ public class InstructorController : Controller
     /// <returns>The class board view populated with class details and announcements if the
     /// instructor is authorized; otherwise, an unauthorized or not-found result.</returns>
     
-    public async Task<IActionResult> Board(int id)
+    public async Task<IActionResult> Board(int id, int page = 1)
     {
         string? userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
@@ -306,17 +306,31 @@ public class InstructorController : Controller
 
         if (danceClass == null) return NotFound();
 
-        List<ClassAnnouncement> announcements = await _context.ClassAnnouncements
+        // Pagination math
+        int pageSize = 5; 
+        int totalPosts = await _context.ClassAnnouncements
+            .CountAsync(a => a.DanceClassId == id);
+            
+        int totalPages = (int)Math.Ceiling(totalPosts / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+        // Only fetch the 5 announcements for the current page
+        List<ClassAnnouncement> announcements = await _context
+            .ClassAnnouncements
             .Where(a => a.DanceClassId == id)
             .OrderByDescending(a => a.DatePosted)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
         ClassBoardViewModel viewModel = new ClassBoardViewModel
         {
             DanceClass = danceClass,
-            Announcements = announcements
+            Announcements = announcements,
+            CurrentPage = page,
+            TotalPages = totalPages
         };
-        
+
         return View(viewModel);
     }
     

@@ -13,4 +13,9 @@ public class ClassBoardViewModel
     
     // A blank slate for the instructor to post a new announcement
     public ClassAnnouncement NewAnnouncement { get; set; } = new ClassAnnouncement();
+    
+    // Pagination tracking
+    public int CurrentPage { get; set; } = 1;
+    
+    public int TotalPages { get; set; } = 1;
 }

@@ -97,8 +97,28 @@
                                 </div>
                             }
                         </div>
+                        <!-- Pagination Controls -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav class="mt-4" aria-label="Board pages">
+                                <ul class="pagination pagination-sm justify-content-center">
+                                    @for (int i = 1; i <= Model.TotalPages; i++)
+                                    {
+                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link bg-dark text-neon border-secondary" 
+                                               asp-action="Board" 
+                                               asp-route-id="@Model.DanceClass.Id" 
+                                               asp-route-page="@i">
+                                                @i
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
                     }
                 </div>
+                
             </div>
         </div>
 
