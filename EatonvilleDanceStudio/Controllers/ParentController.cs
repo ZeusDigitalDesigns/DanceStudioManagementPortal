@@ -1,6 +1,7 @@
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
 using EatonvilleDanceStudio.ViewModels;
+using EatonvilleDanceStudio.Views.Instructor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,55 +25,53 @@ public class ParentController : Controller
         _userManager = userManager;
     }
 
-    // GET: /Parent/Dashboard **Gemini Supplied Code**
+    // GET: /Parent/Board/{id}
 
     /// <summary>
-    /// Displays the dashboard for the parent user, providing an overview of their profile, associated dancers,
-    /// enrolled dance classes, recent ledger transactions, and current account balance.
-    /// The data is synthesized into a single view model for easy visualization and interaction.
+    /// Displays the class board for a specific dance class, allowing parents to
+    /// view related announcements.
+    /// Ensures that the authenticated parent has a dancer enrolled in the
+    /// selected class before granting access.
     /// </summary>
-    /// <returns>A view containing detailed information about the parent's profile, dancers,
-    /// enrollments, and account activity.</returns>
+    /// <param name="id">The unique identifier of the dance class to display.</param>
+    /// <returns>A view populated with class details and announcements if the
+    /// parent has access; otherwise, redirects to an appropriate action or error response.</returns>
     
-    public async Task<IActionResult> Dashboard()
+    public async Task<IActionResult> Board(int id)
     {
-        // 1. Get the currently logged-in parent
-        var userId = _userManager.GetUserId(User);
+        string? userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
-        // 2. Fetch ParentProfile including Dancers
-        var parentProfile = await _context.ParentProfiles
-            .Include(p => p.Dancers)
-            .FirstOrDefaultAsync(p => p.UserId == userId);
-
-        if (parentProfile == null) return NotFound("Parent profile not found");
-
-        // 3. Fetch enrollments for the parent's dancers
-        var dancerIds = parentProfile.Dancers.Select(d => d.Id).ToList();
-        var enrolledClasses = await _context.Enrollments
-            .Include(e => e.DanceClass)
+        // Security check: Verify the parent has a dancer in this class
+        bool isEnrolled = await _context.Enrollments
             .Include(e => e.Dancer)
-            .Where(e => dancerIds.Contains(e.DancerId))
-            .ToListAsync();
+            .AnyAsync(e => e.DanceClassId == id && 
+                           e.Dancer != null && 
+                           e.Dancer.ParentId == userId);
 
-        // 4. Fetch all ledger entries for this parent, newest first
-        var ledgerEntries = await _context.LedgerEntries
-            .Where(l => l.ParentId == userId)
-            .OrderByDescending(l => l.TransactionDate)
-            .ToListAsync();
-
-        // 5. Instantiate the View Model and populate our split lists and calculated balance
-        var viewModel = new ParentDashboardViewModel
+        if (!isEnrolled)
         {
-            Profile = parentProfile,
-            Dancers = parentProfile.Dancers.ToList(),
-            EnrolledClasses = enrolledClasses,
-            CurrentBalance = ledgerEntries.Sum(l => l.Amount),
-            RecentCharges = ledgerEntries.Where(l => l.Amount > 0).ToList(),
-            RecentPayments = ledgerEntries.Where(l => l.Amount <= 0).ToList()
+            TempData["ErrorMessage"] = "You do not have access to this board.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        DanceClass? danceClass = await _context.DanceClasses
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (danceClass == null) return NotFound();
+
+        List<ClassAnnouncement> announcements = await _context
+            .ClassAnnouncements
+            .Where(a => a.DanceClassId == id)
+            .OrderByDescending(a => a.DatePosted)
+            .ToListAsync();
+
+        ParentClassBoardViewModel viewModel = new ParentClassBoardViewModel
+        {
+            DanceClass = danceClass,
+            Announcements = announcements
         };
 
-        // 6. Pass the heavily-lifed data straight to the View
         return View(viewModel);
     }
 

@@ -36,4 +36,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // Tracks daily attendance for enrolled students
     public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    
+    // Tracks instructor announcements for dance classes
+    public DbSet<ClassAnnouncement> ClassAnnouncements { get; set; }
 }       

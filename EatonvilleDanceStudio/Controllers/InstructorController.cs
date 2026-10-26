@@ -42,7 +42,7 @@ public class InstructorController : Controller
             .Where(c => c.InstructorId == userId)
             .ToListAsync();
 
-        // FIX 1: Determine today's day of the week so the LINQ query below knows what 'today' is
+        // Determine today's day of the week so the LINQ query below knows what 'today' is
         var today = DateTime.Today.DayOfWeek.ToString();
         
         // Fetch upcoming private lesson slots today or in the future
@@ -52,7 +52,7 @@ public class InstructorController : Controller
             .ThenBy(p => p.StartTime)
             .ToListAsync();
 
-        // FIX 2: Fetch the instructor's 10 most recent time logs
+        //  Fetch the instructor's 10 most recent time logs
         var recentLogs = await _context.InstructorTimeLogs
             .Where(t => t.InstructorId == userId)
             .OrderByDescending(t => t.Date)
@@ -78,7 +78,7 @@ public class InstructorController : Controller
                 .ThenBy(c => c.StartTime)
                 .ToList(),
 
-            // FIX 3: Actually pass the queried data into the View Model so the HTML can see it
+            // Actually pass the queried data into the View Model so the HTML can see it
             PrivateLessons = privateLessons,
             RecentTimeLogs = recentLogs
         };
@@ -282,5 +282,105 @@ public class InstructorController : Controller
         
         // Redirect back to the roster page for the date they just edited
         return RedirectToAction(nameof(Roster), new { id = model.DanceClass.Id, date = model.ClassDate.ToString("yyyy-MM-dd") });
+    }
+    
+    // GET
+
+    /// <summary>
+    /// Retrieves the details of a specific dance class and its associated announcements.
+    /// Validates that the currently logged-in instructor is authorized to access the class.
+    /// If valid, organizes the information into a view model for display.
+    /// 
+    /// </summary>
+    /// <param name="id">The unique identifier of the dance class.</param>
+    /// <returns>The class board view populated with class details and announcements if the
+    /// instructor is authorized; otherwise, an unauthorized or not-found result.</returns>
+    
+    public async Task<IActionResult> Board(int id, int page = 1)
+    {
+        string? userId = _userManager.GetUserId(User);
+        if (userId == null) return Unauthorized();
+
+        DanceClass? danceClass = await _context.DanceClasses
+            .FirstOrDefaultAsync(c => c.Id == id && c.InstructorId == userId);
+
+        if (danceClass == null) return NotFound();
+
+        // Pagination math
+        int pageSize = 5; 
+        int totalPosts = await _context.ClassAnnouncements
+            .CountAsync(a => a.DanceClassId == id);
+            
+        int totalPages = (int)Math.Ceiling(totalPosts / (double)pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+        // Only fetch the 5 announcements for the current page
+        List<ClassAnnouncement> announcements = await _context
+            .ClassAnnouncements
+            .Where(a => a.DanceClassId == id)
+            .OrderByDescending(a => a.DatePosted)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        ClassBoardViewModel viewModel = new ClassBoardViewModel
+        {
+            DanceClass = danceClass,
+            Announcements = announcements,
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(viewModel);
+    }
+    
+    //POST
+
+    /// <summary>
+    /// Handles the posting of a new announcement for a specific dance class.
+    /// Validates the instructor's authorization to post for the targeted class,
+    /// assigns a timestamp to the announcement, and saves it to the database.
+    /// </summary>
+    /// <param name="model">The view model containing the announcement details
+    /// and the dance class to which the announcement belongs.</param>
+    /// <returns>A redirection to the class board view, or an unauthorized result
+    /// if the instructor is not permitted to post the announcement.</returns>
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PostAnnouncement(ClassBoardViewModel model)
+    {
+        string? userId = _userManager.GetUserId(User);
+
+        if (userId == null) return Unauthorized();
+        
+        // Security check, does class belong to instructor
+        DanceClass? danceClass = await _context.DanceClasses
+            .FirstOrDefaultAsync(c => c.Id == model.NewAnnouncement.DanceClassId && c.InstructorId == userId);
+        
+        if (danceClass != null)
+        {
+            // Construct a fresh entity server-side to prevent over-posting attacks.
+            // Only extract the specific string values the user is allowed to edit.
+            ClassAnnouncement safeAnnouncement = new ClassAnnouncement
+            {
+                DanceClassId = danceClass.Id, // Use the verified ID from the database
+                Title = model.NewAnnouncement.Title,
+                Message = model.NewAnnouncement.Message,
+                DatePosted = DateTime.Now
+            };
+
+            _context.ClassAnnouncements.Add(safeAnnouncement);
+            await _context.SaveChangesAsync();
+            
+            TempData["SuccessMessage"] = "Announcement successfully posted!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "You do not have permission to post an announcement for this class";
+        }
+
+        return RedirectToAction(nameof(Board),
+            new { id = model.NewAnnouncement.DanceClassId });
     }
 }

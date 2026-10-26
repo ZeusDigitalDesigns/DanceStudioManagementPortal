@@ -8,9 +8,19 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="text-neon mb-0">@Model.DanceClass.ClassName</h1>
-            <p class="text-light mb-0">@Model.DanceClass.DayOfWeek @@ @Model.DanceClass.StartTime.ToString(@"hh\:mm")</p>
+            <p class="text-light mb-0">
+                @Model.DanceClass.DayOfWeek @@ @Model.DanceClass.StartTime.ToString(@"hh\:mm")
+            </p>
         </div>
-        <a asp-action="Dashboard" class="btn btn-outline-light">Back to Dashboard</a>
+        <div class="d-flex gap-2">
+            <a asp-action="Board" asp-route-id="@Model.DanceClass.Id" 
+               class="btn btn-neon">
+                Class Board
+            </a>
+            <a asp-action="Dashboard" class="btn btn-outline-light">
+                Back to Dashboard
+            </a>
+        </div>
     </div>
 
     <div class="card card-dark shadow-lg border-secondary">
