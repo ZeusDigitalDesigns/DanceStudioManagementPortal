@@ -39,15 +39,24 @@ public class Dancer
     public DateTime? DateOfBirth { get; set; }
 
     // --- New Properties for Issue #16 ---
+    
+    // Beginner, Intermediate, Advanced
     [Required]
     [StringLength(30)]
     [Display(Name = "Skill Level")]
-    public string SkillLevel { get; set; } = "Beginner"; // e.g., Beginner, Intermediate, Advanced
+    public string SkillLevel { get; set; } = "Beginner"; 
 
     public string? ProfilePhotoPath { get; set; }
     
+    // None, Pending, Approved, Rejected
     [StringLength(20)]
-    public string PhotoApprovalStatus { get; set; } = "None"; // None, Pending, Approved, Rejected
+    public string PhotoApprovalStatus { get; set; } = "None";
+
+    [Required]
+    [StringLength(10)]
+    [Display(Name = "Account Status")]
+    public string AccountStatus { get; set; } = "Approved";
+    
     
     // Navigation property for enrollments, representing the dancer's enrollments in one or more dance classes.
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

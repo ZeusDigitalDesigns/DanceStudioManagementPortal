@@ -197,3 +197,58 @@ body {
             0 0 24px var(--neon-pink);
     transform: scale(1.05);
 }
+
+/* =========================================
+                    DIRECTOR
+   ========================================= */
+
+/* 1. Swap the stark black for a clean, flat dark grey */
+body.theme-admin {
+    background-color: #2c2c2c !important; /* Flat dark grey */
+    color: #f8f9fa !important; /* Keep standard text light and readable */
+}
+
+/* 2. Keep the pink, but murder the glowing shadows */
+body.theme-admin .text-neon,
+body.theme-admin .border-neon,
+body.theme-admin .hero-border,
+body.theme-admin .btn-neon,
+body.theme-admin .btn-outline-neon,
+body.theme-admin .card-neon,
+body.theme-admin .navbar .nav-link,
+body.theme-admin .navbar .navbar-brand {
+    text-shadow: none !important;
+    box-shadow: none !important;
+    color: var(--neon-pink) !important;
+}
+
+/* Ensure the borders stay pink but don't emit light */
+body.theme-admin .border-neon,
+body.theme-admin .hero-border,
+body.theme-admin .card-neon,
+body.theme-admin .btn-neon,
+body.theme-admin .btn-outline-neon {
+    border-color: var(--neon-pink) !important;
+}
+
+/* 3. Cards get a slightly lighter grey to pop off the background */
+body.theme-admin .card-neon,
+body.theme-admin .card-dark {
+    background-color: #383838 !important;
+    border: 1px solid var(--neon-pink) !important;
+}
+
+/* 4. Navbar matches the flat theme with a solid pink border */
+body.theme-admin .navbar {
+    background-color: #222222 !important;
+    border-bottom: 1px solid var(--neon-pink) !important;
+    box-shadow: none !important;
+}
+
+/* 5. Fix hover states so buttons fill pink without glowing */
+body.theme-admin .btn-neon:hover,
+body.theme-admin .btn-outline-neon:hover {
+    background-color: var(--neon-pink) !important;
+    color: #000 !important;
+    box-shadow: none !important;
+}

@@ -1,4 +1,23 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Identity
+@using EatonvilleDanceStudio.Data
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    // Figure out the theme before the page even starts drawing
+    string roleThemeClass = "";
+    if (SignInManager.IsSignedIn(User))
+    {
+        if (User.IsInRole("Director"))
+        {
+            roleThemeClass = "theme-admin"; 
+        }
+        else if (User.IsInRole("Instructor"))
+        {
+            roleThemeClass = "theme-instructor";
+        }
+    }
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -9,7 +28,8 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EatonvilleDanceStudio.styles.css" asp-append-version="true" />
 </head>
-<body>
+<!-- Inject the calculated theme class right here -->
+<body class="@roleThemeClass">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom border-neon box-shadow mb-3">
             <div class="container-fluid">
