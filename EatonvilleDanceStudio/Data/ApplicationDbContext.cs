@@ -39,4 +39,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // Tracks instructor announcements for dance classes
     public DbSet<ClassAnnouncement> ClassAnnouncements { get; set; }
+    
+    // Maps the Invoice class to the Invoices SQL table
+    public DbSet<Invoice> Invoices { get; set; }
 }       
