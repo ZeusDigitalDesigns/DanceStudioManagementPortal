@@ -3,12 +3,13 @@ using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 
 namespace EatonvilleDanceStudio.Controllers
 {
-    // This controller manages user accounts. Right now,
-    // it handles the GET and POST for the registration page to ensure
-    // the ToS is strictly validated before saving the user to the database.
+    /// <summary>
+    /// Provides methods for managing user accounts, including registration and authentication.
+    /// </summary>
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -30,32 +31,48 @@ namespace EatonvilleDanceStudio.Controllers
             return View();
         }
 
-        // This catches the form submission. If the ToS 
-        // checkbox is empty, ModelState.IsValid will evaluate to false.
+        /// <summary>
+        /// Handles the registration process for a new user.
+        /// Validates the user input, creates a new user, and stores the user in the database
+        /// if all validations pass, otherwise returns the view with validation errors.
+        /// </summary>
+        /// <param name="model">The view model containing the user registration input, including
+        /// email, password, confirm password, and agreement to terms of service.</param>
+        /// <returns>
+        /// Returns an IActionResult. If the registration is successful, redirects to a specified
+        /// route or action. If validation or creation fails, re-displays the registration page
+        /// with errors.
+        /// </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             if (ModelState.IsValid)
             {
+                // 1. Declare the user exactly once with all required fields
                 ApplicationUser user = new ApplicationUser
                 {
                     UserName = model.Email,
-                    Email = model.Email
+                    Email = model.Email,
+                    FirstName = "Zac",
+                    LastName = "Kimball",
+                    AccountStatus = "Approved"
                 };
-
+        
+                // 2. Execute the database creation exactly once
                 IdentityResult result = await _userManager.CreateAsync(
-                    user, model.Password);
+                    user, 
+                    model.Password);
 
                 if (result.Succeeded)
                 {
-                    // BOOM: Stamp them as a Director before signing in
+                    // 3. Stamp them as a Director before signing in
                     await _userManager.AddToRoleAsync(user, "Director");
-                    
-                    // Now sign them in (assuming you have _signInManager)
+            
+                    // 4. Sign them in
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    
-                    return RedirectToAction("Index", "Home");
+            
+                    return RedirectToAction("ManageUsers", "Director");
                 }
 
                 // If creation failed (e.g., password too weak), surface errors
