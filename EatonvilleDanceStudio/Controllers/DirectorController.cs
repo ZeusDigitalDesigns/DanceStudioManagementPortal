@@ -202,6 +202,15 @@ public class DirectorController : Controller
             .Where(i => i.Status == "Paid" && i.CreatedDate >= startOfMonth)
             .SumAsync(i => i.Amount);
 
+        // Calculate Upcoming Events (upcoming events within the next 5 days)
+        viewModel.UpcomingEvents = await _context.StudioEvents
+            .Include(e => e.Instructor)
+            .Where(e => e.StartTime > DateTime.Now)
+            .OrderBy(e => e.StartTime)
+            .Take(5)
+            .ToListAsync();
+        
+        
         return View(viewModel);
     }
     
@@ -232,4 +241,282 @@ public class DirectorController : Controller
         // Refresh the dashboard so the invoice moves to the "Recently Paid" table
         return RedirectToAction(nameof(ManageUsers));
     }
+
+    /// <summary>
+    /// Prepares and displays a form for creating a new studio event.
+    /// The form is pre-populated with dropdown options for instructors, event types, and room selections.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing a view populated with a CreateStudioEventViewModel.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> CreateEvent()
+    {
+        CreateStudioEventViewModel viewModel = new CreateStudioEventViewModel();
+    
+        // Fetch only users who are officially Instructors
+        IList<ApplicationUser> instructors = 
+            await _userManager.GetUsersInRoleAsync("Instructor");
+        
+        viewModel.InstructorsList = instructors.Select(i => new SelectListItem
+        {
+            Value = i.Id,
+            Text = $"{i.FirstName} {i.LastName}"
+        }).ToList();
+
+        // Populate static dropdowns for the studio's operational choices
+        viewModel.EventTypesList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Class", Text = "Standard Class" },
+            new SelectListItem { Value = "Private", Text = "Private Lesson" },
+            new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
+            new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
+            new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
+            new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
+            new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
+            new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
+        };
+
+        viewModel.RoomsList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
+            new SelectListItem { Value = "Upstairs", Text = "Upstairs" }
+        };
+
+        return View(viewModel);
+    }
+    
+    // POST: /Director/CreateEvent
+    /// <summary>
+    /// Handles the creation of a new studio event by processing submitted form data
+    /// and saving the event to the database if the provided data is valid.
+    /// </summary>
+    /// <param name="model">
+    /// The view model containing details of the event to be created, including its title,
+    /// description, event type, start and end time, room, capacity, and instructor.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the "ManageUsers" view upon successful event creation.
+    /// If the model validation fails, it returns the same view with reloaded dropdown values.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateEvent(
+        CreateStudioEventViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            StudioEvent newEvent = new StudioEvent
+            {
+                Title = model.Title,
+                Description = model.Description,
+                EventType = model.EventType,
+                StartTime = model.StartTime,
+                EndTime = model.EndTime,
+                Room = model.Room,
+                Capacity = model.Capacity,
+                InstructorId = model.InstructorId
+            };
+
+            _context.StudioEvents.Add(newEvent);
+            await _context.SaveChangesAsync();
+
+            // Send the boss back to the dashboard once the event is saved
+            return RedirectToAction("ManageUsers");
+        }
+
+        // If validation fails, we MUST reload the dropdowns 
+        // to prevent the view from crashing
+        IList<ApplicationUser> instructors = 
+            await _userManager.GetUsersInRoleAsync("Instructor");
+        
+        model.InstructorsList = instructors.Select(i => new SelectListItem
+        {
+            Value = i.Id,
+            Text = $"{i.FirstName} {i.LastName}"
+        }).ToList();
+
+        model.EventTypesList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Class", Text = "Standard Class" },
+            new SelectListItem { Value = "Private", Text = "Private Lesson" },
+            new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
+            new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
+            new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
+            new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
+            new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
+            new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
+        };
+
+        model.RoomsList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
+            new SelectListItem { Value = "Studio B", Text = "Studio B" },
+            new SelectListItem { Value = "Studio C", Text = "Studio C" }
+        };
+
+        return View(model);
+    }
+    
+    // POST: /Director/DeleteEvent
+
+    /// <summary>
+    /// Deletes a specified studio event based on its unique identifier.
+    /// </summary>
+    /// <param name="eventId">
+    /// The unique identifier of the studio event to be deleted.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the ManageUsers view after the event
+    /// is deleted or if the event is not found.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteEvent(int eventId)
+    {
+        // Find the event in the database
+        StudioEvent? eventToDelete = await _context.StudioEvents.FindAsync(eventId);
+    
+        if (eventToDelete != null)
+        {
+            // Remove it and save changes
+            _context.StudioEvents.Remove(eventToDelete);
+            await _context.SaveChangesAsync();
+        }
+
+        // Refresh the dashboard
+        return RedirectToAction(nameof(ManageUsers));
+    }
+    
+    // GET: /Director/EditEvent/{id}
+    /// <summary>
+    /// Retrieves the details of a specific studio event for editing.
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the studio event to be edited.
+    /// </param>
+    /// <return>
+    /// An IActionResult that renders a view populated with the studio event's details
+    /// and associated dropdown lists for editing the event.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> EditEvent(int id)
+    {
+        StudioEvent? studioEvent = await _context.StudioEvents.FindAsync(id);
+    
+        if (studioEvent == null)
+        {
+            return NotFound(); // Failsafe if the event was already deleted
+        }
+
+        EditStudioEventViewModel viewModel = new EditStudioEventViewModel
+        {
+            Id = studioEvent.Id,
+            Title = studioEvent.Title,
+            Description = studioEvent.Description,
+            EventType = studioEvent.EventType,
+            StartTime = studioEvent.StartTime,
+            EndTime = studioEvent.EndTime,
+            Room = studioEvent.Room,
+            Capacity = studioEvent.Capacity,
+            InstructorId = studioEvent.InstructorId
+        };
+
+        // Load the dropdown lists
+        IList<ApplicationUser> instructors = 
+            await _userManager.GetUsersInRoleAsync("Instructor");
+        
+        viewModel.InstructorsList = instructors.Select(i => new SelectListItem
+        {
+            Value = i.Id,
+            Text = $"{i.FirstName} {i.LastName}"
+        }).ToList();
+
+        viewModel.EventTypesList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Class", Text = "Standard Class" },
+            new SelectListItem { Value = "Private", Text = "Private Lesson" },
+            new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
+            new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
+            new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
+            new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
+            new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
+            new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
+        };
+
+        viewModel.RoomsList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
+            new SelectListItem { Value = "Upstairs", Text = "Upstairs" }
+        };
+
+        return View(viewModel);
+    }
+    
+    // POST: /Director/EditEvent/{id}
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> EditEvent(int id, EditStudioEventViewModel model)
+{
+    // Security check to ensure the URL ID matches the form ID
+    if (id != model.Id)
+    {
+        return NotFound();
+    }
+
+    if (ModelState.IsValid)
+    {
+        StudioEvent? eventToUpdate = await _context.StudioEvents.FindAsync(id);
+        
+        if (eventToUpdate == null)
+        {
+            return NotFound();
+        }
+
+        // Apply the updated values
+        eventToUpdate.Title = model.Title;
+        eventToUpdate.Description = model.Description;
+        eventToUpdate.EventType = model.EventType;
+        eventToUpdate.StartTime = model.StartTime;
+        eventToUpdate.EndTime = model.EndTime;
+        eventToUpdate.Room = model.Room;
+        eventToUpdate.Capacity = model.Capacity;
+        eventToUpdate.InstructorId = model.InstructorId;
+
+        await _context.SaveChangesAsync();
+        
+        // Kick back to the dashboard to see the updated schedule
+        return RedirectToAction(nameof(ManageUsers));
+    }
+
+    // If validation fails, reload those dropdowns so the view doesn't crash
+    IList<ApplicationUser> instructors = 
+        await _userManager.GetUsersInRoleAsync("Instructor");
+        
+    model.InstructorsList = instructors.Select(i => new SelectListItem
+    {
+        Value = i.Id,
+        Text = $"{i.FirstName} {i.LastName}"
+    }).ToList();
+
+    model.EventTypesList = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Class", Text = "Standard Class" },
+        new SelectListItem { Value = "Private", Text = "Private Lesson" },
+        new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
+        new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
+        new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
+        new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
+        new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
+        new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
+    };
+
+    model.RoomsList = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
+        new SelectListItem { Value = "Upstairs", Text = "Upstairs" }
+    };
+
+    return View(model);
+}
 }

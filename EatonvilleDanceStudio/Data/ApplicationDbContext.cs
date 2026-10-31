@@ -42,4 +42,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // Maps the Invoice class to the Invoices SQL table
     public DbSet<Invoice> Invoices { get; set; }
+    
+    // Maps the StudioEvent class to the StudioEvents SQL table
+    public DbSet<StudioEvent> StudioEvents { get; set; }
 }       

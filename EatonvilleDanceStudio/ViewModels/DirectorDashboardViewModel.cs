@@ -24,4 +24,7 @@ public class DirectorDashboardViewModel
     public decimal TotalOutstanding { get; set; }
     public decimal TotalPastDue { get; set; }
     public decimal RevenueThisMonth { get; set; }
+    
+    // Holds the upcoming schedule for the calendar widget
+    public List<StudioEvent> UpcomingEvents { get; set; } = new List<StudioEvent>();
 }
