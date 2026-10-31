@@ -23,13 +23,111 @@
         </div>
 
         <!-- Shared Calendar -->
+        
         <div class="col-md-6 mb-4">
             <div class="card card-dark h-100">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0 text-neon">Studio Calendar</h4>
+                    <a asp-controller="Director" asp-action="CreateEvent" class="btn btn-neon btn-sm">
+                        + Schedule Event
+                    </a>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Calendar loading...</p>
+                    @if (Model.UpcomingEvents.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-borderless align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date & Time</th>
+                                        <th>Room</th>
+                                        <th>Instructor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (StudioEvent ev in Model.UpcomingEvents)
+                                    {
+                                        <!-- Added cursor pointer and modal triggers -->
+                                        <tr style="border-bottom: 1px solid #444; cursor: pointer;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#eventModal-@ev.Id">
+                                            
+                                            <td>
+                                                <strong>@ev.Title</strong><br/>
+                                                <small class="text-neon">
+                                                    @ev.EventType
+                                                </small>
+                                            </td>
+                                            <td>
+                                                @ev.StartTime.ToString("MMM dd") <br/>
+                                                <small class="text-muted">
+                                                    @ev.StartTime.ToString("h:mm tt") - 
+                                                    @ev.EndTime.ToString("h:mm tt")
+                                                </small>
+                                            </td>
+                                            <td>@ev.Room</td>
+                                            <td>
+                                                @(ev.Instructor != null 
+                                                    ? $"{ev.Instructor.FirstName} {ev.Instructor.LastName}" 
+                                                    : "Unassigned")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Generate the hidden modals for each scheduled event -->
+                        @foreach (StudioEvent ev in Model.UpcomingEvents)
+                        {
+                            <div class="modal fade" id="eventModal-@ev.Id" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content bg-dark text-light border-neon">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title text-neon">Manage Event</h5>
+                                            <button type="button" class="btn-close btn-close-white" 
+                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>@ev.Title</strong> (@ev.EventType)</p>
+                                            <p class="text-muted small mb-4">
+                                                Date: @ev.StartTime.ToString("MMM dd, yyyy")<br/>
+                                                Time: @ev.StartTime.ToString("h:mm tt") to @ev.EndTime.ToString("h:mm tt")<br/>
+                                                Room: @ev.Room <br/>
+                                                Instructor: @(ev.Instructor != null ? $"{ev.Instructor.FirstName} {ev.Instructor.LastName}" : "Unassigned")
+                                            </p>
+                                            <p>What would you like to do with this event?</p>
+                                        </div>
+                                        <div class="modal-footer border-secondary justify-content-between">
+                                            
+                                            <!-- Delete Form -->
+                                            <form asp-controller="Director" asp-action="DeleteEvent" method="post">
+                                                <input type="hidden" name="eventId" value="@ev.Id" />
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    Delete
+                                                </button>
+                                            </form>
+
+                                            <div>
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <!-- We will build the Edit route next! -->
+                                                <a asp-controller="Director" asp-action="EditEvent" asp-route-id="@ev.Id" class="btn btn-neon">
+                                                    Edit Event
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No upcoming events scheduled.</p>
+                    }
                 </div>
             </div>
         </div>
