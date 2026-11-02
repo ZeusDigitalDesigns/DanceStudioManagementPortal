@@ -1,48 +1,45 @@
-using System.Formats.Asn1;
-using EatonvilleDanceStudio.Data;
+using System;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
 using Stripe;
+using EatonvilleDanceStudio.Data;
+using EatonvilleDanceStudio.Models;
 using EatonvilleDanceStudio.Settings;
 using EatonvilleDanceStudio.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+string? connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+    
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => 
+        options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+    
 builder.Services.AddControllersWithViews();
 
-builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.Configure<StripeSettings>(
+    builder.Configuration.GetSection("Stripe"));
 
 builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 
-StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe")["SecretKey"];
+StripeConfiguration.ApiKey = builder.Configuration
+    .GetSection("Stripe")["SecretKey"];
 
-var app = builder.Build();
-
-// Auto Apply any pending Entity Framework Migrations on startup
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-    }
-}
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -52,7 +49,6 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -72,43 +68,32 @@ app.MapControllerRoute(
 app.MapRazorPages()
    .WithStaticAssets();
 
-using (var scope = app.Services.CreateScope())
+// Handle Migrations and Seeding
+using (IServiceScope scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    await ContextSeed.SeedRolesAsync(roleManager);
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
+    IServiceProvider services = scope.ServiceProvider;
     try
     {
+        ApplicationDbContext context = services
+            .GetRequiredService<ApplicationDbContext>();
+            
+        // Apply any pending Entity Framework Migrations
+        context.Database.Migrate();
+
+        // Run your custom Seeders (Test Instructor is now in SeedData)
+        RoleManager<IdentityRole> roleManager = services
+            .GetRequiredService<RoleManager<IdentityRole>>();
+            
+        await ContextSeed.SeedRolesAsync(roleManager);
         await SeedData.InitializeAsync(services);
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
-}
-
-using (IServiceScope scope = app.Services.CreateScope())
-{
-    ApplicationDbContext dbcontext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-    try
-    {
-        // This applies any pending migrations
-        dbcontext.Database.Migrate();
-    }
-    catch(Exception ex)
-    {
-        // Logs the error and intentionally crashes the app startup
-        ILogger<Program> logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        
-        logger.LogCritical(ex, "Database migration failed on startup.");
-
-        throw; // Tells the app to crash
+        ILogger<Program> logger = services
+            .GetRequiredService<ILogger<Program>>();
+            
+        logger.LogCritical(ex, "Database migration or seeding failed.");
+        throw; // Intentionally crash if the DB fails to build
     }
 }
 

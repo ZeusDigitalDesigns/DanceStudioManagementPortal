@@ -12,6 +12,10 @@
     --bg-dark: #0a0a0a;
     --bg-surface: #1a1a1a;
     --bg-surface-alt: #121212;
+
+    /* FORCE BOOTSTRAP TO USE YOUR NEON PINK INSTEAD OF BLUE */
+    --bs-primary: var(--neon-pink);
+    --bs-primary-rgb: 255, 16, 240;
 }
 
 /* =========================================
@@ -89,7 +93,6 @@ body {
     opacity: 1;
 }
 
-/* Floating label glows neon when focused or filled */
 .form-floating > .form-control-dark:focus ~ label,
 .form-floating > .form-control-dark:not(:placeholder-shown) ~ label {
     color: var(--neon-pink);
@@ -199,24 +202,33 @@ body {
 }
 
 /* =========================================
-                    DIRECTOR
+          DIRECTOR & INSTRUCTOR THEMES
    ========================================= */
 
 /* Swap the stark black for a clean, flat dark grey */
-body.theme-admin {
-    background-color: #2c2c2c !important; /* Flat dark grey */
-    color: #f8f9fa !important; /* Keep standard text light and readable */
+body.theme-admin,
+body.theme-instructor {
+    background-color: #2c2c2c !important;
+    color: #f8f9fa !important;
 }
 
 /* Keep the pink, but murder the glowing shadows */
 body.theme-admin .text-neon,
+body.theme-instructor .text-neon,
 body.theme-admin .border-neon,
+body.theme-instructor .border-neon,
 body.theme-admin .hero-border,
+body.theme-instructor .hero-border,
 body.theme-admin .btn-neon,
+body.theme-instructor .btn-neon,
 body.theme-admin .btn-outline-neon,
+body.theme-instructor .btn-outline-neon,
 body.theme-admin .card-neon,
+body.theme-instructor .card-neon,
 body.theme-admin .navbar .nav-link,
-body.theme-admin .navbar .navbar-brand {
+body.theme-instructor .navbar .nav-link,
+body.theme-admin .navbar .navbar-brand,
+body.theme-instructor .navbar .navbar-brand {
     text-shadow: none !important;
     box-shadow: none !important;
     color: var(--neon-pink) !important;
@@ -224,22 +236,30 @@ body.theme-admin .navbar .navbar-brand {
 
 /* Ensure the borders stay pink but don't emit light */
 body.theme-admin .border-neon,
+body.theme-instructor .border-neon,
 body.theme-admin .hero-border,
+body.theme-instructor .hero-border,
 body.theme-admin .card-neon,
+body.theme-instructor .card-neon,
 body.theme-admin .btn-neon,
-body.theme-admin .btn-outline-neon {
+body.theme-instructor .btn-neon,
+body.theme-admin .btn-outline-neon,
+body.theme-instructor .btn-outline-neon {
     border-color: var(--neon-pink) !important;
 }
 
 /* Cards get a slightly lighter grey to pop off the background */
 body.theme-admin .card-neon,
-body.theme-admin .card-dark {
+body.theme-instructor .card-neon,
+body.theme-admin .card-dark,
+body.theme-instructor .card-dark {
     background-color: #383838 !important;
     border: 1px solid var(--neon-pink) !important;
 }
 
 /* Navbar matches the flat theme with a solid pink border */
-body.theme-admin .navbar {
+body.theme-admin .navbar,
+body.theme-instructor .navbar {
     background-color: #222222 !important;
     border-bottom: 1px solid var(--neon-pink) !important;
     box-shadow: none !important;
@@ -247,7 +267,9 @@ body.theme-admin .navbar {
 
 /* Fix hover states so buttons fill pink without glowing */
 body.theme-admin .btn-neon:hover,
-body.theme-admin .btn-outline-neon:hover {
+body.theme-instructor .btn-neon:hover,
+body.theme-admin .btn-outline-neon:hover,
+body.theme-instructor .btn-outline-neon:hover {
     background-color: var(--neon-pink) !important;
     color: #000 !important;
     box-shadow: none !important;
@@ -255,60 +277,57 @@ body.theme-admin .btn-outline-neon:hover {
 
 /* Ensure normal text pops off the dark grey */
 body.theme-admin p,
+body.theme-instructor p,
 body.theme-admin span,
+body.theme-instructor span,
 body.theme-admin label,
-body.theme-admin td {
+body.theme-instructor label,
+body.theme-admin td,
+body.theme-instructor td {
     color: #d265f3 !important;
 }
 
-body.theme-admin .text-muted {
+body.theme-admin .text-muted,
+body.theme-instructor .text-muted {
     color: #e197f8 !important;
 }
 
 /* Make Tables look sharp on the dashboard */
-body.theme-admin .table {
+body.theme-admin .table,
+body.theme-instructor .table {
     color: #d265f3;
     border-color: #d265f3;
 }
 
-body.theme-admin .table th {
+body.theme-admin .table th,
+body.theme-instructor .table th {
     color: var(--neon-pink);
     border-bottom: 2px solid var(--neon-pink);
     text-transform:uppercase;
     font-size: 0.85rem;
 }
 
-/* Kill the default Bootstrap blue focus ring on form inputs */
+/* ADMIN/INSTRUCTOR FLAT FOCUS OVERRIDES (NO GLOW) */
 body.theme-admin .form-control:focus,
-body.theme-admin .form-select:focus {
+body.theme-instructor .form-control:focus,
+body.theme-admin .form-select:focus,
+body.theme-instructor .form-select:focus {
     border-color: var(--neon-pink) !important;
-    
-    /* This will create a soft pink glow instead of the blue ring */
-    box-shadow: 0 0 0 0.25rem rgba(255, 20, 147, 0.25) !important;
-    background-color: #2b2b2b !important;
-    color: #d265f3;
-}
-
-/*===========================================
-     ADMIN FLAT FOCUS OVERRIDES (NO GLOW)
-=============================================*/
-
-body.theme-admin .form-control:focus,
-body.theme-admin .form-select:focus {
-    border-color: var(--neon-pink) !important;
-    box-shadow: none !important; 
+    box-shadow: none !important;
     outline: none !important;
     background-color: #2b2b2b !important;
     color: #d265f3;
 }
 
-body.theme-admin .btn:focus {
-    box-shadow: none !important; 
+body.theme-admin .btn:focus,
+body.theme-instructor .btn:focus {
+    box-shadow: none !important;
     outline: 2px solid var(--neon-pink) !important;
     outline-offset: 2px;
 }
 
 /* Keep the Export button's flat outline green instead of pink */
-body.theme-admin .btn-outline-success:focus {
-    outline-color: #198754 !important; /* Flat Bootstrap green */
+body.theme-admin .btn-outline-success:focus,
+body.theme-instructor .btn-outline-success:focus {
+    outline-color: #198754 !important;
 }

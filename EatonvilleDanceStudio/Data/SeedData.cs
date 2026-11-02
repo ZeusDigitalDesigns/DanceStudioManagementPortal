@@ -1,52 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using EatonvilleDanceStudio.Models;
 
 namespace EatonvilleDanceStudio.Data;
 
 /// <summary>
-/// Provides functionality for seeding initial data into the application's database during startup.
-/// This includes setting up foundational roles, creating a master account, and provisioning
-/// starter dance classes for a fresh database.
+/// Provides functionality for seeding initial data into the application's 
+/// database during startup. This includes setting up foundational roles, 
+/// creating a master account, provisioning a test instructor, and 
+/// assigning starter dance classes.
 /// </summary>
-
 public class SeedData
 {
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
-        // Resolve the Identity managers AND the Database Context from the dependency injection container
-        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+        // Resolve managers and DB Context from dependency injection
+        RoleManager<IdentityRole> roleManager = serviceProvider
+            .GetRequiredService<RoleManager<IdentityRole>>();
+            
+        UserManager<ApplicationUser> userManager = serviceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+            
+        ApplicationDbContext context = serviceProvider
+            .GetRequiredService<ApplicationDbContext>();
 
         // Define and create the foundational roles for the studio
         string[] roleNames = { "Director", "Instructor", "Parent", "Dancer" };
-        foreach (var roleName in roleNames)
+        
+        foreach (string roleName in roleNames)
         {
-            var roleExist = await roleManager.RoleExistsAsync(roleName);
+            bool roleExist = await roleManager.RoleExistsAsync(roleName);
             if (!roleExist)
             {
                 await roleManager.CreateAsync(new IdentityRole(roleName));
             }
         }
 
-        // Define your master account email TESTING
-        // UPDATE THIS TO THE EMAIL YOU WANT TO USE: IT WILL GET DELETED LATER
-        var directorEmail = "zues253@gmail.com"; 
+        // Define and create the master Director account
+        string directorEmail = "director@gmail.com"; 
 
-        var directorUser = await userManager.FindByEmailAsync(directorEmail);
+        ApplicationUser? directorUser = await userManager
+            .FindByEmailAsync(directorEmail);
         
         if (directorUser == null)
         {
-            // If you haven't registered this account yet, create it and promote it
             directorUser = new ApplicationUser
             {
                 UserName = directorEmail,
                 Email = directorEmail,
-                EmailConfirmed = true
+                EmailConfirmed = true, 
+                FirstName = "Studio",
+                LastName = "Director"
             };
             
-            // Creates the user with a valid Identity password
-            var createPowerUser = await userManager.CreateAsync(directorUser, "EatonvilleDanceStudio1!");
+            IdentityResult createPowerUser = await userManager
+                .CreateAsync(directorUser, "NewPassword123!");
             
             if (createPowerUser.Succeeded)
             {
@@ -54,62 +67,106 @@ public class SeedData
             }
             else 
             {
-                // If the password or creation fails, print the exact reason to the console
-                foreach (var error in createPowerUser.Errors)
+                foreach (IdentityError error in createPowerUser.Errors)
                 {
-                    Console.WriteLine($"Failed to create user: {error.Description}");
+                    Console.WriteLine($"Failed to create Director: " +
+                                      $"{error.Description}");
                 }
             }
         }
         else
         {
-            // Force Confirm the email 
             if (!directorUser.EmailConfirmed)
             {
                 directorUser.EmailConfirmed = true;
                 await userManager.UpdateAsync(directorUser);
             }
             
-            // Promote it to Director
             if (!await userManager.IsInRoleAsync(directorUser, "Director"))
             {
                 await userManager.AddToRoleAsync(directorUser, "Director");
             }
         } 
 
-        // Provision starter Dance Classes for fresh database deployments
+        // Define and create the Test Instructor account
+        string instructorEmail = "instructor@gmail.com"; 
+        
+        ApplicationUser? instructorUser = await userManager
+            .FindByEmailAsync(instructorEmail);
+            
+        if (instructorUser == null)
+        {
+            instructorUser = new ApplicationUser
+            {
+                UserName = instructorEmail,
+                Email = instructorEmail,
+                EmailConfirmed = true,
+                FirstName = "Test",
+                LastName = "Instructor"
+            };
+            
+            IdentityResult createInstructor = await userManager
+                .CreateAsync(instructorUser, "Password123!");
+                
+            if (createInstructor.Succeeded)
+            {
+                await userManager.AddToRoleAsync(instructorUser, "Instructor");
+            }
+        }
+
+        // Provision starter Dance Classes linked to the Test Instructor
         if (!context.DanceClasses.Any())
         {
-            var starterClasses = new List<DanceClass>
+            List<DanceClass> starterClasses = new List<DanceClass>
             {
                 new DanceClass
                 {
-                    ClassName = "Tiny Tots Ballet",
-                    Description = "A fun, introductory ballet class focusing on basic movement and rhythm.",
+                    ClassName = "Beginner Ballet",
+                    Description = "A fun, introductory ballet class " +
+                                  "focusing on basic movement and rhythm.",
                     MinimumAge = 3,
                     MaximumAge = 5,
                     RequiredSkillLevel = "Beginner",
                     Capacity = 12,
                     DayOfWeek = "Monday",
                     StartTime = new TimeSpan(15, 30, 0), // 3:30 PM
-                    EndTime = new TimeSpan(16, 15, 0)    // 4:15 PM
+                    EndTime = new TimeSpan(16, 15, 0),   // 4:15 PM
+                    InstructorId = instructorUser!.Id    // Link to Instructor
                 },
                 new DanceClass
                 {
                     ClassName = "Intermediate Hip Hop",
-                    Description = "High-energy hip hop routine focusing on choreography and stage presence.",
+                    Description = "High-energy hip hop routine focusing " +
+                                  "on choreography and stage presence.",
                     MinimumAge = 10,
                     MaximumAge = 15,
                     RequiredSkillLevel = "Intermediate",
                     Capacity = 20,
                     DayOfWeek = "Wednesday",
                     StartTime = new TimeSpan(17, 0, 0),  // 5:00 PM
-                    EndTime = new TimeSpan(18, 0, 0)     // 6:00 PM
+                    EndTime = new TimeSpan(18, 0, 0),    // 6:00 PM
+                    InstructorId = instructorUser!.Id    // Link to Instructor
                 }
             };
 
             context.DanceClasses.AddRange(starterClasses);
             await context.SaveChangesAsync();
+        }
+        else
+        {
+            // Fallback: If classes exist but have no instructor, assign them
+            List<DanceClass> orphanedClasses = await context.DanceClasses
+                .Where(c => string.IsNullOrEmpty(c.InstructorId))
+                .ToListAsync();
+                
+            if (orphanedClasses.Any())
+            {
+                foreach (DanceClass orphanedClass in orphanedClasses)
+                {
+                    orphanedClass.InstructorId = instructorUser!.Id;
+                }
+                await context.SaveChangesAsync();
+            }
         }
     } 
 }

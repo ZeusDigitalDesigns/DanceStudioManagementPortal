@@ -5,50 +5,63 @@
 }
 
 <div class="container mt-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="text-neon mb-0">@Model.DanceClass.ClassName</h1>
             <p class="text-light mb-0">
-                @Model.DanceClass.DayOfWeek @@ @Model.DanceClass.StartTime.ToString(@"hh\:mm")
+                @Model.DanceClass.DayOfWeek 
+                @@ @Model.DanceClass.StartTime.ToString(@"hh\:mm")
             </p>
         </div>
         <div class="d-flex gap-2">
+            <!-- Squared off flat buttons -->
             <a asp-action="Board" asp-route-id="@Model.DanceClass.Id" 
-               class="btn btn-neon">
+               class="btn btn-outline-neon rounded-0">
                 Class Board
             </a>
-            <a asp-action="Dashboard" class="btn btn-outline-light">
+            <a asp-action="Dashboard" 
+               class="btn btn-outline-secondary rounded-0">
                 Back to Dashboard
             </a>
         </div>
     </div>
 
-    <div class="card card-dark shadow-lg border-secondary">
-        <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+    <!-- Removed shadow-lg and added rounded-0 to keep the flat UI -->
+    <div class="card card-dark rounded-0 border-neon">
+        <div class="card-header border-bottom border-neon bg-transparent 
+                    d-flex justify-content-between align-items-center">
             <h4 class="text-neon mb-0">Attendance Tracker</h4>
-            <span class="badge bg-secondary text-light fs-6">Date: @Model.ClassDate.ToShortDateString()</span>
+            <span class="badge bg-secondary text-light fs-6 rounded-0">
+                Date: @Model.ClassDate.ToShortDateString()
+            </span>
         </div>
         <div class="card-body p-0">
             <form asp-action="SubmitAttendance" method="post">
                 
-                <!-- Hidden fields to pass the main class info back to the POST method -->
+                <!-- Hidden fields to pass the main class info back to POST -->
                 <input type="hidden" asp-for="DanceClass.Id" />
                 <input type="hidden" asp-for="ClassDate" />
 
                 @if (!Model.AttendanceList.Any())
                 {
                     <div class="p-4 text-center">
-                        <p class="text-light mb-0">No dancers are currently enrolled in this class.</p>
+                        <p class="text-light mb-0">
+                            No dancers are currently enrolled in this class.
+                        </p>
                     </div>
                 }
                 else
                 {
                     <div class="table-responsive">
-                        <table class="table table-dark table-hover mb-0 align-middle">
+                        <table class="table table-dark table-hover mb-0 
+                                      align-middle">
                             <thead>
-                                <tr class="border-secondary">
+                                <tr class="border-neon">
                                     <th class="text-neon ps-4">Dancer</th>
                                     <th class="text-neon">Status</th>
+                                    <!-- Added Medical Alerts back in -->
+                                    <th class="text-neon">Medical Alerts</th>
                                     <th class="text-neon pe-4">Notes</th>
                                 </tr>
                             </thead>
@@ -57,31 +70,59 @@
                                 {
                                     <tr class="border-secondary">
                                         <td class="ps-4">
-                                            <!-- Hidden fields to keep track of the specific record we are updating/adding -->
-                                            <input type="hidden" asp-for="AttendanceList[i].Id" />
-                                            <input type="hidden" asp-for="AttendanceList[i].EnrollmentId" />
-                                            <input type="hidden" asp-for="AttendanceList[i].Date" />
+                                            <input type="hidden" 
+                                                asp-for="AttendanceList[i].Id" />
+                                            <input type="hidden" 
+                                                asp-for="AttendanceList[i].EnrollmentId" />
+                                            <input type="hidden" 
+                                                asp-for="AttendanceList[i].Date" />
                                             
-                                            <strong>@Model.AttendanceList[i].Enrollment?.Dancer?.FirstName @Model.AttendanceList[i].Enrollment?.Dancer?.LastName</strong>
+                                            <strong>
+                                                @Model.AttendanceList[i].Enrollment?.Dancer?.FirstName 
+                                                @Model.AttendanceList[i].Enrollment?.Dancer?.LastName
+                                            </strong>
                                         </td>
                                         <td>
-                                            <select asp-for="AttendanceList[i].Status" class="form-select bg-dark text-light border-secondary">
+                                            <!-- Flat form inputs -->
+                                            <select asp-for="AttendanceList[i].Status" 
+                                                    class="form-select bg-dark text-light 
+                                                           border-secondary rounded-0">
                                                 <option value="Present">Present</option>
                                                 <option value="Absent">Absent</option>
                                                 <option value="Excused">Excused</option>
                                                 <option value="Tardy">Tardy</option>
                                             </select>
                                         </td>
+                                        <td>
+                                            <!-- Pulling EF Core data for alerts -->
+                                            @if (!string.IsNullOrEmpty(
+                                                Model.AttendanceList[i].Enrollment?.Dancer?.MedicalAlerts))
+                                            {
+                                                <span class="badge bg-danger rounded-0">
+                                                    @Model.AttendanceList[i].Enrollment?.Dancer?.MedicalAlerts
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">None</span>
+                                            }
+                                        </td>
                                         <td class="pe-4">
-                                            <input asp-for="AttendanceList[i].Notes" class="form-control bg-dark text-light border-secondary" placeholder="Optional notes (e.g., Left early)..." />
+                                            <input asp-for="AttendanceList[i].Notes" 
+                                                   class="form-control bg-dark text-light 
+                                                          border-secondary rounded-0" 
+                                                   placeholder="Optional notes..." />
                                         </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
-                    <div class="p-3 bg-black border-top border-secondary text-end">
-                        <button type="submit" class="btn btn-neon btn-lg">Save Attendance</button>
+                    <div class="p-3 bg-transparent border-top border-neon text-end">
+                        <button type="submit" 
+                                class="btn btn-outline-neon rounded-0 btn-lg">
+                            Save Attendance
+                        </button>
                     </div>
                 }
             </form>

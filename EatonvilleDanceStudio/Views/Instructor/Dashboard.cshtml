@@ -1,298 +1,189 @@
+@using EatonvilleDanceStudio.Models
 @model EatonvilleDanceStudio.ViewModels.InstructorDashboardViewModel
-
 @{
-    ViewData["Title"] = "Instructor Hub";
+    ViewData["Title"] = "Instructor Dashboard";
 }
 
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="text-neon mb-0">Instructor Hub</h1>
-        <!-- Using the instructor's email or username here as a placeholder for their name -->
-        <p class="text-light mb-0">Welcome back, @Model.Instructor.UserName!</p>
+    <!-- Dashboard Header: Flat text, no weird text-shadows -->
+    <h1 class="text-primary fw-bold" style="text-shadow: none;">
+        Welcome, @Model.Instructor.FirstName
+    </h1>
+    <hr class="border-primary border-2 opacity-100" />
+    
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success rounded-0 border-0">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger rounded-0 border-0">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- ROW 1: Today's Schedule & Log Hours -->
+    <div class="row mb-4">
+        <!-- Left Column: Today's Schedule -->
+        <div class="col-md-7">
+            <div class="card card-dark rounded-0 h-100">
+                <div class="card-header border-bottom border-primary">
+                    <h5 class="mb-0 text-primary">Today's Classes</h5>
+                </div>
+                <ul class="list-group list-group-flush">
+                    @if (Model.TodaysSchedule.Count == 0)
+                    {
+                        <li class="list-group-item bg-transparent text-muted border-0">
+                            No classes scheduled for today. Kick back.
+                        </li>
+                    }
+                    else
+                    {
+                        @foreach (DanceClass c in Model.TodaysSchedule)
+                        {
+                            <li class="list-group-item bg-transparent text-light 
+                                       border-secondary d-flex 
+                                       justify-content-between align-items-center">
+                                <div>
+                                    <strong>@c.ClassName</strong><br />
+                                    <small class="text-secondary">
+                                        @c.StartTime.ToString("t") - 
+                                        @c.EndTime.ToString("t")
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <!-- Flat secondary button for the Board -->
+                                    <a asp-controller="Instructor" asp-action="Board" asp-route-id="@c.Id" 
+                                       class="btn btn-sm btn-outline-neon rounded-0">
+                                        Messages
+                                    </a>
+    
+                                    <!-- Existing neon button for the Roster -->
+                                    <a asp-action="Roster" asp-route-id="@c.Id" 
+                                       class="btn btn-sm btn-outline-neon rounded-0">
+                                        View Roster
+                                    </a>
+                                </div>
+                            </li>
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+
+        <!-- Right Column: Log Hours Form -->
+        <div class="col-md-5">
+            <div class="card card-dark rounded-0 h-100">
+                <div class="card-header border-bottom border-primary">
+                    <h5 class="mb-0 text-primary">Log Hours</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="LogHours" method="post">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">Date</label>
+                            <input asp-for="NewLog.Date" type="date" 
+                                   class="form-control bg-secondary text-light 
+                                          border-0 rounded-0" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary">
+                                Hours Worked
+                            </label>
+                            <input asp-for="NewLog.Hours" type="number" 
+                                   step="0.5" class="form-control bg-secondary 
+                                          text-light border-0 rounded-0" required />
+                        </div>
+                        <!-- Replaced outline-primary with outline-neon -->
+                        <button type="submit" 
+                                class="btn btn-outline-neon w-100 rounded-0 mt-3">
+                            Submit for Approval
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="row g-4">
-        
-        <!-- Today's Schedule -->
-        <div class="col-lg-12 mb-2">
-            <div class="card card-dark shadow-lg border-secondary">
-                <div class="card-header border-secondary bg-transparent">
-                    <h4 class="text-neon mb-0">Today's Schedule</h4>
+    <!-- ROW 2: Upcoming Schedule & Recent Logs -->
+    <div class="row">
+        <!-- Left Column: Upcoming Classes -->
+        <div class="col-md-7">
+            <div class="card card-dark rounded-0 mb-4">
+                <div class="card-header border-bottom border-primary">
+                    <h5 class="mb-0 text-primary">Upcoming Classes</h5>
                 </div>
-                <div class="card-body p-0">
-                    @if (!Model.TodaysSchedule.Any())
+                <ul class="list-group list-group-flush">
+                    @if (Model.UpcomingSchedule.Count == 0)
                     {
-                        <div class="p-4 text-center">
-                            <p class="text-light mb-0">You have no classes scheduled for today. Enjoy the day off!</p>
-                        </div>
+                        <li class="list-group-item bg-transparent text-muted border-0">
+                            No upcoming classes found.
+                        </li>
                     }
                     else
                     {
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0 align-middle">
-                                <thead>
-                                    <tr class="border-secondary">
-                                        <th class="text-neon ps-4">Time</th>
-                                        <th class="text-neon">Class Name</th>
-                                        <th class="text-neon">Ages</th>
-                                        <th class="text-neon">Level</th>
-                                        <!-- Note: Capacity will show 0 for enrollments until we link that data up later! -->
-                                        <th class="text-neon pe-4 text-end">Capacity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var c in Model.TodaysSchedule)
-                                    {
-                                        <tr class="border-secondary">
-                                            <td class="ps-4 text-light">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</td>
-                                            <td>
-                                                <strong>@c.ClassName</strong><br/>
-                                                <div class="mt-1">
-                                                    <a asp-action="Roster" asp-route-id="@c.Id" 
-                                                       class="badge border border-neon text-neon text-decoration-none me-2">
-                                                        Roster
-                                                    </a>
-                                                    <a asp-action="Board" asp-route-id="@c.Id" 
-                                                       class="badge bg-neon text-dark text-decoration-none">
-                                                        Board
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            <td class="text-muted">@c.MinimumAge - @c.MaximumAge</td>
-                                            <td><span class="badge bg-secondary text-light">@c.RequiredSkillLevel</span></td>
-                                            <td class="pe-4 text-end">@c.Enrollments.Count / @c.Capacity</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                        @foreach (DanceClass c in Model.UpcomingSchedule)
+                        {
+                            <li class="list-group-item bg-transparent text-light 
+                                       border-secondary">
+                                <strong>@c.ClassName</strong> 
+                                <span class="text-secondary ms-2">
+                                    (@c.DayOfWeek, @c.StartTime.ToString("t"))
+                                </span>
+                            </li>
+                        }
                     }
-                </div>
+                </ul>
             </div>
         </div>
 
-        <!-- Upcoming Schedule -->
-        <div class="col-lg-12">
-            <div class="card card-dark shadow-lg border-secondary">
-                <div class="card-header border-secondary bg-transparent">
-                    <h4 class="text-neon mb-0">Upcoming This Week</h4>
+        <!-- Right Column: Recent Time Logs -->
+        <div class="col-md-5">
+            <div class="card card-dark rounded-0 mb-4">
+                <div class="card-header border-bottom border-primary">
+                    <h5 class="mb-0 text-primary">Recent Time Logs</h5>
                 </div>
                 <div class="card-body p-0">
-                    @if (!Model.UpcomingSchedule.Any())
-                    {
-                        <div class="p-4 text-center">
-                            <p class="text-light mb-0">No upcoming classes assigned.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0 align-middle">
-                                <thead>
-                                    <tr class="border-secondary">
-                                        <th class="text-neon ps-4">Day</th>
-                                        <th class="text-neon">Time</th>
-                                        <th class="text-neon">Class Name</th>
-                                        <th class="text-neon pe-4">Level</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                @foreach (var c in Model.UpcomingSchedule)
-                                {
-                                    <tr class="border-secondary">
-                                        <td class="ps-4 text-light">@c.DayOfWeek</td>
-                                        <td class="text-muted">@c.StartTime.ToString(@"hh\:mm") - @c.EndTime.ToString(@"hh\:mm")</td>
-                                        <td>
-                                            <strong>@c.ClassName</strong><br/>
-                                            <div class="mt-1">
-                                                <a asp-action="Roster" asp-route-id="@c.Id" 
-                                                   class="badge border border-neon text-neon text-decoration-none me-2">
-                                                    Roster
-                                                </a>
-                                                <a asp-action="Board" asp-route-id="@c.Id" 
-                                                   class="badge bg-neon text-dark text-decoration-none">
-                                                    Board
-                                                </a>
-                                            </div>
-                                        </td>
-                                        <td class="pe-4"><span class="badge border border-secondary text-muted">@c.RequiredSkillLevel</span></td>
-                                    </tr>
-                                }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-        <!-- Payroll & Time Logging -->
-        <div class="col-lg-12">
-            <hr class="border-secondary my-4" />
-            <h3 class="text-neon mb-3">Payroll & Time Tracking</h3>
-            <div class="row g-4">
-                
-                <!-- Log Hours Form -->
-                <div class="col-md-5">
-                    <div class="card card-dark shadow-lg border-secondary h-100">
-                        <div class="card-header border-secondary bg-transparent">
-                            <h5 class="text-light mb-0">Log a Shift</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- We use asp-action to route this directly to the POST method we just wrote -->
-                            <form asp-action="LogHours" method="post">
-                                <div class="mb-3">
-                                    <label asp-for="NewLog.Date" class="form-label text-neon">Date Worked</label>
-                                    <input asp-for="NewLog.Date" type="date" class="form-control bg-dark text-light border-secondary" required />
-                                </div>
-                                <div class="mb-3">
-                                    <label asp-for="NewLog.Hours" class="form-label text-neon">Hours (e.g. 1.5)</label>
-                                    <input asp-for="NewLog.Hours" type="number" step="0.25" min="0.25" max="16" class="form-control bg-dark text-light border-secondary" required />
-                                </div>
-                                <div class="mb-4">
-                                    <label asp-for="NewLog.Description" class="form-label text-neon">Shift Notes / Duties</label>
-                                    <textarea asp-for="NewLog.Description" class="form-control bg-dark text-light border-secondary" rows="2" placeholder="Taught Intro to Ballet and cleaned Studio A"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-neon w-100">Submit Hours</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Time Logs -->
-                <div class="col-md-7">
-                    <div class="card card-dark shadow-lg border-secondary h-100">
-                        <div class="card-header border-secondary bg-transparent">
-                            <h5 class="text-light mb-0">Recent Submissions</h5>
-                        </div>
-                        <div class="card-body p-0">
-                            @if (!Model.RecentTimeLogs.Any())
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentTimeLogs.Count == 0)
                             {
-                                <div class="p-4 text-center">
-                                    <p class="text-muted mb-0">No hours logged yet.</p>
-                                </div>
+                                <tr>
+                                    <td colspan="3" class="text-muted border-0">
+                                        No recent logs.
+                                    </td>
+                                </tr>
                             }
                             else
                             {
-                                <div class="table-responsive">
-                                    <table class="table table-dark table-hover mb-0 align-middle">
-                                        <thead>
-                                        <tr class="border-secondary">
-                                            <th class="text-neon ps-4">Date</th>
-                                            <th class="text-neon">Notes</th>
-                                            <th class="text-neon text-center">Hours</th>
-                                            <th class="text-neon pe-4 text-end">Status</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        @foreach (var log in Model.RecentTimeLogs)
-                                        {
-                                            <tr class="border-secondary">
-                                                <td class="ps-4 text-light">@log.Date.ToShortDateString()</td>
-                                                <td class="text-muted small">@log.Description</td>
-                                                <td class="text-center fw-bold">@log.Hours.ToString("0.##")</td>
-                                                <td class="pe-4 text-end">
-                                                    @if (log.IsApproved)
-                                                    {
-                                                        <span class="badge bg-success">Approved</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning text-dark">Pending</span>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                        </tbody>
-                                    </table>
-                                </div>
+                                @foreach (InstructorTimeLog log in Model.RecentTimeLogs)
+                                {
+                                    <tr>
+                                        <td>@log.Date.ToString("MM/dd")</td>
+                                        <td>@log.Hours</td>
+                                        <td>
+                                            @if (log.IsApproved)
+                                            {
+                                                <span class="text-success">Approved</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-warning">Pending</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
                             }
-                        </div>
-                    </div>
-                </div>
-                <!-- Private Lesson Management -->
-                <div class="col-lg-12">
-                    <hr class="border-secondary my-4" />
-                    <h3 class="text-neon mb-3">Private Lesson Blocks</h3>
-                    <div class="row g-4">
-                
-                        <!-- Add Time Slot Form -->
-                        <div class="col-md-5">
-                            <div class="card card-dark shadow-lg border-secondary h-100">
-                                <div class="card-header border-secondary bg-transparent">
-                                    <h5 class="text-light mb-0">Open a Time Slot</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form asp-action="AddPrivateLesson" method="post">
-                                        <div class="mb-3">
-                                            <label asp-for="NewLessonBlock.Date" class="form-label text-neon">Date</label>
-                                            <input asp-for="NewLessonBlock.Date" type="date" class="form-control bg-dark text-light border-secondary" required />
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-4">
-                                                <label asp-for="NewLessonBlock.StartTime" class="form-label text-neon">Start Time</label>
-                                                <input asp-for="NewLessonBlock.StartTime" type="time" class="form-control bg-dark text-light border-secondary" required />
-                                            </div>
-                                            <div class="col-md-6 mb-4">
-                                                <label asp-for="NewLessonBlock.EndTime" class="form-label text-neon">End Time</label>
-                                                <input asp-for="NewLessonBlock.EndTime" type="time" class="form-control bg-dark text-light border-secondary" required />
-                                            </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-outline-neon w-100 border-neon text-neon">Open Availability</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Upcoming Slots Ledger -->
-                        <div class="col-md-7">
-                            <div class="card card-dark shadow-lg border-secondary h-100">
-                                <div class="card-header border-secondary bg-transparent">
-                                    <h5 class="text-light mb-0">Your Open Blocks</h5>
-                                </div>
-                                <div class="card-body p-0">
-                                    @if (!Model.PrivateLessons.Any())
-                                    {
-                                        <div class="p-4 text-center">
-                                            <p class="text-muted mb-0">You have no upcoming private lesson blocks.</p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="table-responsive">
-                                            <table class="table table-dark table-hover mb-0 align-middle">
-                                                <thead>
-                                                <tr class="border-secondary">
-                                                    <th class="text-neon ps-4">Date</th>
-                                                    <th class="text-neon">Time</th>
-                                                    <th class="text-neon">Status / Student</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                @foreach (var block in Model.PrivateLessons)
-                                                {
-                                                    <tr class="border-secondary">
-                                                        <td class="ps-4 text-light">@block.Date.ToShortDateString()</td>
-                                                        <td class="text-muted small">@block.StartTime.ToString(@"hh\:mm") - @block.EndTime.ToString(@"hh\:mm")</td>
-                                                        <td>
-                                                            @if (block.IsBooked)
-                                                            {
-                                                                <span class="badge bg-primary">Booked: @block.StudentName</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge border border-success text-success">Available</span>
-                                                            }
-                                                        </td>
-                                                    </tr>
-                                                }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
