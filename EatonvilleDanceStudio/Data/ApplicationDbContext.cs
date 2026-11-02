@@ -45,4 +45,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // Maps the StudioEvent class to the StudioEvents SQL table
     public DbSet<StudioEvent> StudioEvents { get; set; }
+    
+    // Maps the StudioMessage class to the StudioMessages SQL table
+    public DbSet<StudioMessage> StudioMessages { get; set; }
 }       

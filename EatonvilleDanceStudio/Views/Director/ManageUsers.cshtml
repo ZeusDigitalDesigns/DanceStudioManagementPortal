@@ -13,8 +13,14 @@
         <!-- Students & Instructors Management -->
         <div class="col-md-6 mb-4">
             <div class="card card-dark h-100">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="mb-0 text-neon">User Management</h4>
+                    <a asp-controller="Director" asp-action="Messages" class="btn btn-neon btn-sm">
+                        Inbox
+                    </a>
+                    <a asp-controller="Director" asp-action="ComposeMessage" class="btn btn-neon btn-sm">
+                        Compose Message
+                    </a>
                 </div>
                 <div class="card-body">
                     <p class="text-muted">Student and Instructor tables loading...</p>

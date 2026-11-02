@@ -112,7 +112,7 @@ public class DirectorController : Controller
     /// amount, and other related invoice details.
     /// </param>
     /// <returns>
-    /// An IActionResult that redirects to the ManageUsers view upon successful creation of the invoice,
+    /// An IActionResult that redirects to the ManageUsers view upon successful creation of the invoice
     /// or reloads the current view with validation messages if the model state is invalid.
     /// </returns>
     [HttpPost]
@@ -523,9 +523,9 @@ public class DirectorController : Controller
     //GET
     /// <summary>
     /// Retrieves a view displaying a summary of payroll activity for instructors within a specified date range.
-    /// Default date range is the last 14 days if no dates are provided.
+    /// The default date range is the last 14 days if no dates are provided.
     /// </summary>
-    /// <param name="startDate">The beginning of the date range for filtering payroll data. If null, defaults to 14 days prior to today.</param>
+    /// <param name="startDate">The beginning of the date range for filtering payroll data. If null, defaults to 14 days prior today.</param>
     /// <param name="endDate">The end of the date range for filtering payroll data. If null, defaults to today.</param>
     /// <return>
     /// An IActionResult containing a view of the payroll review, presenting instructor time logs filtered by the specified date range.
@@ -603,4 +603,127 @@ public class DirectorController : Controller
 
         return File(System.Text.Encoding.UTF8.GetBytes(builder.ToString()), "text/csv", $"Payroll_{start:yyyyMMdd}_to_{end:yyyyMMdd}.csv");
     }
+    
+    // GET: /Director/Messages
+    /// <summary>
+    /// Retrieves a collection of messages for the currently authenticated user,
+    /// including both received messages (inbox) and sent messages.
+    /// </summary>
+    /// <returns>
+    /// An IActionResult containing a view with a MessagesViewModel.
+    /// The model contains two collections:
+    /// 1. 'Inbox' - Messages received by the user or sent studio-wide.
+    /// 2. 'Sent' - Messages sent by the user.
+    /// </returns>
+    [HttpGet]
+    public async Task<IActionResult> Messages()
+    {
+        string? currentUserId = _userManager.GetUserId(User);
+    
+        if (currentUserId == null) 
+        {
+            return NotFound("User not authenticated.");
+        }
+
+        MessagesViewModel viewModel = new MessagesViewModel();
+
+        // INBOX: Messages directed to you specifically, or studio-wide blasts (ReceiverId is null)
+        viewModel.Inbox = await _context.StudioMessages
+            .Include(m => m.Sender)
+            .Where(m => m.ReceiverId == currentUserId || m.ReceiverId == null)
+            .OrderByDescending(m => m.SentAt)
+            .ToListAsync();
+
+        // SENT: Messages where you are the sender
+        viewModel.Sent = await _context.StudioMessages
+            .Include(m => m.Receiver)
+            .Where(m => m.SenderId == currentUserId)
+            .OrderByDescending(m => m.SentAt)
+            .ToListAsync();
+
+        return View(viewModel);
+    }
+    
+    // GET: /Director/ComposeMessage
+    /// <summary>
+    /// Displays a form for composing a message, allowing the selection of a recipient
+    /// from a list of users or targeting a studio-wide broadcast.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing a view with a pre-populated ComposeMessageViewModel,
+    /// including the list of users sorted alphabetically by last name.
+    /// </return>
+    [HttpGet]
+    public IActionResult ComposeMessage()
+    {
+        ComposeMessageViewModel viewModel = new ComposeMessageViewModel();
+    
+        // Fetch all users and sort them alphabetically by last name for the dropdown
+        var allUsers = _userManager.Users.OrderBy(u => u.LastName).ToList();
+    
+        viewModel.UsersList = allUsers.Select(u => new SelectListItem
+        {
+            Value = u.Id,
+            Text = $"{u.FirstName} {u.LastName} ({u.Email})"
+        }).ToList();
+
+        return View(viewModel);
+    }
+    
+    //POST /Director/ComposeMessage
+    /// <summary>
+    /// Sends a message from the currently logged-in Director to a specified user
+    /// or broadcasts it to all users if no recipient is specified.
+    /// </summary>
+    /// <param name="model">
+    /// An instance of ComposeMessageViewModel containing the message details,
+    /// such as recipient, subject, and body, as well as a list of potential recipients.
+    /// </param>
+    /// <returns>
+    /// An IActionResult that redirects to the ManageUsers view upon successful message sending,
+    /// or re-displays the ComposeMessage view with validation errors and updated user list if validation fails.
+    /// </returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ComposeMessage(ComposeMessageViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            // Get the currently logged-in Director's ID
+            string? senderId = _userManager.GetUserId(User);
+        
+            if (senderId != null)
+            {
+                StudioMessage newMessage = new StudioMessage
+                {
+                    SenderId = senderId,
+                    
+                    // If ReceiverId is null, it acts as a studio blast
+                    ReceiverId = model.ReceiverId, 
+                    Subject = model.Subject,
+                    Body = model.Body,
+                    SentAt = DateTime.Now,
+                    IsRead = false
+                };
+
+                _context.StudioMessages.Add(newMessage);
+                await _context.SaveChangesAsync();
+
+                // Kick back to the dashboard once the message flies
+                return RedirectToAction(nameof(ManageUsers));
+            }
+        }
+
+        // If validation fails, reload the dropdown so the view doesn't crash
+        var allUsers = _userManager.Users.OrderBy(u => u.LastName).ToList();
+    
+        model.UsersList = allUsers.Select(u => new SelectListItem
+        {
+            Value = u.Id,
+            Text = $"{u.FirstName} {u.LastName} ({u.Email})"
+        }).ToList();
+
+        return View(model);
+    }
+    
 }
