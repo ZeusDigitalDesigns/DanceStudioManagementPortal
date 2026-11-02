@@ -1,32 +1,30 @@
 ﻿@using EatonvilleDanceStudio.Data
-@using EatonvilleDanceStudio.Models
 @using Microsoft.AspNetCore.Identity
+@using EatonvilleDanceStudio.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
-
 
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
-        <!-- Shown when the user is successfully authenticated -->
         <li class="nav-item">
-            <a class="nav-link text-neon" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
+            <a class="nav-link text-neon fw-bold" asp-controller="Account" asp-action="Manage" title="Manage">
+                Hello @User.Identity?.Name!
+            </a>
         </li>
         <li class="nav-item">
             <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-                <button type="submit" class="nav-link btn btn-link text-neon">Logout</button>
+                <button type="submit" class="nav-link btn btn-link text-neon fw-bold border-0">Logout</button>
             </form>
         </li>
     }
     else
     {
-        <!-- Shown when the user is a guest -->
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="" 
-               asp-controller="Account" asp-action="Register">Register</a>
+            <a class="nav-link text-neon fw-bold" asp-area="Identity" asp-page="/Account/Register">Register</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-light" asp-area="Identity" asp-page="/Account/Login">Login</a>
+            <a class="nav-link text-neon fw-bold" asp-area="Identity" asp-page="/Account/Login">Login</a>
         </li>
     }
 </ul>

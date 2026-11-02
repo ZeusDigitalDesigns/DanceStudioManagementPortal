@@ -1,29 +1,26 @@
 @{
-    if (ViewData.TryGetValue("ParentLayout", out var parentLayout) && parentLayout !=  null)
-    {
-        Layout = parentLayout.ToString();
-    }
-    else
-    {
-        Layout = "/Areas/Identity/Pages/Account/Manage/_Layout.cshtml";
-    }
+    // Explicitly use the root application layout
+    Layout = "/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Manage your account</h1>
-
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
+<div class="container my-5">
     <div class="row">
-        <div class="col-md-3">
+        <!-- Sidebar Navigation Pill Links -->
+        <div class="col-md-3 mb-4">
             <partial name="_ManageNav" />
         </div>
+        
+        <!-- Form / Content Area -->
         <div class="col-md-9">
-            @RenderBody()
+            <div class="card card-dark border-secondary rounded-0 shadow-lg">
+                <div class="card-body p-4 text-light">
+                    @RenderBody()
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
+Í
 @section Scripts {
     @RenderSection("Scripts", required: false)
 }
