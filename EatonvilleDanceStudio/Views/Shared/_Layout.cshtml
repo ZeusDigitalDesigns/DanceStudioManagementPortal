@@ -1,10 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using EatonvilleDanceStudio.Data
+@using EatonvilleDanceStudio.Models
 @inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     // Figure out the theme before the page even starts drawing
+    // Prepped for the upcoming Parent and Dancer dashboards (Issues #67 & #68)
     string roleThemeClass = "";
+    
     if (SignInManager.IsSignedIn(User))
     {
         if (User.IsInRole("Director"))
@@ -14,6 +18,14 @@
         else if (User.IsInRole("Instructor"))
         {
             roleThemeClass = "theme-instructor";
+        }
+        else if (User.IsInRole("Parent"))
+        {
+            roleThemeClass = "theme-parent";
+        }
+        else if (User.IsInRole("Dancer"))
+        {
+            roleThemeClass = "theme-dancer";
         }
     }
 }
@@ -29,10 +41,11 @@
     <link rel="stylesheet" href="~/EatonvilleDanceStudio.styles.css" 
           asp-append-version="true" />
 </head>
-<!-- Inject the calculated theme class right here -->
+<!-- The calculated theme class controls the CSS layout -->
 <body class="@roleThemeClass">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom border-neon box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark 
+                    bg-dark border-bottom border-neon box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand text-neon fw-bold fs-3" 
                    asp-area="" asp-controller="Home" asp-action="Index">
@@ -45,7 +58,8 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-sm-inline-flex 
+                            justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-neon fw-bold" 
@@ -58,14 +72,41 @@
                                asp-action="Index">Classes</a>
                         </li>
                         
-                        <!-- Dynamic link that only renders for the Director -->
-                        @if (SignInManager.IsSignedIn(User) && User.IsInRole("Director"))
+                        <!-- Dynamic Dashboard Routing -->
+                        @if (SignInManager.IsSignedIn(User))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link text-neon fw-bold" 
-                                   asp-area="" asp-controller="Director" 
-                                   asp-action="ManageUsers">Dashboard</a>
-                            </li>
+                            if (User.IsInRole("Director"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-neon fw-bold" 
+                                       asp-controller="Director" 
+                                       asp-action="ManageUsers">Dashboard</a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Instructor"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-neon fw-bold" 
+                                       asp-controller="Instructor" 
+                                       asp-action="Dashboard">Dashboard</a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Parent"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-neon fw-bold" 
+                                       asp-controller="Parent" 
+                                       asp-action="Dashboard">Dashboard</a>
+                                </li>
+                            }
+                            else if (User.IsInRole("Dancer"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-neon fw-bold" 
+                                       asp-controller="Dancer" 
+                                       asp-action="Dashboard">Dashboard</a>
+                                </li>
+                            }
                         }
                     </ul>
                     <partial name="_LoginPartial" />
@@ -73,6 +114,7 @@
             </div>
         </nav>
     </header>
+    
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -85,6 +127,7 @@
             <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

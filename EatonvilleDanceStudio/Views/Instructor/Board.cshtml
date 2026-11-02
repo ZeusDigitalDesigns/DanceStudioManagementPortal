@@ -1,81 +1,55 @@
 @model EatonvilleDanceStudio.ViewModels.ClassBoardViewModel
-
 @{
     ViewData["Title"] = Model.DanceClass.ClassName + " - Board";
 }
 
-@using System.Text.RegularExpressions
-@using System.Net
-
-@functions {
-    public string MakeLinksClickable(string text)
-    {
-        if (string.IsNullOrEmpty(text)) return text;
-        
-        // Encode FIRST to neutralize any malicious HTML/scripts
-        string safeText = WebUtility.HtmlEncode(text);
-        
-        // Regex to find standard URLs
-        Regex urlRegex = new Regex(
-            @"((http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)"
-        );
-        
-        // Wrap the found URLs in an anchor tag and make them open in a new tab
-        return urlRegex.Replace(safeText, 
-            "<a href=\"$1\" target=\"_blank\" class=\"text-neon\">$1</a>");
-    }
-}
 <div class="container mt-4">
+    <!-- Header with Dashboard button and Post Update button -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="text-neon mb-0">@Model.DanceClass.ClassName Board</h1>
-            <p class="text-light mb-0">
-                Message board for enrolled students
-            </p>
+            <h1 class="text-neon mb-0" style="text-shadow: none;">@Model.DanceClass.ClassName Board</h1>
+            <p class="text-light mb-0">Message board for enrolled students</p>
         </div>
-        <a asp-action="Dashboard" class="btn btn-outline-light">
-            Back to Dashboard
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-controller="Instructor" asp-action="Dashboard" 
+               class="btn btn-outline-secondary rounded-0">
+                ← Dashboard
+            </a>
+        </div>
     </div>
+    <hr class="border-neon border-2 opacity-100" />
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success rounded-0 border-0">
+            @TempData["SuccessMessage"]
+        </div>
+    }
 
     <div class="row g-4">
-        
-        <!-- Post a New Message -->
+        <!-- Post a New Message Form -->
         <div class="col-md-5">
-            <div class="card card-dark shadow-lg border-secondary h-100">
-                <div class="card-header border-secondary bg-transparent">
-                    <h5 class="text-light mb-0">Post an Update</h5>
+            <div class="card card-dark rounded-0 border-neon h-100">
+                <div class="card-header border-bottom border-neon bg-transparent">
+                    <h5 class="text-neon mb-0">Post an Update</h5>
                 </div>
                 <div class="card-body">
                     <form asp-action="PostAnnouncement" method="post">
-                        
-                        <!-- Hidden ID to link the post to this class -->
-                        <input type="hidden" 
-                               asp-for="NewAnnouncement.DanceClassId" 
-                               value="@Model.DanceClass.Id" />
+                        <input type="hidden" asp-for="NewAnnouncement.DanceClassId" value="@Model.DanceClass.Id" />
 
                         <div class="mb-3">
-                            <label asp-for="NewAnnouncement.Title" 
-                                   class="form-label text-neon">
-                                Title
-                            </label>
+                            <label asp-for="NewAnnouncement.Title" class="form-label text-secondary">Title</label>
                             <input asp-for="NewAnnouncement.Title" 
-                                   class="form-control bg-dark text-light border-secondary" 
-                                   placeholder="e.g. Bring Recital Shoes!" 
-                                   required />
+                                   class="form-control bg-dark text-light border-secondary rounded-0" 
+                                   placeholder="e.g. Bring Recital Shoes!" required />
                         </div>
                         <div class="mb-4">
-                            <label asp-for="NewAnnouncement.Message" 
-                                   class="form-label text-neon">
-                                Message / Links
-                            </label>
+                            <label asp-for="NewAnnouncement.Message" class="form-label text-secondary">Message / Links</label>
                             <textarea asp-for="NewAnnouncement.Message" 
-                                      class="form-control bg-dark text-light border-secondary" 
-                                      rows="4" 
-                                      placeholder="Drop your notes or YouTube links here..." 
-                                      required></textarea>
+                                      class="form-control bg-dark text-light border-secondary rounded-0" 
+                                      rows="4" placeholder="Drop your notes or links here..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-neon w-100">
+                        <button type="submit" class="btn btn-outline-neon w-100 rounded-0">
                             Post to Board
                         </button>
                     </form>
@@ -83,65 +57,51 @@
             </div>
         </div>
 
-        <!-- Announcement Feed -->
+        <!-- Announcement Feed Table / List Container -->
         <div class="col-md-7">
-            <div class="card card-dark shadow-lg border-secondary h-100">
-                <div class="card-header border-secondary bg-transparent">
-                    <h5 class="text-light mb-0">Recent Announcements</h5>
+            <div class="card card-dark rounded-0 border-neon h-100">
+                <div class="card-header border-bottom border-neon bg-transparent">
+                    <h5 class="text-neon mb-0">Recent Announcements</h5>
                 </div>
-                <div class="card-body">
-                    @if (Model.Announcements.Count == 0)
+                <div class="card-body p-0">
+                    @if (Model.Announcements == null || !Model.Announcements.Any())
                     {
                         <div class="p-4 text-center">
-                            <p class="text-muted mb-0">
-                                You haven't posted any announcements yet.
-                            </p>
+                            <p class="text-muted mb-0">You haven't posted any announcements yet.</p>
                         </div>
                     }
                     else
                     {
-                        <div class="d-flex flex-column gap-3">
-                            @foreach (ClassAnnouncement post in Model.Announcements)
-                            {
-                                <div class="p-3 border border-secondary rounded">
-                                    <div class="d-flex justify-content-between">
-                                        <h5 class="text-neon mb-1">
-                                            @post.Title
-                                        </h5>
-                                        <small class="text-muted">
-                                            @post.DatePosted.ToShortDateString()
-                                        </small>
-                                    </div>
-                                    <p class="text-light mb-0 mt-2 text-break">
-                                        @Html.Raw(MakeLinksClickable(post.Message))
-                                    </p>
-                                </div>
-                            }
-                        </div>
-                        <!-- Pagination Controls -->
-                        @if (Model.TotalPages > 1)
-                        {
-                            <nav class="mt-4" aria-label="Board pages">
-                                <ul class="pagination pagination-sm justify-content-center">
-                                    @for (int i = 1; i <= Model.TotalPages; i++)
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0 align-middle">
+                                <thead>
+                                    <tr class="border-neon">
+                                        <th class="text-neon ps-4">TITLE</th>
+                                        <th class="text-neon">MESSAGE</th>
+                                        <th class="text-neon pe-4 text-end">DATE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var post in Model.Announcements)
                                     {
-                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                                            <a class="page-link bg-dark text-neon border-secondary" 
-                                               asp-action="Board" 
-                                               asp-route-id="@Model.DanceClass.Id" 
-                                               asp-route-page="@i">
-                                                @i
-                                            </a>
-                                        </li>
+                                        <tr class="border-secondary">
+                                            <td class="ps-4 fw-bold text-light">
+                                                @post.Title
+                                            </td>
+                                            <td class="text-secondary text-break" style="max-width: 350px;">
+                                                @post.Message
+                                            </td>
+                                            <td class="pe-4 text-end text-muted">
+                                                @post.DatePosted.ToString("MMM dd, yyyy")
+                                            </td>
+                                        </tr>
                                     }
-                                </ul>
-                            </nav>
-                        }
+                                </tbody>
+                            </table>
+                        </div>
                     }
                 </div>
-                
             </div>
         </div>
-
     </div>
 </div>

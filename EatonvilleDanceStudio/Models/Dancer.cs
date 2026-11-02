@@ -1,22 +1,18 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EatonvilleDanceStudio.Models;
 
 /// <summary>
-/// Represents a dancer enrolled at Eatonville Dance Studio.
+/// Represents a dancer participating in the Eatonville Dance Studio.
 /// </summary>
-/// <remarks>
-/// This class includes properties for identifying a dancer, associating them with a parent profile,
-/// detailing their skill level, and managing their photo and enrollment information.
-/// </remarks>
-
 public class Dancer
 {
     [Key]
     public int Id { get; set; }
     
-    // Foreign key linking the dancer to the parent
     [Required]
     public int ParentProfileId { get; set; }
     
@@ -37,10 +33,28 @@ public class Dancer
     [DataType(DataType.Date)]
     [Display(Name = "Dancer Date of Birth")]
     public DateTime? DateOfBirth { get; set; }
-
-    // --- New Properties for Issue #16 ---
     
-    // Beginner, Intermediate, Advanced
+    // Calculates age automatically from DateOfBirth
+    // This doesn't get saved to SQL, it just calculates on the fly.
+    public int Age 
+    { 
+        get 
+        {
+            if (!DateOfBirth.HasValue) return 0;
+            DateTime today = DateTime.Today;
+            int age = today.Year - DateOfBirth.Value.Year;
+            
+            // Subtract a year if they haven't had their birthday yet this year
+            if (DateOfBirth.Value.Date > today.AddYears(-age)) age--;
+            
+            return age;
+        }
+    }
+    
+    [StringLength(200)]
+    [Display(Name = "Medical / Allergy Alerts")]
+    public string? MedicalAlerts { get; set; }
+    
     [Required]
     [StringLength(30)]
     [Display(Name = "Skill Level")]
@@ -48,7 +62,6 @@ public class Dancer
 
     public string? ProfilePhotoPath { get; set; }
     
-    // None, Pending, Approved, Rejected
     [StringLength(20)]
     public string PhotoApprovalStatus { get; set; } = "None";
 
@@ -57,8 +70,8 @@ public class Dancer
     [Display(Name = "Account Status")]
     public string AccountStatus { get; set; } = "Approved";
     
-    
-    // Navigation property for enrollments, representing the dancer's enrollments in one or more dance classes.
-    public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    public ICollection<Enrollment> Enrollments { get; set; } 
+        = new List<Enrollment>();
+        
     public string ParentId { get; set; }
 }
