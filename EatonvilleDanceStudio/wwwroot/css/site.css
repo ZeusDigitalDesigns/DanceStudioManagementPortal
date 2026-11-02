@@ -288,3 +288,27 @@ body.theme-admin .form-select:focus {
     background-color: #2b2b2b !important;
     color: #d265f3;
 }
+
+/*===========================================
+     ADMIN FLAT FOCUS OVERRIDES (NO GLOW)
+=============================================*/
+
+body.theme-admin .form-control:focus,
+body.theme-admin .form-select:focus {
+    border-color: var(--neon-pink) !important;
+    box-shadow: none !important; 
+    outline: none !important;
+    background-color: #2b2b2b !important;
+    color: #d265f3;
+}
+
+body.theme-admin .btn:focus {
+    box-shadow: none !important; 
+    outline: 2px solid var(--neon-pink) !important;
+    outline-offset: 2px;
+}
+
+/* Keep the Export button's flat outline green instead of pink */
+body.theme-admin .btn-outline-success:focus {
+    outline-color: #198754 !important; /* Flat Bootstrap green */
+}

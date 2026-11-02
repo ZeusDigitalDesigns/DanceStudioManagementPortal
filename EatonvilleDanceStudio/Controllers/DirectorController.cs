@@ -18,18 +18,18 @@ public class DirectorController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
-    
+
     // Inject UserManager so we can pull the list of parents for the dropdown
     public DirectorController(
-        ApplicationDbContext context, 
+        ApplicationDbContext context,
         UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
     }
-    
+
     // GET: /Director/PendingAccounts
-    
+
     /// <summary>
     /// Retrieves a list of all parent profiles with a pending account status.
     /// </summary>
@@ -46,7 +46,7 @@ public class DirectorController : Controller
 
         return View(pending);
     }
-    
+
     // POST: /Director/Approve
 
     /// <summary>
@@ -64,7 +64,7 @@ public class DirectorController : Controller
     {
         // Explicitly type the profile instead of using var
         ParentProfile? profile = await _context.ParentProfiles.FindAsync(id);
-        
+
         if (profile != null)
         {
             profile.AccountStatus = "Approved";
@@ -88,11 +88,11 @@ public class DirectorController : Controller
     public async Task<IActionResult> CreateInvoice()
     {
         CreateInvoiceViewModel viewModel = new CreateInvoiceViewModel();
-        
+
         // Fetch all users to populate the "Bill To" dropdown
-        List<ApplicationUser> users = 
+        List<ApplicationUser> users =
             await _userManager.Users.ToListAsync();
-        
+
         viewModel.UsersList = users.Select(u => new SelectListItem
         {
             Value = u.Id,
@@ -136,15 +136,15 @@ public class DirectorController : Controller
             await _context.SaveChangesAsync();
 
             // Send the boss back to the dashboard
-            return RedirectToAction("ManageUsers"); 
+            return RedirectToAction("ManageUsers");
         }
-        
+
 
 
         // If form fails validation, reload the dropdown to prevent crashes
-        List<ApplicationUser> users = 
+        List<ApplicationUser> users =
             await _userManager.Users.ToListAsync();
-        
+
         model.UsersList = users.Select(u => new SelectListItem
         {
             Value = u.Id,
@@ -183,21 +183,21 @@ public class DirectorController : Controller
             .OrderByDescending(i => i.CreatedDate)
             .Take(10)
             .ToListAsync();
-        
+
         // Calculate total outstanding (everything unpaid)
         viewModel.TotalOutstanding = await _context.Invoices
             .Where(i => i.Status != "Paid")
             .SumAsync(i => i.Amount);
-        
+
         // Calculate Total PastDue (unpaid and late)
         viewModel.TotalPastDue = await _context.Invoices
             .Where(i => i.Status != "Paid" && i.DueDate < DateTime.Now)
             .SumAsync(i => i.Amount);
-        
+
         // Calculate Revenue This Month (Paid within the current month)
         DateTime startOfMonth = new DateTime(
             DateTime.Now.Year, DateTime.Now.Month, 1);
-        
+
         viewModel.RevenueThisMonth = await _context.Invoices
             .Where(i => i.Status == "Paid" && i.CreatedDate >= startOfMonth)
             .SumAsync(i => i.Amount);
@@ -209,11 +209,11 @@ public class DirectorController : Controller
             .OrderBy(e => e.StartTime)
             .Take(5)
             .ToListAsync();
-        
-        
+
+
         return View(viewModel);
     }
-    
+
     // POST: /Director/MarkInvoicePaid
 
     /// <summary>
@@ -231,7 +231,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> MarkInvoicePaid(int invoiceId)
     {
         Invoice? invoice = await _context.Invoices.FindAsync(invoiceId);
-    
+
         if (invoice != null)
         {
             invoice.Status = "Paid";
@@ -253,11 +253,11 @@ public class DirectorController : Controller
     public async Task<IActionResult> CreateEvent()
     {
         CreateStudioEventViewModel viewModel = new CreateStudioEventViewModel();
-    
+
         // Fetch only users who are officially Instructors
-        IList<ApplicationUser> instructors = 
+        IList<ApplicationUser> instructors =
             await _userManager.GetUsersInRoleAsync("Instructor");
-        
+
         viewModel.InstructorsList = instructors.Select(i => new SelectListItem
         {
             Value = i.Id,
@@ -285,7 +285,7 @@ public class DirectorController : Controller
 
         return View(viewModel);
     }
-    
+
     // POST: /Director/CreateEvent
     /// <summary>
     /// Handles the creation of a new studio event by processing submitted form data
@@ -327,9 +327,9 @@ public class DirectorController : Controller
 
         // If validation fails, we MUST reload the dropdowns 
         // to prevent the view from crashing
-        IList<ApplicationUser> instructors = 
+        IList<ApplicationUser> instructors =
             await _userManager.GetUsersInRoleAsync("Instructor");
-        
+
         model.InstructorsList = instructors.Select(i => new SelectListItem
         {
             Value = i.Id,
@@ -357,7 +357,7 @@ public class DirectorController : Controller
 
         return View(model);
     }
-    
+
     // POST: /Director/DeleteEvent
 
     /// <summary>
@@ -376,7 +376,7 @@ public class DirectorController : Controller
     {
         // Find the event in the database
         StudioEvent? eventToDelete = await _context.StudioEvents.FindAsync(eventId);
-    
+
         if (eventToDelete != null)
         {
             // Remove it and save changes
@@ -387,7 +387,7 @@ public class DirectorController : Controller
         // Refresh the dashboard
         return RedirectToAction(nameof(ManageUsers));
     }
-    
+
     // GET: /Director/EditEvent/{id}
     /// <summary>
     /// Retrieves the details of a specific studio event for editing.
@@ -403,7 +403,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> EditEvent(int id)
     {
         StudioEvent? studioEvent = await _context.StudioEvents.FindAsync(id);
-    
+
         if (studioEvent == null)
         {
             return NotFound(); // Failsafe if the event was already deleted
@@ -423,9 +423,9 @@ public class DirectorController : Controller
         };
 
         // Load the dropdown lists
-        IList<ApplicationUser> instructors = 
+        IList<ApplicationUser> instructors =
             await _userManager.GetUsersInRoleAsync("Instructor");
-        
+
         viewModel.InstructorsList = instructors.Select(i => new SelectListItem
         {
             Value = i.Id,
@@ -452,71 +452,155 @@ public class DirectorController : Controller
 
         return View(viewModel);
     }
-    
-    // POST: /Director/EditEvent/{id}
-[HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> EditEvent(int id, EditStudioEventViewModel model)
-{
-    // Security check to ensure the URL ID matches the form ID
-    if (id != model.Id)
-    {
-        return NotFound();
-    }
 
-    if (ModelState.IsValid)
+    // POST: /Director/EditEvent/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditEvent(int id, EditStudioEventViewModel model)
     {
-        StudioEvent? eventToUpdate = await _context.StudioEvents.FindAsync(id);
-        
-        if (eventToUpdate == null)
+        // Security check to ensure the URL ID matches the form ID
+        if (id != model.Id)
         {
             return NotFound();
         }
 
-        // Apply the updated values
-        eventToUpdate.Title = model.Title;
-        eventToUpdate.Description = model.Description;
-        eventToUpdate.EventType = model.EventType;
-        eventToUpdate.StartTime = model.StartTime;
-        eventToUpdate.EndTime = model.EndTime;
-        eventToUpdate.Room = model.Room;
-        eventToUpdate.Capacity = model.Capacity;
-        eventToUpdate.InstructorId = model.InstructorId;
+        if (ModelState.IsValid)
+        {
+            StudioEvent? eventToUpdate = await _context.StudioEvents.FindAsync(id);
 
-        await _context.SaveChangesAsync();
-        
-        // Kick back to the dashboard to see the updated schedule
-        return RedirectToAction(nameof(ManageUsers));
+            if (eventToUpdate == null)
+            {
+                return NotFound();
+            }
+
+            // Apply the updated values
+            eventToUpdate.Title = model.Title;
+            eventToUpdate.Description = model.Description;
+            eventToUpdate.EventType = model.EventType;
+            eventToUpdate.StartTime = model.StartTime;
+            eventToUpdate.EndTime = model.EndTime;
+            eventToUpdate.Room = model.Room;
+            eventToUpdate.Capacity = model.Capacity;
+            eventToUpdate.InstructorId = model.InstructorId;
+
+            await _context.SaveChangesAsync();
+
+            // Kick back to the dashboard to see the updated schedule
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        // If validation fails, reload those dropdowns so the view doesn't crash
+        IList<ApplicationUser> instructors =
+            await _userManager.GetUsersInRoleAsync("Instructor");
+
+        model.InstructorsList = instructors.Select(i => new SelectListItem
+        {
+            Value = i.Id,
+            Text = $"{i.FirstName} {i.LastName}"
+        }).ToList();
+
+        model.EventTypesList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Class", Text = "Standard Class" },
+            new SelectListItem { Value = "Private", Text = "Private Lesson" },
+            new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
+            new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
+            new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
+            new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
+            new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
+            new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
+        };
+
+        model.RoomsList = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
+            new SelectListItem { Value = "Upstairs", Text = "Upstairs" }
+        };
+
+        return View(model);
     }
 
-    // If validation fails, reload those dropdowns so the view doesn't crash
-    IList<ApplicationUser> instructors = 
-        await _userManager.GetUsersInRoleAsync("Instructor");
+    //GET
+    /// <summary>
+    /// Retrieves a view displaying a summary of payroll activity for instructors within a specified date range.
+    /// Default date range is the last 14 days if no dates are provided.
+    /// </summary>
+    /// <param name="startDate">The beginning of the date range for filtering payroll data. If null, defaults to 14 days prior to today.</param>
+    /// <param name="endDate">The end of the date range for filtering payroll data. If null, defaults to today.</param>
+    /// <return>
+    /// An IActionResult containing a view of the payroll review, presenting instructor time logs filtered by the specified date range.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> PayrollReview(DateTime? startDate, DateTime? endDate)
+    {
+        // Default to the last 14 days if no custom dates are provided
+        DateTime start = startDate ?? DateTime.Today.AddDays(-14);
+        DateTime end = endDate ?? DateTime.Today;
+
+        PayrollReviewViewModel viewModel = new PayrollReviewViewModel
+        {
+            StartDate = start,
+            EndDate = end
+        };
         
-    model.InstructorsList = instructors.Select(i => new SelectListItem
+        // Fetch logs within the date range, include the Instructor Data so we have their names
+        // Assumes your DbSet in ApplicationDBContext is named InstructorTimeLogs
+        viewModel.TimeLogs = await _context.InstructorTimeLogs
+            .Include(t => t.Instructor)
+            .Where(t => t.Date >= start && t.Date <= end)
+            .OrderByDescending(t => t.Date)
+            .ThenBy(t => t.Instructor!.LastName)
+            .ToListAsync();
+        
+        return View(viewModel);
+    }
+    
+    //GET
+    /// <summary>
+    /// Exports payroll data for instructors to a CSV file within the specified date range.
+    /// </summary>
+    /// <param name="startDate">
+    /// The start date of the payroll period. If null, defaults to 14 days before today's date.
+    /// </param>
+    /// <param name="endDate">
+    /// The end date of the payroll period. If null, defaults to today's date.
+    /// </param>
+    /// <returns>
+    /// A CSV file containing payroll information for instructors, including date, instructor name, hours worked, notes, status, and a summary of total hours.
+    /// </returns>
+    [HttpGet]
+    public async Task<IActionResult> ExportPayrollCsv(DateTime? startDate, DateTime? endDate)
     {
-        Value = i.Id,
-        Text = $"{i.FirstName} {i.LastName}"
-    }).ToList();
+        DateTime start = startDate ?? DateTime.Today.AddDays(-14);
+        DateTime end = endDate ?? DateTime.Today;
 
-    model.EventTypesList = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Class", Text = "Standard Class" },
-        new SelectListItem { Value = "Private", Text = "Private Lesson" },
-        new SelectListItem { Value = "Comp Group 1", Text = "Comp Group 1" },
-        new SelectListItem { Value = "Comp Group 2", Text = "Comp Group 2" },
-        new SelectListItem { Value = "Comp Group 3", Text = "Comp Group 3" },
-        new SelectListItem { Value = "Comp Group 4", Text = "Comp Group 4" },
-        new SelectListItem { Value = "Comp Group 5", Text = "Comp Group 5" },
-        new SelectListItem { Value = "Rehearsal", Text = "Rehearsal" }
-    };
+        var logs = await _context.InstructorTimeLogs
+            .Include(t => t.Instructor)
+            .Where(t => t.Date >= start && t.Date <= end)
+            .OrderByDescending(t => t.Date)
+            .ThenBy(t => t.Instructor!.LastName)
+            .ToListAsync();
 
-    model.RoomsList = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "Main Studio", Text = "Main Studio" },
-        new SelectListItem { Value = "Upstairs", Text = "Upstairs" }
-    };
+        var builder = new System.Text.StringBuilder();
+        builder.AppendLine("Date,Instructor,Hours,Notes,Status");
 
-    return View(model);
-}
+        foreach (var log in logs)
+        {
+            string instructorName = log.Instructor != null 
+                ? $"{log.Instructor.FirstName} {log.Instructor.LastName}" 
+                : "Unknown";
+            
+            // Escape quotes and commas in the description just in case
+            string safeNotes = $"\"{log.Description?.Replace("\"", "\"\"")}\"";
+            string status = log.IsApproved ? "Approved" : "Pending";
+
+            builder.AppendLine($"{log.Date.ToShortDateString()},{instructorName},{log.Hours:0.00},{safeNotes},{status}");
+        }
+
+        // Add a total row at the bottom
+        decimal totalHours = logs.Sum(l => l.Hours);
+        builder.AppendLine($",TOTAL HOURS,{totalHours:0.00},,");
+
+        return File(System.Text.Encoding.UTF8.GetBytes(builder.ToString()), "text/csv", $"Payroll_{start:yyyyMMdd}_to_{end:yyyyMMdd}.csv");
+    }
 }
