@@ -1,0 +1,137 @@
+@model EatonvilleDanceStudio.ViewModels.MessagesViewModel
+
+@{
+    ViewData["Title"] = "Secure Messages";
+}
+
+<div class="container mt-4">
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h2 class="text-neon mb-0">Secure Messages</h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="ManageUsers" class="btn btn-outline-secondary me-2">
+                &larr; Dashboard
+            </a>
+            <a asp-action="ComposeMessage" class="btn btn-neon">
+                + Compose
+            </a>
+        </div>
+    </div>
+    
+    <hr class="border-neon mb-4" />
+
+    <div class="card card-dark">
+        <div class="card-header border-bottom-0 pb-0">
+            <!-- Bootstrap Tabs -->
+            <ul class="nav nav-tabs border-secondary" id="messageTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active bg-transparent text-neon" id="inbox-tab" 
+                            data-bs-toggle="tab" data-bs-target="#inbox" 
+                            type="button" role="tab" style="border-bottom: none;">
+                        Inbox (@Model.Inbox.Count)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link bg-transparent text-muted" id="sent-tab" 
+                            data-bs-toggle="tab" data-bs-target="#sent" 
+                            type="button" role="tab" style="border-bottom: none;">
+                        Sent (@Model.Sent.Count)
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="card-body">
+            <div class="tab-content" id="messageTabsContent">
+                
+                <!-- INBOX TAB -->
+                <div class="tab-pane fade show active" id="inbox" role="tabpanel">
+                    @if (Model.Inbox.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-borderless align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>From</th>
+                                        <th>Subject</th>
+                                        <th>Received</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var msg in Model.Inbox)
+                                    {
+                                        <tr style="border-bottom: 1px solid #444;">
+                                            <td>
+                                                <strong>@(msg.Sender != null ? $"{msg.Sender.FirstName} {msg.Sender.LastName}" : "System")</strong>
+                                            </td>
+                                            <td>
+                                                @msg.Subject <br/>
+                                                <small class="text-muted">@msg.Body</small>
+                                            </td>
+                                            <td>@msg.SentAt.ToString("MMM dd, h:mm tt")</td>
+                                            <td>
+                                                <span class="badge @(msg.ReceiverId == null ? "bg-info text-dark" : "bg-secondary")">
+                                                    @(msg.ReceiverId == null ? "Studio Blast" : "Direct Message")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Your inbox is empty.</p>
+                    }
+                </div>
+
+                <!-- SENT TAB -->
+                <div class="tab-pane fade" id="sent" role="tabpanel">
+                    @if (Model.Sent.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-borderless align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>To</th>
+                                        <th>Subject</th>
+                                        <th>Sent On</th>
+                                        <th>Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var msg in Model.Sent)
+                                    {
+                                        <tr style="border-bottom: 1px solid #444;">
+                                            <td>
+                                                <strong>@(msg.Receiver != null ? $"{msg.Receiver.FirstName} {msg.Receiver.LastName}" : "ALL USERS")</strong>
+                                            </td>
+                                            <td>
+                                                @msg.Subject <br/>
+                                                <small class="text-muted">@msg.Body</small>
+                                            </td>
+                                            <td>@msg.SentAt.ToString("MMM dd, h:mm tt")</td>
+                                            <td>
+                                                <span class="badge @(msg.ReceiverId == null ? "bg-info text-dark" : "bg-secondary")">
+                                                    @(msg.ReceiverId == null ? "Studio Blast" : "Direct Message")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">You haven't sent any messages yet.</p>
+                    }
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>

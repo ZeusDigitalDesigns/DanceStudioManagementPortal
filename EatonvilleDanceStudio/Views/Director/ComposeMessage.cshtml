@@ -1,0 +1,76 @@
+@model EatonvilleDanceStudio.ViewModels.ComposeMessageViewModel
+
+@{
+    ViewData["Title"] = "Compose Secure Message";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-dark mb-4">
+                <div class="card-header">
+                    <h4 class="mb-0 text-neon">Compose Secure Message</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ComposeMessage" method="post">
+                        <div asp-validation-summary="ModelOnly" 
+                             class="text-danger mb-3"></div>
+
+                        <!-- Recipient Selection -->
+                        <div class="mb-4">
+                            <label asp-for="ReceiverId" 
+                                   class="form-label text-muted"></label>
+                            <select asp-for="ReceiverId" 
+                                    asp-items="Model.UsersList" 
+                                    class="form-select form-control-dark">
+                                <option value="">
+                                    -- STUDIO-WIDE BLAST (All Users) --
+                                </option>
+                            </select>
+                            <span asp-validation-for="ReceiverId" 
+                                  class="text-danger"></span>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+                            <label asp-for="Subject" 
+                                   class="form-label text-muted"></label>
+                            <input asp-for="Subject" 
+                                   class="form-control form-control-dark" 
+                                   placeholder="Urgent: Studio Closure..." />
+                            <span asp-validation-for="Subject" 
+                                  class="text-danger"></span>
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="mb-4">
+                            <label asp-for="Body" 
+                                   class="form-label text-muted"></label>
+                            <textarea asp-for="Body" 
+                                      class="form-control form-control-dark" 
+                                      rows="6" 
+                                      placeholder="Type your secure message..."></textarea>
+                            <span asp-validation-for="Body" 
+                                  class="text-danger"></span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="ManageUsers" 
+                               class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-neon">
+                                Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
