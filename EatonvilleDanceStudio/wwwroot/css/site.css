@@ -331,3 +331,38 @@ body.theme-admin .btn-outline-success:focus,
 body.theme-instructor .btn-outline-success:focus {
     outline-color: #198754 !important;
 }
+
+/*===================================
+     Global Flat Neon Overrides
+=====================================*/
+
+.text-neon, .btn-neon, .btn-outline-neon, .border-neon, .bg-neon {
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.text-neon {
+    color: #ff00ff !important; /* Change this hex if your studio's pink is slightly different */
+}
+
+.btn-neon:hover, .btn-outline-neon:hover, .btn-outline-neon:focus {
+    color: #000000 !important;
+    background-color: #ff00ff !important; /* Matches the border/text color */
+}
+
+/*===================================
+         Navbar Overrides
+=====================================*/
+
+.navbar .navbar-brand,
+.navbar .nav-link,
+.navbar .text-neon {
+    color: #ff00ff !important; /* Forces neon pink */
+    text-shadow: none !important; /* Kills the glow */
+}
+
+/* Ensure navbar links don't turn black when you hover over them */
+.navbar .nav-link:hover,
+.navbar .navbar-brand:hover {
+    color: var(--neon-pink)  !important; /* Turns white on hover for a nice clean effect */
+}

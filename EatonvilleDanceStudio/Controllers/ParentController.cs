@@ -1,7 +1,6 @@
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
 using EatonvilleDanceStudio.ViewModels;
-using EatonvilleDanceStudio.Views.Instructor;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,9 @@ namespace EatonvilleDanceStudio.Controllers;
 /// ParentController handles interactions related to parental user functionality within the application.
 /// This includes retrieving and managing parent profiles, associated dancers, and their enrollments.
 /// </summary>
-[Authorize] // Locks this down to only logged-in users
+
+// [Issue #67] Locked this down specifically to the Parent role
+[Authorize(Roles = "Parent")] 
 public class ParentController : Controller
 {
     private readonly ApplicationDbContext _context;
@@ -25,18 +26,129 @@ public class ParentController : Controller
         _userManager = userManager;
     }
 
-    // GET: /Parent/Board/{id}
+    // GET: /Parent/Dashboard
+    /// <summary>
+    /// Displays the main parent dashboard including financial balances, linked dancers,
+    /// and an aggregated weekly class schedule.
+    /// </summary>
+    public async Task<IActionResult> Dashboard()
+    {
+        string? userId = _userManager.GetUserId(User);
+        if (userId == null) return Unauthorized();
 
+        // Fetch the Parent Profile
+        ParentProfile? profile = await _context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound("Parent profile not found. Please contact the studio.");
+        }
+
+        // Fetch all Dancers belonging to this household
+        List<Dancer> dancers = await _context.Dancers
+            .Where(d => d.ParentProfileId == profile.Id)
+            .ToListAsync();
+
+        List<int> dancerIds = dancers.Select(d => d.Id).ToList();
+
+        // Consolidate the weekly schedule across all linked dancers
+        List<Enrollment> enrolledClasses = await _context.Enrollments
+            .Include(e => e.DanceClass)
+            .Include(e => e.Dancer)
+            .Where(e => dancerIds.Contains(e.DancerId)) 
+            .OrderBy(e => e.DanceClass.DayOfWeek)       
+            .ToListAsync();
+
+        // Calculate Financials based on LedgerEntry schema
+        List<LedgerEntry> allEntries = await _context.LedgerEntries
+            .Where(l => l.ParentId == userId)          // Links via ApplicationUser ID
+            .OrderByDescending(l => l.TransactionDate) // Uses TransactionDate
+            .ToListAsync();
+
+        // Charges are positive amounts, Payments are negative amounts
+        List<LedgerEntry> recentCharges = allEntries.Where(l => l.Amount > 0).Take(5).ToList();
+        List<LedgerEntry> recentPayments = allEntries.Where(l => l.Amount < 0).Take(5).ToList();
+
+        // Since payments are already negative, we just sum everything together to get the outstanding balance!
+        decimal calculatedBalance = allEntries.Sum(l => l.Amount);
+        
+        // Fetch Direct Messages & Studio Blasts for this Parent
+        List<StudioMessage> messages = await _context.StudioMessages
+            .Include(m => m.Sender) // <-- ADD THIS LINE!
+            .Where(m => m.ReceiverId == userId || m.ReceiverId == null)
+            .OrderByDescending(m => m.SentAt)
+            .Take(5) 
+            .ToListAsync();
+        
+        // Build the ViewModel (Only declared once)
+        ParentDashboardViewModel viewModel = new ParentDashboardViewModel
+        {
+            Profile = profile,
+            Dancers = dancers,
+            EnrolledClasses = enrolledClasses,
+            CurrentBalance = calculatedBalance,
+            RecentCharges = recentCharges,
+            RecentPayments = recentPayments,
+            Messages = messages // Includes direct messages and studio blasts
+        };
+
+        return View(viewModel);
+    }
+    
+    // POST: /Parent/SendMessage
+    /// <summary>
+    /// Sends a message from the currently logged-in parent to the specified recipient.
+    /// The message includes a subject, body content, and metadata such as sender and timestamp.
+    /// </summary>
+    /// <param name="receiverId">The unique identifier of the user receiving the message.</param>
+    /// <param name="subject">The subject line of the message. Prefixed with "Re:" if not already present.</param>
+    /// <param name="body">The content of the message body. Cannot be empty or whitespace.</param>
+    /// <returns>Redirects to the "Dashboard" view. Displays a success message if the operation is successful, or an error message if the body is invalid.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendMessage(
+        string receiverId,
+        string subject,
+        string body)
+    {
+        string? userId = _userManager.GetUserId(User);
+        if (userId == null) return Unauthorized();
+
+        if (!string.IsNullOrWhiteSpace(receiverId) && 
+            !string.IsNullOrWhiteSpace(body))
+        {
+            StudioMessage reply = new StudioMessage
+            {
+                SenderId = userId,
+                ReceiverId = receiverId,
+                Subject = subject.StartsWith("Re:") 
+                    ? subject : "Re: " + subject,
+                Body = body,
+                SentAt = DateTime.Now,
+                IsRead = false
+            };
+            
+            _context.StudioMessages.Add(reply);
+            await _context.SaveChangesAsync();
+            
+            TempData["SuccessMessage"] = "Message sent successfully!";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Message body cannot be empty.";
+        }
+
+        return RedirectToAction(nameof(Dashboard));
+    }
+
+    // GET: /Parent/Board/{id}
     /// <summary>
     /// Displays the class board for a specific dance class, allowing parents to
     /// view related announcements.
     /// Ensures that the authenticated parent has a dancer enrolled in the
     /// selected class before granting access.
     /// </summary>
-    /// <param name="id">The unique identifier of the dance class to display.</param>
-    /// <returns>A view populated with class details and announcements if the
-    /// parent has access; otherwise, redirects to an appropriate action or error response.</returns>
-    
     public async Task<IActionResult> Board(int id)
     {
         string? userId = _userManager.GetUserId(User);
@@ -75,24 +187,19 @@ public class ParentController : Controller
         return View(viewModel);
     }
 
-    // GET
+    // GET: /Parent/AddDancer
     /// <summary>
     /// Renders the form for adding a new dancer to the parent's profile.
-    /// The form allows input of dancer details such as first name, last name, date of birth, and skill level.
     /// </summary>
-    /// <returns>A view representing the add dancer form with an empty model.</returns>
     public IActionResult AddDancer()
     {
         return View(new AddDancerViewModel { FirstName = "", LastName = "" });
     }
 
-    // POST 
+    // POST: /Parent/AddDancer
     /// <summary>
-    /// Adds a new dancer associated with the authenticated parent's profile,
-    /// using the provided input data and ensuring model validation.
+    /// Adds a new dancer associated with the authenticated parent's profile.
     /// </summary>
-    /// <param name="input">The data required to create a new dancer, including first name, last name, date of birth, and skill level.</param>
-    /// <returns>A task that represents the asynchronous operation. Returns a redirect to the dashboard upon success, or the input form view on validation failure.</returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddDancer(AddDancerViewModel input)
@@ -104,15 +211,12 @@ public class ParentController : Controller
 
         if (ModelState.IsValid)
         {
-            // We manually map the safe fields from the Input Model to the Database Model
             var newDancer = new Dancer
             {
                 FirstName = input.FirstName,
                 LastName = input.LastName,
                 DateOfBirth = input.DateOfBirth,
                 SkillLevel = input.SkillLevel,
-
-                // These are set strictly by the server, totally immune to user forging
                 ParentProfileId = parentProfile.Id,
                 PhotoApprovalStatus = "None",
                 ProfilePhotoPath = null

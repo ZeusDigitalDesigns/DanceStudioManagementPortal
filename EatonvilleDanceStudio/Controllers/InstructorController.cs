@@ -353,4 +353,25 @@ public class InstructorController : Controller
         return RedirectToAction(nameof(Board),
             new { id = model.NewAnnouncement.DanceClassId });
     }
+
+    // GET: /Instructor/Inbox
+    /// <summary>
+    /// Retrieves a list of messages from the studio inbox for the currently logged-in instructor.
+    /// Messages include those sent by or received by the user, as well as messages with no specific receiver (e.g., announcements).
+    /// </summary>
+    /// <returns>Returns a view containing the list of studio messages ordered by the time they were sent.</returns>
+    public async Task<IActionResult> Inbox()
+    {
+        string? userId = _userManager.GetUserId(User);
+        if (userId == null) return Unauthorized();
+
+        List<StudioMessage> messages = await _context.StudioMessages
+            .Include(m => m.Sender)
+            // Fix: Check for m.ReceiverId == null instead of MessageType
+            .Where(m => m.ReceiverId == userId || m.SenderId == userId || m.ReceiverId == null)
+            .OrderByDescending(m => m.SentAt)
+            .ToListAsync();
+
+        return View(messages);
+    }
 }

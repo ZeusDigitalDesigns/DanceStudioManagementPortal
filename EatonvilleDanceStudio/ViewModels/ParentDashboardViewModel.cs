@@ -11,7 +11,7 @@ public class ParentDashboardViewModel
     public List<Enrollment> EnrolledClasses { get; set; } = new();
     
     // UI Placeholders
-    public List<string> Announcements { get; set; } = new();
+    public List<StudioMessage> Messages { get; set; } = new();
     public List<string> UpcomingEvents { get; set; } = new();
     public List<string> CompetitionPlacements { get; set; } = new();
     

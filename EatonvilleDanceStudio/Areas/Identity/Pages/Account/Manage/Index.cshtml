@@ -5,22 +5,25 @@
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<h3>@ViewData["Title"]</h3>
+<h4 class="text-neon border-bottom border-secondary pb-2 mb-4">@ViewData["Title"]</h4>
 <partial name="_StatusMessage" for="StatusMessage" />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" role="alert"></div>
+            
             <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control bg-black text-light border-secondary rounded-0" placeholder="Please choose your username." disabled />
+                <label asp-for="Username" class="text-muted">Username</label>
             </div>
+            
             <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
+                <input asp-for="Input.PhoneNumber" class="form-control bg-black text-light border-secondary rounded-0" placeholder="Please enter your phone number."/>
+                <label asp-for="Input.PhoneNumber" class="text-muted">Phone number</label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+            
+            <button id="update-profile-button" type="submit" class="btn btn-neon rounded-0 w-100 btn-lg mt-2">Save</button>
         </form>
     </div>
 </div>

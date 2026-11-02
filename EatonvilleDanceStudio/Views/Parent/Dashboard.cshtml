@@ -1,8 +1,10 @@
+@using ServiceStack.Messaging
 @model EatonvilleDanceStudio.ViewModels.ParentDashboardViewModel
 
 @{
     ViewData["Title"] = "Family Hub";
 }
+
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -35,7 +37,7 @@
 
                         <!-- Emergency Contact -->
                         <div class="col-md-6 ps-md-4 mt-3 mt-md-0">
-                            <h6 class="text-muted mb-2">Emergency Contact</h6>
+                            <h6 class="text-neon mb-2">Emergency Contact</h6>
                             <p class="text-light mb-1"><strong>Name:</strong> @Model.Profile.EmergencyContactName</p>
                             <p class="text-light mb-0"><strong>Phone:</strong> @Model.Profile.EmergencyContactPhone</p>
                         </div>
@@ -52,7 +54,7 @@
                     <!-- Balance and Pay Button -->
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
                         <div>
-                            <p class="text-light mb-1"><strong>Current Balance:</strong></p>
+                            <p class="text-neon mb-1"><strong>Current Balance:</strong></p>
                             <h2 class="text-danger mb-0">@Model.CurrentBalance.ToString("C")</h2>
                         </div>
                         @if (Model.CurrentBalance > 0)
@@ -66,7 +68,7 @@
                     <div class="row g-3">
                         <!-- Charges Table -->
                         <div class="col-md-6">
-                            <h6 class="text-light mb-2">Recent Charges</h6>
+                            <h6 class="text-neon mb-2">Recent Charges</h6>
                             <div class="table-responsive">
                                 <table class="table table-dark table-sm table-hover mb-0 align-middle">
                                     <thead>
@@ -101,7 +103,7 @@
 
                         <!-- Payments Table -->
                         <div class="col-md-6">
-                            <h6 class="text-light mb-2">Payment History</h6>
+                            <h6 class="text-neon mb-2">Payment History</h6>
                             <div class="table-responsive">
                                 <table class="table table-dark table-sm table-hover mb-0 align-middle">
                                     <thead>
@@ -112,23 +114,22 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    @foreach (var enrollment in Model.EnrolledClasses)
+                                    @if (Model.RecentPayments.Any())
                                     {
-                                        <tr class="border-secondary">
-                                            <td class="ps-4">@enrollment.Dancer?.FirstName</td>
-                                            <td>
-                                                @enrollment.DanceClass?.ClassName
-                                                <a asp-controller="Parent" asp-action="Board" asp-route-id="@enrollment.DanceClass?.Id" 
-                                                   class="badge bg-neon text-dark text-decoration-none ms-2">
-                                                    Class Board
-                                                </a>
-                                            </td>
-                                            <td class="text-light small">@enrollment.DanceClass?.DayOfWeek @@@enrollment.DanceClass?.StartTime.ToString(@"hh\:mm")</td>
-                                            <td class="pe-4">
-                                                <span class="badge @(enrollment.Status == "Enrolled" ? "bg-success" : "bg-warning text-dark")">
-                                                    @enrollment.Status
-                                                </span>
-                                            </td>
+                                        foreach (var payment in Model.RecentPayments)
+                                        {
+                                            <tr class="border-secondary">
+                                                <td class="text-light small">@payment.TransactionDate.ToShortDateString()</td>
+                                                <td>@payment.Description</td>
+                                                <!-- Formatting payments as positive numbers for the UI -->
+                                                <td class="text-end text-success">@Math.Abs(payment.Amount).ToString("C")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="3" class="text-center text-light py-2">No recent payments.</td>
                                         </tr>
                                     }
                                     </tbody>
@@ -149,7 +150,7 @@
                     }
                     else
                     {
-                        <button class="btn btn-outline-secondary btn-sm text-muted border-secondary" disabled title="Pending Director Approval">Browse Classes (Locked)</button>
+                        <button class="btn btn-outline-secondary btn-sm text-light border-secondary" disabled title="Pending Director Approval">Browse Classes (Locked)</button>
                     }
                 </div>                
                 <div class="card-body p-0">
@@ -176,7 +177,13 @@
                                 {
                                     <tr class="border-secondary">
                                         <td class="ps-4">@enrollment.Dancer?.FirstName</td>
-                                        <td>@enrollment.DanceClass?.ClassName</td>
+                                        <td>
+                                            @enrollment.DanceClass?.ClassName
+                                            <a asp-controller="Parent" asp-action="Board" asp-route-id="@enrollment.DanceClass?.Id" 
+                                               class="badge bg-neon text-neon text-decoration-none ms-2">
+                                                Class Board
+                                            </a>
+                                        </td>
                                         <td class="text-light small">@enrollment.DanceClass?.DayOfWeek @@@enrollment.DanceClass?.StartTime.ToString(@"hh\:mm")</td>
                                         <td class="pe-4">
                                             <span class="badge @(enrollment.Status == "Enrolled" ? "bg-success" : "bg-warning text-dark")">
@@ -222,20 +229,113 @@
 
         <!-- Right Column: Informational Feeds -->
         <div class="col-lg-4">
+        
+            <!-- Quick Links (Waivers & Medical Notes) -->
+            <div class="card card-dark shadow-lg border-secondary mb-4">
+                <div class="card-header border-secondary bg-transparent">
+                    <h5 class="text-neon mb-0">Quick Actions</h5>
+                </div>
+                <div class="list-group list-group-flush rounded-0">
+                    <a href="#" class="list-group-item list-group-item-action bg-transparent text-light border-secondary">
+                        <span class="text-neon me-2">📝</span> Update Medical/Allergy Notes
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action bg-transparent text-light border-secondary border-bottom-0">
+                        <span class="text-neon me-2">✍️</span> Sign Digital Waivers
+                    </a>
+                </div>
+            </div>
 
-            <!-- Announcements -->
+            <!-- Secure Messages & Blasts -->
             <div class="card card-dark shadow-lg border-secondary mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Studio Announcements</h5>
                 </div>
-                <ul class="list-group list-group-flush">
-                    @foreach (var announcement in Model.Announcements)
+                <div class="list-group list-group-flush">
+                    @if (Model.Messages != null && Model.Messages.Any())
                     {
-                        <li class="list-group-item bg-transparent text-light border-secondary">
-                            <span class="text-neon me-2">📢</span> @announcement
-                        </li>
+                        foreach (var message in Model.Messages)
+                        {
+                            <div class="list-group-item bg-transparent text-light border-secondary">
+                                <div class="d-flex w-100 justify-content-between mb-1">
+                                    <h6 class="mb-0 text-neon fw-bold">@message.Subject</h6>
+                                    <small class="text-muted">@message.SentAt.ToString("MMM dd")</small>
+                                </div>
+                                <p class="mb-2 small text-secondary">
+                                    @if(message.Sender != null)
+                                    {
+                                        <span class="text-light">
+                                            From: @message.Sender.FirstName @message.Sender.LastName
+                                        </span><br />
+                                    }
+                                    @message.Body
+                                </p>
+                                
+                                <!-- Badges and Reply Button -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge @(message.ReceiverId == null ? "bg-info text-dark" : "bg-neon text-dark") rounded-0">
+                                        @(message.ReceiverId == null ? "Studio Blast" : "Direct Message")
+                                    </span>
+                                    
+                                    @if(message.SenderId != null)
+                                    {
+                                        <!-- Triggers the Modal below -->
+                                        <button type="button" class="btn btn-sm btn-outline-neon rounded-0" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#replyModal-@message.Id">
+                                            Reply
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Individual Reply Modal for this message -->
+                            <div class="modal fade" id="replyModal-@message.Id" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content bg-dark border-neon rounded-0">
+                                        <div class="modal-header border-secondary">
+                                            <h5 class="modal-title text-neon">
+                                                Reply to @(message.Sender?.FirstName ?? "Studio")
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" 
+                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form asp-action="SendMessage" method="post">
+                                            <div class="modal-body">
+                                                <!-- Hidden fields pass the ID and Subject back to the controller -->
+                                                <input type="hidden" name="receiverId" value="@message.SenderId" />
+                                                <input type="hidden" name="subject" value="@message.Subject" />
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label text-light">Message</label>
+                                                    <textarea name="body" 
+                                                              class="form-control bg-black text-light border-secondary rounded-0" 
+                                                              rows="4" required 
+                                                              placeholder="Type your reply here..."></textarea>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    Replying to: "@message.Subject"
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-secondary">
+                                                <button type="button" class="btn btn-outline-secondary rounded-0" 
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-neon rounded-0">
+                                                    Send Reply
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     }
-                </ul>
+                    else
+                    {
+                        <div class="list-group-item bg-transparent text-muted border-secondary text-center py-3">
+                            No recent messages or announcements.
+                        </div>
+                    }
+                </div>
             </div>
 
             <!-- Upcoming Events -->
