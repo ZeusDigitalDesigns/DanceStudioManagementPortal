@@ -22,8 +22,8 @@
         <div class="col-lg-8">
 
             <!-- Account Contact Info -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
-                <div class="card-header border-secondary bg-transparent">
+            <div class="card card-dark shadow-lg border-neon mb-4">
+                <div class="card-header border-neon bg-transparent">
                     <h4 class="text-neon mb-0">Contact Profile</h4>
                 </div>
                 <div class="card-body">
@@ -46,8 +46,8 @@
             </div>
             
             <!-- NEW INTEGRATED FINANCIAL LEDGER -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
-                <div class="card-header border-secondary bg-transparent">
+            <div class="card card-dark shadow-lg border-neon mb-4">
+                <div class="card-header border-neon bg-transparent">
                     <h4 class="text-neon mb-0">Financial Ledger</h4>
                 </div>
                 <div class="card-body">
@@ -141,7 +141,7 @@
             </div>
             
             <!-- Enrolled Classes Roster -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
+            <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
                     <h4 class="text-neon mb-0">Current Enrollments</h4>
                     @if (Model.Profile.AccountStatus == "Approved")
@@ -200,7 +200,7 @@
             </div>
 
             <!-- Dancer Profiles -->
-            <div class="card card-dark shadow-lg border-secondary">
+            <div class="card card-dark shadow-lg border-neon">
                 <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
                     <h4 class="text-neon mb-0">My Dancers</h4>
                     <a asp-action="AddDancer" class="btn btn-neon btn-sm">Add Dancer</a>
@@ -210,7 +210,7 @@
                         @foreach (var dancer in Model.Dancers)
                         {
                             <div class="col-md-6">
-                                <div class="card bg-black border-secondary h-100">
+                                <div class="card bg-black border-neon h-100">
                                     <div class="card-body d-flex justify-content-between align-items-center">
                                         <div>
                                             <h5 class="text-neon mb-0">@dancer.FirstName @dancer.LastName</h5>
@@ -231,7 +231,7 @@
         <div class="col-lg-4">
         
             <!-- Quick Links (Waivers & Medical Notes) -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
+            <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Quick Actions</h5>
                 </div>
@@ -246,7 +246,7 @@
             </div>
 
             <!-- Secure Messages & Blasts -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
+            <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Studio Announcements</h5>
                 </div>
@@ -339,7 +339,7 @@
             </div>
 
             <!-- Upcoming Events -->
-            <div class="card card-dark shadow-lg border-secondary mb-4">
+            <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Upcoming Events</h5>
                 </div>
@@ -354,7 +354,7 @@
             </div>
 
             <!-- Competition History -->
-            <div class="card card-dark shadow-lg border-secondary">
+            <div class="card card-dark shadow-lg border-neon">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Trophy Case</h5>
                 </div>

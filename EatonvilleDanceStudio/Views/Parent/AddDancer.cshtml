@@ -7,32 +7,32 @@
 
 <div class="row">
     <div class="col-md-6">
-        <div class="card bg-dark text-light border-secondary">
+        <div class="card bg-dark text-light border-neon">
             <div class="card-body">
                 <form asp-action="AddDancer" method="post">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <div class="mb-3">
                         <label asp-for="FirstName" class="form-label text-neon"></label>
-                        <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
+                        <input asp-for="FirstName" class="form-control bg-dark text-light border-neon" />
                         <span asp-validation-for="FirstName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="LastName" class="form-label text-neon"></label>
-                        <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
+                        <input asp-for="LastName" class="form-control bg-dark text-light border-neon" />
                         <span asp-validation-for="LastName" class="text-danger"></span>
                     </div>
 
                     <div class="mb-3">
                         <label asp-for="DateOfBirth" class="form-label text-neon"></label>
-                        <input asp-for="DateOfBirth" class="form-control bg-dark text-light border-secondary" type="date" />
+                        <input asp-for="DateOfBirth" class="form-control bg-dark text-light border-neon" type="date" />
                         <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                     </div>
 
                     <div class="mb-4">
                         <label asp-for="SkillLevel" class="form-label text-neon"></label>
-                        <select asp-for="SkillLevel" class="form-select bg-dark text-light border-secondary">
+                        <select asp-for="SkillLevel" class="form-select bg-dark text-light border-neon">
                             <option value="Beginner">Beginner</option>
                             <option value="Intermediate">Intermediate</option>
                             <option value="Advanced">Advanced</option>
@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a asp-action="Dashboard" class="btn btn-outline-secondary">Cancel</a>
+                        <a asp-action="Dashboard" class="btn btn-outline-neon">Cancel</a>
                         <button type="submit" class="btn btn-outline-success">Save Dancer</button>
                     </div>
                 </form>
