@@ -24,4 +24,8 @@ public class AddDancerViewModel
     [Display(Name = "Skill Level")]
     [RegularExpression("^(Beginner|Intermediate|Advanced)$", ErrorMessage = "Invalid skill level selected.")]
     public string SkillLevel { get; set; } = "Beginner";
+    
+    [StringLength(200)]
+    [Display(Name = "Medical / Allergy Alerts (Leave blank if none)")]
+    public string? MedicalAlerts { get; set; }
 }

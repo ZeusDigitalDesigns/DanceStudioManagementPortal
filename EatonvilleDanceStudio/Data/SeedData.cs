@@ -198,7 +198,6 @@ public class SeedData
                     SkillLevel = "Beginner",
                     ParentProfileId = parentProfile.Id,
                     Parent = parentProfile,
-                    ParentId = parentUser.Id,
                     PhotoApprovalStatus = "Approved",
                     AccountStatus = "Approved"
                 };

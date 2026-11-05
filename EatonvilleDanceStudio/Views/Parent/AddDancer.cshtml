@@ -39,6 +39,13 @@
                         </select>
                         <span asp-validation-for="SkillLevel" class="text-danger"></span>
                     </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="MedicalAlerts" class="form-label text-neon"></label>
+                        <textarea asp-for="MedicalAlerts" class="form-control bg-dark text-light border-neon" rows="3" placeholder="List any allergies, asthma, or medical conditions..."></textarea>
+                        <span asp-validation-for="MedicalAlerts" class="text-danger"></span>
+                        <div class="form-text text-muted">Optional. Leave blank if there are no medical alerts or allergies.</div>
+                    </div>
 
                     <div class="d-flex justify-content-between">
                         <a asp-action="Dashboard" class="btn btn-outline-neon">Cancel</a>

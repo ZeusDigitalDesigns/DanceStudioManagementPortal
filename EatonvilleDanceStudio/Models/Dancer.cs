@@ -73,5 +73,5 @@ public class Dancer
     public ICollection<Enrollment> Enrollments { get; set; } 
         = new List<Enrollment>();
         
-    public string ParentId { get; set; }
+
 }
