@@ -154,12 +154,23 @@ public class ParentController : Controller
         string? userId = _userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
+        // Fetch the Parent Profile first to get the integer ID
+        ParentProfile? profile = await _context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            TempData["ErrorMessage"] = "Parent profile not found.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
         // Security check: Verify the parent has a dancer in this class
+        // Now we compare the integer ParentProfileId to our profile.Id
         bool isEnrolled = await _context.Enrollments
             .Include(e => e.Dancer)
             .AnyAsync(e => e.DanceClassId == id && 
                            e.Dancer != null && 
-                           e.Dancer.ParentId == userId);
+                           e.Dancer.ParentProfileId == profile.Id);
 
         if (!isEnrolled)
         {
@@ -219,7 +230,8 @@ public class ParentController : Controller
                 SkillLevel = input.SkillLevel,
                 ParentProfileId = parentProfile.Id,
                 PhotoApprovalStatus = "None",
-                ProfilePhotoPath = null
+                ProfilePhotoPath = null,
+                MedicalAlerts = input.MedicalAlerts
             };
 
             _context.Dancers.Add(newDancer);
