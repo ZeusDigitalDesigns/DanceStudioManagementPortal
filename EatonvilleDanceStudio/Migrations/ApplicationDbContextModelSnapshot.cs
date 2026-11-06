@@ -195,6 +195,9 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<int>("MinimumAge")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("MonthlyCost")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("RequiredSkillLevel")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -426,6 +429,9 @@ namespace EatonvilleDanceStudio.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsMilitaryOrFirstResponder")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()

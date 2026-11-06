@@ -23,7 +23,7 @@
                     </a>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Student and Instructor tables loading...</p>
+                    <p class="text-neon">Student and Instructor tables loading...</p>
                 </div>
             </div>
         </div>
@@ -32,7 +32,7 @@
         
         <div class="col-md-6 mb-4">
             <div class="card card-dark h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between align-items-center border-neon">
                     <h4 class="mb-0 text-neon">Studio Calendar</h4>
                     <a asp-controller="Director" asp-action="CreateEvent" class="btn btn-neon btn-sm">
                         + Schedule Event
@@ -42,7 +42,7 @@
                     @if (Model.UpcomingEvents.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover table-borderless align-middle">
+                            <table class="table table-hover border-neon align-middle">
                                 <thead>
                                     <tr>
                                         <th>Event</th>
@@ -146,15 +146,27 @@
         <div class="col-md-12 mb-4">
             <div class="card card-dark">
 
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-neon">Financials Overview</h4>
-                    <a asp-controller="Director" asp-action="PayrollReview" class="btn btn-neon btn-sm">
-                        Review Payroll
-                    </a>
-                    <a asp-controller="Director" asp-action="CreateInvoice"
-                       class="btn btn-neon btn-sm">
-                        + Create Manual Invoice
-                    </a>
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 border border-neon rounded">
+                    <!-- Left Side: Title & Manual Actions -->
+                    <div>
+                        <h2 class="text-neon mb-2">Financials Overview</h2>
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Director" asp-action="PayrollReview" class="btn btn-outline-neon btn-sm">Review Payroll</a>
+                            <a asp-controller="Director" asp-action="CreateInvoice" class="btn btn-outline-neon btn-sm">+ Create Manual Invoice</a>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Automated Billing (Compact) -->
+                    <div class="text-end" style="max-width: 350px;">
+                        <form asp-controller="Director" asp-action="RunMonthlyBilling" method="post">
+                            <button type="submit" class="btn btn-neon w-100 mb-1">
+                                Run Automated Billing (@DateTime.Now.ToString("MMM yyyy"))
+                            </button>
+                            <small class="text-neon d-block" style="font-size: 0.75rem;">
+                                Generates invoices based on active enrollments & studio discount rules.
+                            </small>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="card-body">
@@ -164,7 +176,7 @@
                     <div class="row mb-5 text-center">
                         <div class="col-md-4">
                             <div class="p-3 border border-neon rounded bg-dark">
-                                <h6 class="text-muted text-uppercase mb-1">
+                                <h6 class="text-neon text-uppercase mb-1">
                                     Total Outstanding
                                 </h6>
                                 <h3 class="text-warning mb-0">
@@ -174,7 +186,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="p-3 border border-neon rounded bg-dark">
-                                <h6 class="text-muted text-uppercase mb-1">
+                                <h6 class="text-neon text-uppercase mb-1">
                                     Total Past Due
                                 </h6>
                                 <h3 class="text-danger mb-0">
@@ -184,7 +196,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="p-3 border border-neon rounded bg-dark">
-                                <h6 class="text-muted text-uppercase mb-1">
+                                <h6 class="text-neon text-uppercase mb-1">
                                     Revenue (This Month)
                                 </h6>
                                 <h3 class="text-success mb-0">

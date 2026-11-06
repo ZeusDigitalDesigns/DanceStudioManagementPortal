@@ -39,6 +39,8 @@ builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 StripeConfiguration.ApiKey = builder.Configuration
     .GetSection("Stripe")["SecretKey"];
 
+builder.Services.AddScoped<ITuitionCalculatorService, TuitionCalculatorService>();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

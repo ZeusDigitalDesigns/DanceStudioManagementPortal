@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using EatonvilleDanceStudio.Data;
 
 namespace EatonvilleDanceStudio.Models;
@@ -50,6 +51,11 @@ public class DanceClass
     
     [System.ComponentModel.DataAnnotations.Schema.ForeignKey("InstructorId")]
     public ApplicationUser? Instructor { get; set; }
+    
+    [Required]
+    [Column(TypeName = "decimal(18,2)")]
+    [Display(Name = "Monthly Cost")]
+    public decimal MonthlyCost { get; set; }
     
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 }

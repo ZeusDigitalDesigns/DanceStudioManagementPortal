@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
 using EatonvilleDanceStudio.ViewModels;
+using EatonvilleDanceStudio.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,17 @@ public class DirectorController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ITuitionCalculatorService _tuitionService;
 
     // Inject UserManager so we can pull the list of parents for the dropdown
     public DirectorController(
         ApplicationDbContext context,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        ITuitionCalculatorService tuitionService)
     {
         _context = context;
         _userManager = userManager;
+        _tuitionService = tuitionService;
     }
 
     // GET: /Director/PendingAccounts
@@ -726,4 +730,61 @@ public class DirectorController : Controller
         return View(model);
     }
     
-}
+    // POST: /Director/RunMonthlyBilling
+    /// <summary>
+    /// Generates monthly tuition invoices for all parent profiles with billable dancer enrollments.
+    /// </summary>
+    /// <return>
+    /// An IActionResult that redirects to the user management view after creating pending invoices
+    /// and storing a success message with the number of invoices generated.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RunMonthlyBilling()
+    {
+        // Fetch all parents with their dancers and enrollments
+        List<ParentProfile> parents = await _context.ParentProfiles
+            .Include(p => p.Dancers)
+                .ThenInclude(d => d.Enrollments)
+                    .ThenInclude(e => e.DanceClass)
+            .ToListAsync();
+
+        int invoicesGenerated = 0;
+
+        // Loop through each parent and run the engine
+        foreach (ParentProfile parent in parents)
+        {
+            List<Dancer> familyDancers = parent.Dancers.ToList();
+            
+            decimal monthlyTuition = _tuitionService.CalculateMonthlyTuition(
+                parent, 
+                familyDancers);
+
+            if (monthlyTuition > 0)
+            {
+                // Create the Ledger Entry / Invoice for this month
+                Invoice newInvoice = new Invoice
+                {
+                    UserId = parent.UserId, // Links to Identity ApplicationUser
+                    Amount = monthlyTuition, 
+                    Description = $"Tuition - {DateTime.Now:MMMM yyyy}",
+                    CreatedDate = DateTime.Now,
+                    DueDate = DateTime.Now.AddDays(15), // Gives them 15 days to pay
+                    Status = "Pending"
+                };
+
+                _context.Invoices.Add(newInvoice);
+                invoicesGenerated++;
+            }
+        }
+
+        // 4. Save all new invoices to the database in one shot
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = 
+            $"Generated {invoicesGenerated} invoices for {DateTime.Now:MMMM}.";
+            
+        return RedirectToAction(nameof(ManageUsers));
+    }
+} 
+

@@ -43,6 +43,9 @@ public class ParentProfile
     [StringLength(20)]
     public required string EmergencyContactPhone { get; set; }
     
+    [Display(Name = "Military or First Responder")]
+    public bool IsMilitaryOrFirstResponder { get; set; } = false;
+    
     [Required]
     [Display(Name = "Account Status")]
     [StringLength(10)]
