@@ -16,6 +16,9 @@ public class Dancer
     [Required]
     public int ParentProfileId { get; set; }
     
+    // Links to ASP.NET Identity User (Nullable because toddlers won't have an account)
+    public string? UserId { get; set; }
+    
     [ForeignKey("ParentProfileId")]
     public ParentProfile Parent { get; set; }
     

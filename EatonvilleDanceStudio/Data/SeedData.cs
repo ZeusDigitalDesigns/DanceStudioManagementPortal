@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using EatonvilleDanceStudio.Models;
 
@@ -213,6 +208,60 @@ public class SeedData
                     Category = "Tuition"
                 });
         
+                await context.SaveChangesAsync();
+            }
+        }
+        
+        // Ensure the "Dancer" role exists
+        if (!await roleManager.RoleExistsAsync("Dancer"))
+        {
+            IdentityRole dancerRole = new IdentityRole("Dancer");
+            await roleManager.CreateAsync(dancerRole);
+        }
+
+        // Check if the Dancer login already exists
+        ApplicationUser? dancerUser = 
+            await userManager.FindByEmailAsync("zoey@gmail.com");
+
+        if (dancerUser == null)
+        {
+            // Create the Identity User for the login
+            dancerUser = new ApplicationUser
+            {
+                UserName = "zoey@gmail.com",
+                Email = "zoey@gmail.com",
+                FirstName = "Zoey",
+                LastName = "Kimball",
+                EmailConfirmed = true
+            };
+
+            await userManager.CreateAsync(dancerUser, "Password123!");
+            await userManager.AddToRoleAsync(dancerUser, "Dancer");
+
+            // Fetch the seeded Parent to link the foreign key
+            // *Update this email if your seeded parent uses a different one!*
+            parentUser = await userManager.FindByEmailAsync("parent@gmail.com");
+        
+            ParentProfile? parentProfile = null;
+            if (parentUser != null)
+            {
+                parentProfile = await context.ParentProfiles
+                    .FirstOrDefaultAsync(p => p.UserId == parentUser.Id);
+            }
+
+            // Create the Dancer profile and link both the User and Parent
+            if (parentProfile != null)
+            {
+                Dancer seededDancer = new Dancer
+                {
+                    FirstName = "Zoey",
+                    LastName = "Kimball",
+                    DateOfBirth = new DateTime(2015, 2, 27),
+                    UserId = dancerUser.Id,            // Links the login
+                    ParentProfileId = parentProfile.Id // Links the family
+                };
+
+                context.Dancers.Add(seededDancer);
                 await context.SaveChangesAsync();
             }
         }

@@ -1,0 +1,91 @@
+@model EatonvilleDanceStudio.Models.Dancer
+
+@{
+    ViewData["Title"] = "Dancer Dashboard";
+}
+
+<div class="container mt-4">
+    <h2 class="text-neon mb-4">Welcome back, @Model.FirstName! 🩰</h2>
+
+    <div class="row">
+        <!-- Left Column: Weekly Schedule -->
+        <div class="col-md-8 mb-4">
+            <div class="card bg-dark border-neon h-100 shadow-lg">
+                <div class="card-header border-secondary bg-transparent">
+                    <h5 class="text-neon mb-0">My Weekly Schedule</h5>
+                </div>
+                <div class="card-body">
+                    @{
+                        // Filter out waitlisted or dropped classes
+                        var activeEnrollments = Model.Enrollments
+                            .Where(e => e.Status == "Enrolled" && e.DanceClass != null)
+                            .ToList();
+                    }
+
+                    @if (activeEnrollments.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var enrollment in activeEnrollments)
+                            {
+                                <div class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <!-- Updated Name to ClassName -->
+                                        <h6 class="mb-1 text-white">@enrollment.DanceClass.ClassName</h6>
+                                        <small class="text-muted">Instructor: @enrollment.DanceClass.Instructor?.FirstName</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <!-- Updated ScheduleDay to DayOfWeek -->
+                                        <span class="badge bg-neon text-dark rounded-pill">
+                                            @enrollment.DanceClass.DayOfWeek
+                                        </span>
+                                        <br />
+                                        <!-- Updated to use StartTime and EndTime, converting TimeSpan to 12-hour AM/PM format -->
+                                        <small class="text-muted">
+                                            @(DateTime.Today.Add(enrollment.DanceClass.StartTime).ToString("h:mm tt")) - 
+                                            @(DateTime.Today.Add(enrollment.DanceClass.EndTime).ToString("h:mm tt"))
+                                        </small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center mt-3">You are not currently enrolled in any active classes.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Epic 7 Features (Competitions & Video Vault) -->
+        <div class="col-md-4 mb-4">
+            
+            <!-- Competition Itinerary Shell -->
+            <div class="card bg-dark border-neon mb-4 shadow-sm">
+                <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="text-neon mb-0">Upcoming Competitions</h5>
+                    <i class="bi bi-trophy text-neon"></i>
+                </div>
+                <div class="card-body text-center p-4">
+                    <p class="text-muted small mb-0">
+                        <em>Competition tracking unlocks soon! Check back for call times, itineraries, and dressing room assignments.</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Video Vault Shell -->
+            <div class="card bg-dark border-neon shadow-sm">
+                <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+                    <h5 class="text-neon mb-0">Video Vault</h5>
+                    <i class="bi bi-play-btn text-neon"></i>
+                </div>
+                <div class="card-body text-center p-4">
+                    <p class="text-muted small mb-0">
+                        <em>Choreography and rehearsal videos are currently being uploaded by your instructors.</em>
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
