@@ -1,0 +1,83 @@
+@model IEnumerable<EatonvilleDanceStudio.Models.Dancer>
+
+@{
+    ViewData["Title"] = "Student Roster";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 border border-neon rounded" style="background-color: #121212;">
+        <div>
+            <h2 class="text-neon mb-0">Student Roster</h2>
+            <small class="text-neon">Select a dancer to update profile, skill levels, and costume sizing.</small>
+        </div>
+        <a asp-action="ManageUsers" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+    </div>
+
+    <div class="card bg-dark border-neon shadow-lg">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0 align-middle">
+                    <thead class="border-secondary">
+                        <tr class="text-neon">
+                            <th class="ps-4">Name</th>
+                            <th>Age</th>
+                            <th>Skill Level</th>
+                            <th>Parent/Guardian</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (Dancer dancer in Model)
+                            {
+                                // Safely calculate age, handling nulls or default unassigned dates
+                                string ageDisplay = "N/A";
+                                DateTime? dob = dancer.DateOfBirth; 
+    
+                                if (dob.HasValue && dob.Value.Year > 1900)
+                                {
+                                    int calculatedAge = DateTime.Today.Year - dob.Value.Year;
+                                    if (dob.Value.Date > DateTime.Today.AddYears(-calculatedAge))
+                                    {
+                                        calculatedAge--;
+                                    }
+                                    ageDisplay = calculatedAge.ToString();
+                                }
+
+                                <!-- Entire row is clickable and highlights on hover -->
+                                <tr style="cursor: pointer; border-bottom: 1px solid #444;" 
+                                    onclick="window.location.href='@Url.Action("EditDancer", "Director", new { id = dancer.Id })'">
+        
+                                    <td class="ps-4 text-white">
+                                        <strong>@dancer.FirstName @dancer.LastName</strong>
+                                    </td>
+                                    <td>@ageDisplay</td>
+                                    <td>
+                                        <span class="badge bg-secondary text-light rounded-pill">
+                                            @(string.IsNullOrEmpty(dancer.SkillLevel) ? "Unassigned" : dancer.SkillLevel)
+                                        </span>
+                                    </td>
+                                    <td>@dancer.Parent?.FirstName @dancer.Parent?.LastName</td>
+                                    <td class="text-end pe-4">
+                                        <a asp-action="EditDancer" asp-route-id="@dancer.Id" class="btn btn-neon btn-sm">
+                                            Edit Profile
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    No dancers found in the system.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

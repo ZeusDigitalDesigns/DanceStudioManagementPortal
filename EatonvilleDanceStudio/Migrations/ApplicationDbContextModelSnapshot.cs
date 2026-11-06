@@ -159,6 +159,54 @@ namespace EatonvilleDanceStudio.Migrations
                     b.ToTable("ClassAnnouncements");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.CostumeOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CostumeName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("DanceClassId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DancerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExpectedDeliveryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("HandedOutDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OrderStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("VendorLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DanceClassId");
+
+                    b.HasIndex("DancerId");
+
+                    b.ToTable("CostumeOrders");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.DanceClass", b =>
                 {
                     b.Property<int>("Id")
@@ -226,6 +274,9 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<decimal?>("BustChest")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
 
@@ -234,10 +285,22 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal?>("Girth")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Hips")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("Inseam")
+                        .HasColumnType("decimal(5,2)");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LeotardSize")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MedicalAlerts")
                         .HasMaxLength(200)
@@ -254,13 +317,22 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<string>("ProfilePhotoPath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ShoeSize")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SkillLevel")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<string>("TopSize")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Waist")
+                        .HasColumnType("decimal(5,2)");
 
                     b.HasKey("Id");
 
@@ -738,6 +810,25 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Navigation("DanceClass");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.CostumeOrder", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.DanceClass", "DanceClass")
+                        .WithMany()
+                        .HasForeignKey("DanceClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EatonvilleDanceStudio.Models.Dancer", "Dancer")
+                        .WithMany("CostumeOrders")
+                        .HasForeignKey("DancerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DanceClass");
+
+                    b.Navigation("Dancer");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.DanceClass", b =>
                 {
                     b.HasOne("EatonvilleDanceStudio.Data.ApplicationUser", "Instructor")
@@ -916,6 +1007,8 @@ namespace EatonvilleDanceStudio.Migrations
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.Dancer", b =>
                 {
+                    b.Navigation("CostumeOrders");
+
                     b.Navigation("Enrollments");
                 });
 

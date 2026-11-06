@@ -24,8 +24,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     // Maps the Dancer class to the Dancers SQL table
     public DbSet<Dancer> Dancers { get; set; }
+    
+    public DbSet<CostumeOrder> CostumeOrders { get; set; }
+    
     public DbSet<DanceClass> DanceClasses { get; set; }
+    
     public DbSet<Enrollment> Enrollments { get; set; }
+    
     public DbSet<LedgerEntry> LedgerEntries { get; set; }
     
     // Tracks instructor worked hours for payroll
