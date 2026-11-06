@@ -75,6 +75,34 @@ public class Dancer
     
     public ICollection<Enrollment> Enrollments { get; set; } 
         = new List<Enrollment>();
+    
+    // Standard Sizing
+    [Display(Name = "Leotard Size")]
+    public string? LeotardSize { get; set; }
+    
+    [Display(Name = "T-Shirt / Hoodie Size")]
+    public string? TopSize { get; set; }
         
+    [Display(Name = "Shoe Size")]
+    public string? ShoeSize { get; set; }
+    
+    // Exact Measurements
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? Girth { get; set; }
 
+    [Column(TypeName = "decimal(5,2)")]
+    [Display(Name = "Bust/Chest")]
+    public decimal? BustChest { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? Waist { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? Hips { get; set; }
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal? Inseam { get; set; }
+
+    // Navigation property for their costume orders
+    public ICollection<CostumeOrder>? CostumeOrders { get; set; }
 }

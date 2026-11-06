@@ -33,7 +33,6 @@ public class DirectorController : Controller
     }
 
     // GET: /Director/PendingAccounts
-
     /// <summary>
     /// Retrieves a list of all parent profiles with a pending account status.
     /// </summary>
@@ -52,7 +51,6 @@ public class DirectorController : Controller
     }
 
     // POST: /Director/Approve
-
     /// <summary>
     /// Approves a parent profile by updating its account status to "Approved".
     /// </summary>
@@ -79,7 +77,6 @@ public class DirectorController : Controller
     }
 
     // GET: /Director/CreateInvoice
-
     /// <summary>
     /// Displays a form for creating a new invoice, allowing the director to select a user to bill
     /// and specify invoice details such as description, amount, and due date.
@@ -107,7 +104,6 @@ public class DirectorController : Controller
     }
 
     // POST: /Director/CreateInvoice
-
     /// <summary>
     /// Creates a new invoice for a specified user based on the provided details.
     /// </summary>
@@ -142,9 +138,7 @@ public class DirectorController : Controller
             // Send the boss back to the dashboard
             return RedirectToAction("ManageUsers");
         }
-
-
-
+        
         // If form fails validation, reload the dropdown to prevent crashes
         List<ApplicationUser> users =
             await _userManager.Users.ToListAsync();
@@ -158,6 +152,7 @@ public class DirectorController : Controller
         return View(model);
     }
 
+    //GET
     /// <summary>
     /// Manages user interactions by displaying a dashboard for the Director.
     /// The dashboard includes active invoices, recent paid invoices, total outstanding balance,
@@ -219,7 +214,6 @@ public class DirectorController : Controller
     }
 
     // POST: /Director/MarkInvoicePaid
-
     /// <summary>
     /// Marks the specified invoice as "Paid" and updates the database accordingly.
     /// Redirects to the ManageUsers view after processing.
@@ -246,6 +240,7 @@ public class DirectorController : Controller
         return RedirectToAction(nameof(ManageUsers));
     }
 
+    //GET
     /// <summary>
     /// Prepares and displays a form for creating a new studio event.
     /// The form is pre-populated with dropdown options for instructors, event types, and room selections.
@@ -458,6 +453,20 @@ public class DirectorController : Controller
     }
 
     // POST: /Director/EditEvent/{id}
+    /// <summary>
+    /// Updates an existing studio event using the submitted event details.
+    /// </summary>
+    /// <param name="id">
+    /// The identifier of the studio event to update.
+    /// </param>
+    /// <param name="model">
+    /// The view model containing the updated studio event information.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the user management view when the update succeeds,
+    /// returns NotFound when the event identifier is invalid or the event cannot be found,
+    /// or returns the edit view with validation errors and required selection lists when the model is invalid.
+    /// </return>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditEvent(int id, EditStudioEventViewModel model)
@@ -785,6 +794,169 @@ public class DirectorController : Controller
             $"Generated {invoicesGenerated} invoices for {DateTime.Now:MMMM}.";
             
         return RedirectToAction(nameof(ManageUsers));
+    }
+    
+    // GET: /Director/CostumeManagement
+    /// <summary>
+    /// Retrieves costume orders for director review, including related dancer and dance class information.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing a view with the costume orders ordered by expected delivery date.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> CostumeManagement()
+    {
+        List<CostumeOrder> orders = await _context.CostumeOrders
+            .Include(c => c.Dancer)
+            .Include(c => c.DanceClass)
+            .OrderBy(c => c.ExpectedDeliveryDate)
+            .ToListAsync();
+            
+        return View(orders);
+    }
+    
+    // GET: /Director/EditDancer/{id}
+    /// <summary>
+    /// Retrieves the dancer with the specified identifier for editing.
+    /// </summary>
+    /// <param name="id">
+    /// The unique identifier of the dancer to edit.
+    /// </param>
+    /// <return>
+    /// An IActionResult containing the edit view for the matching dancer, or a NotFound result if no dancer exists with the specified identifier.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> EditDancer(int id)
+    {
+        Dancer? dancer = await _context.Dancers.FindAsync(id);
+
+        if (dancer == null)
+        {
+            return NotFound();
+        }
+
+        return View(dancer);
+    }
+
+    // POST: /Director/EditDancer/{id}
+    /// <summary>
+    /// Updates an existing dancer record and saves the submitted dancer information.
+    /// </summary>
+    /// <param name="id">
+    /// The identifier of the dancer record to edit.
+    /// </param>
+    /// <param name="model">
+    /// The dancer data submitted for the update.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the costume management dashboard when the update succeeds, returns the edit view when validation fails, or returns NotFound when the route identifier does not match the submitted dancer record.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditDancer(int id, Dancer model)
+    {
+        if (id != model.Id)
+        {
+            return NotFound();
+        }
+
+        if (ModelState.IsValid)
+        {
+            _context.Update(model);
+            await _context.SaveChangesAsync();
+
+            // Send them back to the Costume Management dashboard after saving sizes
+            return RedirectToAction(nameof(CostumeManagement));
+        }
+
+        return View(model);
+    }
+    
+    // GET: /Director/DancerRoster
+    /// <summary>
+    /// Retrieves the dancer roster, including parent information, ordered by dancer last name and first name.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing a view with the full list of dancers and their associated parent profiles.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> DancerRoster()
+    {
+        List<Dancer> dancers = await _context.Dancers
+            .Include(d => d.Parent)
+            .OrderBy(d => d.LastName)
+            .ThenBy(d => d.FirstName)
+            .ToListAsync();
+
+        return View(dancers);
+    }
+    
+    // GET: /Director/CreateCostumeOrder
+    /// <summary>
+    /// Displays the form for creating a new costume order, including available dancers and dance classes for selection.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing the costume order creation view initialized with a new CostumeOrder model.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> CreateCostumeOrder()
+    {
+        // Prep dropdown data for Dancers (FullName) and Classes
+        var dancers = await _context.Dancers
+            .Select(d => new { d.Id, FullName = d.FirstName + " " + d.LastName })
+            .OrderBy(d => d.FullName)
+            .ToListAsync();
+            
+        ViewBag.Dancers = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            dancers, "Id", "FullName");
+            
+        ViewBag.Classes = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            await _context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
+            "Id", "ClassName");
+
+        return View(new CostumeOrder());
+    }
+
+    // POST: /Director/CreateCostumeOrder
+    /// <summary>
+    /// Creates a costume order from the submitted model and saves it when validation succeeds.
+    /// </summary>
+    /// <param name="model">
+    /// The costume order data containing the selected dancer and dance class.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to costume management when the order is saved,
+    /// or returns the view with validation details and restored selection lists when validation fails.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCostumeOrder(CostumeOrder model)
+    {
+        // Ignore navigation properties so ModelState doesn't fail validation
+        ModelState.Remove(nameof(model.Dancer));
+        ModelState.Remove(nameof(model.DanceClass));
+
+        if (ModelState.IsValid)
+        {
+            _context.CostumeOrders.Add(model);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(CostumeManagement));
+        }
+
+        // Repopulate dropdowns if validation fails
+        var dancers = await _context.Dancers
+            .Select(d => new { d.Id, FullName = d.FirstName + " " + d.LastName })
+            .OrderBy(d => d.FullName)
+            .ToListAsync();
+            
+        ViewBag.Dancers = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            dancers, "Id", "FullName", model.DancerId);
+            
+        ViewBag.Classes = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
+            await _context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
+            "Id", "ClassName", model.DanceClassId);
+
+        return View(model);
     }
 } 
 

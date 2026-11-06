@@ -1,0 +1,117 @@
+@model EatonvilleDanceStudio.Models.Dancer
+
+@{
+    ViewData["Title"] = "Edit Dancer Profile";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 
+            border border-neon rounded" style="background-color: #121212;">
+        <h2 class="text-neon mb-0">
+            Edit Dancer: @Model.FirstName @Model.LastName
+        </h2>
+        <div>
+            <a asp-action="DancerRoster" 
+               class="btn btn-outline-secondary btn-sm me-2">
+                <i class="bi bi-arrow-left"></i> Back to Roster
+            </a>
+            <a asp-action="CostumeManagement" 
+               class="btn btn-neon btn-sm">
+                Costume Tracking <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="card bg-dark border-neon shadow-lg">
+        <div class="card-body p-4">
+            <form asp-action="EditDancer" method="post">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ParentProfileId" />
+                <input type="hidden" asp-for="UserId" />
+
+                <!-- Standard Profile Info -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">Basic Info</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="FirstName" class="form-label text-light"></label>
+                        <input asp-for="FirstName" class="form-control bg-dark text-light border-secondary" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LastName" class="form-label text-light"></label>
+                        <input asp-for="LastName" class="form-control bg-dark text-light border-secondary" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DateOfBirth" class="form-label text-light"></label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SkillLevel" class="form-label text-light"></label>
+                        <select asp-for="SkillLevel" class="form-select bg-dark text-light border-secondary">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Elite">Elite</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Costume Sizing & Measurements -->
+                <h5 class="text-neon mt-4 border-bottom border-secondary pb-2">Costume Sizing & Measurements</h5>
+                
+                <!-- Standard Sizing Dropdowns -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label asp-for="LeotardSize" class="form-label text-light"></label>
+                        <select asp-for="LeotardSize" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Select Size...</option>
+                            <option value="Child SC">Child SC (4-5)</option>
+                            <option value="Child MC">Child MC (6-8)</option>
+                            <option value="Child LC">Child LC (10-12)</option>
+                            <option value="Adult SA">Adult SA</option>
+                            <option value="Adult MA">Adult MA</option>
+                            <option value="Adult LA">Adult LA</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="TopSize" class="form-label text-light"></label>
+                        <input asp-for="TopSize" class="form-control bg-dark text-light border-secondary" placeholder="e.g. Youth Med, Adult L" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="ShoeSize" class="form-label text-light"></label>
+                        <input asp-for="ShoeSize" class="form-control bg-dark text-light border-secondary" placeholder="e.g. 4.5 Wide" />
+                    </div>
+                </div>
+
+                <!-- Exact Measurements (Inches) -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-2 col-sm-4">
+                        <label asp-for="Girth" class="form-label text-light"></label>
+                        <input asp-for="Girth" type="number" step="0.5" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label asp-for="BustChest" class="form-label text-light"></label>
+                        <input asp-for="BustChest" type="number" step="0.5" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label asp-for="Waist" class="form-label text-light"></label>
+                        <input asp-for="Waist" type="number" step="0.5" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label asp-for="Hips" class="form-label text-light"></label>
+                        <input asp-for="Hips" type="number" step="0.5" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                    <div class="col-md-2 col-sm-4">
+                        <label asp-for="Inseam" class="form-label text-light"></label>
+                        <input asp-for="Inseam" type="number" step="0.5" class="form-control bg-dark text-light border-secondary" />
+                    </div>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-neon px-5">Save Dancer Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

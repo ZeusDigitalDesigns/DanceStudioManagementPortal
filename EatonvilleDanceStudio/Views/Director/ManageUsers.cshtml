@@ -22,8 +22,16 @@
                         Compose Message
                     </a>
                 </div>
-                <div class="card-body">
-                    <p class="text-neon">Student and Instructor tables loading...</p>
+                <div class="card-body text-center p-5">
+                    <a asp-controller="Director" asp-action="DancerRoster" class="btn btn-neon btn-lg w-100 mb-3 rounded-0">
+                        <i class="bi bi-people-fill me-2"></i> Manage Student Roster
+                    </a>
+                    <a asp-controller="Director" asp-action="CostumeManagement" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
+                        <i class="bi bi-box-seam me-2"></i> Costume Order Tracking
+                    </a>
+                    <a href="#" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
+                        <i class="bi bi-box-seam me-2"></i> Manage Instructors (Coming Soon)
+                    </a>
                 </div>
             </div>
         </div>
@@ -132,7 +140,7 @@
                     }
                     else
                     {
-                        <p class="text-muted">No upcoming events scheduled.</p>
+                        <p class="text-neon">No upcoming events scheduled.</p>
                     }
                 </div>
             </div>
