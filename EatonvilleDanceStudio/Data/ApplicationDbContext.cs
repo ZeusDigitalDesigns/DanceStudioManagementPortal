@@ -27,6 +27,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     public DbSet<CostumeOrder> CostumeOrders { get; set; }
     
+    public DbSet<LegalWaiver> LegalWaivers { get; set; }
+    
     public DbSet<DanceClass> DanceClasses { get; set; }
     
     public DbSet<Enrollment> Enrollments { get; set; }
@@ -53,4 +55,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     // Maps the StudioMessage class to the StudioMessages SQL table
     public DbSet<StudioMessage> StudioMessages { get; set; }
+    
+    
 }       

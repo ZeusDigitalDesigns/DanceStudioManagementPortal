@@ -53,4 +53,7 @@ public class ParentProfile
     
     // Navigation property: a parent can have many dancers.
     public ICollection<Dancer> Dancers { get; set; } = new List<Dancer>();
+    
+    // Legal & Compliance
+    public ICollection<LegalWaiver> LegalWaivers { get; set; }
 }

@@ -44,6 +44,15 @@ public class ParentController : Controller
         {
             return NotFound("Parent profile not found. Please contact the studio.");
         }
+        
+        bool hasSignedWaiver = await _context.LegalWaivers
+            .AnyAsync(w => w.ParentProfileId == profile.Id && w.Season == "2026-2027");
+
+        if (!hasSignedWaiver)
+        {
+            // Force them to sign page immediately
+            return RedirectToAction("SignWaiver");
+        }
 
         // Fetch all Dancers belonging to this household
         List<Dancer> dancers = await _context.Dancers
@@ -240,5 +249,63 @@ public class ParentController : Controller
         }
 
         return View(input);
+    }
+    
+    // GET: /Parent/SignWaiver
+    /// <summary>
+    /// Displays the legal waiver signing form for the current parent with a preconfigured season and waiver type.
+    /// </summary>
+    /// <returns>
+    /// A view containing the initialized legal waiver, or an error result if the parent account or profile cannot be found.
+    /// </returns>
+    [HttpGet]
+    public async Task<IActionResult> SignWaiver()
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        ParentProfile? profile = await _context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+        if (profile == null) return NotFound("Parent profile not found.");
+
+        LegalWaiver newWaiver = new LegalWaiver
+        {
+            ParentProfileId = profile.Id,
+            Season = "2026-2027", 
+            WaiverType = "Master Liability, Medical & Photo Release"
+        };
+
+        return View(newWaiver);
+    }
+
+    // POST: /Parent/SignWaiver
+    /// <summary>
+    /// Processes a submitted legal waiver, records the signing date and client IP address,
+    /// saves the waiver, and redirects the parent to the dashboard when valid.
+    /// </summary>
+    /// <param name="model">The legal waiver information submitted by the parent.</param>
+    /// <returns>The dashboard redirect after a successful submission, or the waiver view with validation errors.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SignWaiver(LegalWaiver model)
+    {
+        // Remove navigation property from validation
+        ModelState.Remove(nameof(model.ParentProfile));
+
+        if (ModelState.IsValid)
+        {
+            // Capture exact time and IP for the legal ledger
+            model.SignedDate = DateTime.Now;
+            model.IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            _context.LegalWaivers.Add(model);
+            await _context.SaveChangesAsync();
+
+            // Send them back to their dashboard once signed
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        return View(model);
     }
 }

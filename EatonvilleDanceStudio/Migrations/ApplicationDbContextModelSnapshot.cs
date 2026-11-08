@@ -477,6 +477,46 @@ namespace EatonvilleDanceStudio.Migrations
                     b.ToTable("LedgerEntries");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.LegalWaiver", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IPAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("ParentProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Season")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("SignedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TypedSignature")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("WaiverType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentProfileId");
+
+                    b.ToTable("LegalWaivers");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.ParentProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -901,6 +941,17 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Navigation("Parent");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.LegalWaiver", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.ParentProfile", "ParentProfile")
+                        .WithMany("LegalWaivers")
+                        .HasForeignKey("ParentProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ParentProfile");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.ParentProfile", b =>
                 {
                     b.HasOne("EatonvilleDanceStudio.Data.ApplicationUser", "User")
@@ -1015,6 +1066,8 @@ namespace EatonvilleDanceStudio.Migrations
             modelBuilder.Entity("EatonvilleDanceStudio.Models.ParentProfile", b =>
                 {
                     b.Navigation("Dancers");
+
+                    b.Navigation("LegalWaivers");
                 });
 #pragma warning restore 612, 618
         }
