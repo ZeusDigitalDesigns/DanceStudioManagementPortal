@@ -1,0 +1,91 @@
+@model EatonvilleDanceStudio.Models.LegalWaiver
+
+@{
+    ViewData["Title"] = "Sign Master Waiver";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 
+                border border-neon rounded" style="background-color: #121212;">
+        <h2 class="text-neon mb-0">Required Legal Agreements</h2>
+        <span class="badge bg-danger text-white">Action Required</span>
+    </div>
+
+    <div class="card bg-dark border-neon shadow-lg">
+        <div class="card-body p-4">
+            
+            <p class="text-light mb-4">
+                Before completing enrollment for the @Model.Season season, you 
+                must review and sign the EDS agreement below.
+            </p>
+
+            <!-- Scrollable Legal Document Box -->
+            <div class="p-4 mb-4 bg-black border border-secondary rounded" 
+                 style="height: 350px; overflow-y: scroll;">
+                
+                <h5 class="text-neon text-center mb-4">
+                    Master Liability, Medical, and Photo Release
+                </h5>
+
+                <h6 class="text-white">1. Liability Release</h6>
+                <p class="text-light small mb-4">
+                    I understand that dance is a physical activity and carries 
+                    an inherent risk of injury. I agree to hold Eatonville 
+                    Dance Studio, its directors, and instructors harmless from 
+                    all liability, claims, or demands for personal injury or 
+                    property damage arising from participation.
+                </p>
+
+                <h6 class="text-white">2. Medical Emergency Authorization</h6>
+                <p class="text-light small mb-4">
+                    In the event of a medical emergency where I cannot be 
+                    reached, I authorize the staff of Eatonville Dance Studio 
+                    to seek immediate medical care and treatment for my child. 
+                    I agree to assume all costs associated with such treatment.
+                </p>
+
+                <h6 class="text-white">3. Photo and Video Release</h6>
+                <p class="text-light small mb-4">
+                    I grant Eatonville Dance Studio permission to use 
+                    photographs and video footage of my child taken during 
+                    classes, rehearsals, and performances for promotional 
+                    purposes, including social media and the studio website.
+                </p>
+                
+                <p class="text-white text-center mt-5">
+                    <em>End of Agreement</em>
+                </p>
+            </div>
+
+            <!-- Signature Form -->
+            <form asp-action="SignWaiver" method="post">
+                <input type="hidden" asp-for="ParentProfileId" />
+                <input type="hidden" asp-for="Season" />
+                <input type="hidden" asp-for="WaiverType" />
+
+                <div class="mb-4">
+                    <label asp-for="TypedSignature" class="form-label text-neon">
+                        <strong>Electronic Signature</strong>
+                    </label>
+                    <p class="text-light small mb-2">
+                        By typing your full legal name below, you acknowledge 
+                        that you have read, understood, and agree to the terms 
+                        outlined above.
+                    </p>
+                    <input asp-for="TypedSignature" 
+                           class="form-control form-control-lg bg-black 
+                                  text-light border-secondary" 
+                           placeholder="Type your full legal name..." />
+                    <span asp-validation-for="TypedSignature" 
+                          class="text-danger fw-bold"></span>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-neon btn-lg px-5">
+                        I Agree & Sign
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
