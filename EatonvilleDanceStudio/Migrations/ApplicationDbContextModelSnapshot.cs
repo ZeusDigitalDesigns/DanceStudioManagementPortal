@@ -274,8 +274,14 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("Allergies")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("BustChest")
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("CarriesInhaler")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("DateOfBirth")
                         .HasColumnType("datetime2");
@@ -306,6 +312,9 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("MedicalNotes")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ParentProfileId")
                         .HasColumnType("int");
 
@@ -316,6 +325,9 @@ namespace EatonvilleDanceStudio.Migrations
 
                     b.Property<string>("ProfilePhotoPath")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("RequiresEpiPen")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ShoeSize")
                         .HasColumnType("nvarchar(max)");

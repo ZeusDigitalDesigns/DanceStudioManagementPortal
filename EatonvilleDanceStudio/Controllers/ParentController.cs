@@ -308,4 +308,71 @@ public class ParentController : Controller
 
         return View(model);
     }
+    
+    // GET: /Parent/MedicalRoster
+    /// <summary>
+    /// Retrieves the current parent's dancer roster for viewing and managing medical information.
+    /// </summary>
+    /// <return>
+    /// A view containing the parent's linked dancers, or an unauthorized or not found result when the user or parent profile cannot be resolved.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> MedicalRoster()
+    {
+        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        ParentProfile? profile = await _context.ParentProfiles
+            .Include(p => p.Dancers)
+            .FirstOrDefaultAsync(p => p.UserId == user.Id);
+
+        if (profile == null) return NotFound("Parent profile not found.");
+
+        return View(profile.Dancers);
+    }
+
+    // GET: /Parent/UpdateMedical/{id}
+    /// <summary>
+    /// Retrieves the dancer record for the medical and allergy alert update form.
+    /// </summary>
+    /// <param name="id">The identifier of the dancer whose medical information is being updated.</param>
+    /// <returns>The update view populated with the dancer record, or a not found result if no matching dancer exists.</returns>
+    [HttpGet]
+    public async Task<IActionResult> UpdateMedical(int id)
+    {
+        Dancer? dancer = await _context.Dancers.FindAsync(id);
+        if (dancer == null) return NotFound();
+        
+        return View(dancer);
+    }
+
+    // POST: /Parent/UpdateMedical/{id}
+    /// <summary>
+    /// Updates the medical information for an existing dancer and returns to the medical roster.
+    /// </summary>
+    /// <param name="id">The identifier of the dancer whose medical information is being updated.</param>
+    /// <param name="model">The dancer data containing the updated medical notes, allergies, EpiPen requirement, and inhaler status.</param>
+    /// <returns>A redirect to the medical roster when successful, or a not found result if the dancer cannot be matched.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateMedical(int id, Dancer model)
+    {
+        if (id != model.Id) return NotFound();
+
+        Dancer? existingDancer = await _context.Dancers.FindAsync(id);
+        if (existingDancer == null) return NotFound();
+
+        // We only map the medical fields here. This prevents a nasty bug 
+        // where posting this form accidentally overwrites the dancer's 
+        // costume sizes or skill levels with nulls!
+        existingDancer.MedicalNotes = model.MedicalNotes;
+        existingDancer.Allergies = model.Allergies;
+        existingDancer.RequiresEpiPen = model.RequiresEpiPen;
+        existingDancer.CarriesInhaler = model.CarriesInhaler;
+
+        await _context.SaveChangesAsync();
+        
+        return RedirectToAction(nameof(MedicalRoster));
+    }
+    
 }

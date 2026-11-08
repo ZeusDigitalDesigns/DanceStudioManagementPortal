@@ -216,7 +216,10 @@
                                             <h5 class="text-neon mb-0">@dancer.FirstName @dancer.LastName</h5>
                                             <small class="text-light">Level: @dancer.SkillLevel | Age: @dancer.Age</small>
                                             
-                                            @if (!string.IsNullOrEmpty(dancer.MedicalAlerts))
+                                            @if (!string.IsNullOrEmpty(dancer.MedicalNotes) || 
+                                                 !string.IsNullOrEmpty(dancer.Allergies) || 
+                                                 dancer.RequiresEpiPen || 
+                                                 dancer.CarriesInhaler)
                                             {
                                                 <div class="mt-2">
                                                     <span class="badge bg-danger rounded-0">Medical Alert</span>
@@ -243,7 +246,8 @@
                     <h5 class="text-neon mb-0">Quick Actions</h5>
                 </div>
                 <div class="list-group list-group-flush rounded-0">
-                    <a href="#" class="list-group-item list-group-item-action bg-transparent text-light border-secondary">
+                    <a asp-controller="Parent" asp-action="MedicalRoster" 
+                       class="list-group-item list-group-item-action bg-transparent text-light border-secondary">
                         <span class="text-neon me-2">📝</span> Update Medical/Allergy Notes
                     </a>
                     <a asp-controller="Parent" asp-action="SignWaiver" class="list-group-item list-group-item-action bg-transparent text-light border-secondary border-bottom-0">

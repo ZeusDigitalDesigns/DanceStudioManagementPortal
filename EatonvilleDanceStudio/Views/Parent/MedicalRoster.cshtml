@@ -1,0 +1,64 @@
+@model IEnumerable<EatonvilleDanceStudio.Models.Dancer>
+
+@{
+    ViewData["Title"] = "Medical Profiles";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 
+                border border-neon rounded" style="background-color: #121212;">
+        <h2 class="text-neon mb-0">Medical & Allergy Profiles</h2>
+        <a asp-action="Dashboard" class="btn btn-outline-secondary btn-sm">
+            Back to Hub
+        </a>
+    </div>
+
+    <div class="row g-3">
+        @foreach (Dancer dancer in Model)
+        {
+            <div class="col-md-6">
+                <div class="card bg-dark border-neon shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="text-white mb-3">
+                            @dancer.FirstName @dancer.LastName
+                        </h5>
+                        
+                        <div class="mb-3">
+                            @if (dancer.RequiresEpiPen)
+                            {
+                                <span class="badge bg-danger rounded-0 me-1">
+                                    EpiPen
+                                </span>
+                            }
+                            @if (dancer.CarriesInhaler)
+                            {
+                                <span class="badge bg-info text-dark rounded-0">
+                                    Inhaler
+                                </span>
+                            }
+                            @if (!string.IsNullOrEmpty(dancer.Allergies))
+                            {
+                                <span class="badge bg-warning text-dark rounded-0">
+                                    Allergies
+                                </span>
+                            }
+                            @if (!dancer.RequiresEpiPen && !dancer.CarriesInhaler 
+                                 && string.IsNullOrEmpty(dancer.Allergies) 
+                                 && string.IsNullOrEmpty(dancer.MedicalNotes))
+                            {
+                                <span class="text-light small">
+                                    No medical alerts on file.
+                                </span>
+                            }
+                        </div>
+                        
+                        <a asp-action="UpdateMedical" asp-route-id="@dancer.Id" 
+                           class="btn btn-outline-neon btn-sm w-100">
+                            Update Safety Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

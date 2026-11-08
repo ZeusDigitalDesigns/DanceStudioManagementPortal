@@ -1,0 +1,66 @@
+@model EatonvilleDanceStudio.Models.Dancer
+
+@{
+    ViewData["Title"] = "Update Safety Profile";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 600px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 
+                border border-neon rounded" style="background-color: #121212;">
+        <h2 class="text-neon mb-0">Update Profile: @Model.FirstName</h2>
+        <a asp-action="MedicalRoster"
+           class="btn btn-outline-secondary btn-sm">Cancel</a>
+    </div>
+
+    <div class="card bg-dark border-neon shadow-lg">
+        <div class="card-body p-4">
+            <form asp-action="UpdateMedical" method="post">
+                <input type="hidden" asp-for="Id"/>
+
+                <!-- Critical Action Items -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">
+                    Critical Action Items
+                </h5>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input bg-dark border-secondary"
+                           type="checkbox" asp-for="RequiresEpiPen">
+                    <label class="form-check-label text-light fw-bold text-danger"
+                           asp-for="RequiresEpiPen">
+                        Requires EpiPen
+                    </label>
+                </div>
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input bg-dark border-secondary"
+                           type="checkbox" asp-for="CarriesInhaler">
+                    <label class="form-check-label text-light fw-bold text-info"
+                           asp-for="CarriesInhaler">
+                        Carries Rescue Inhaler
+                    </label>
+                </div>
+
+                <!-- Text Details -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">
+                    Details
+                </h5>
+                <div class="mb-3">
+                    <label asp-for="Allergies" class="form-label text-light"></label>
+                    <textarea asp-for="Allergies" rows="2"
+                              class="form-control bg-black text-light border-neon"
+                              placeholder="List any food, drug, or environmental allergies..."></textarea>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="MedicalNotes" class="form-label text-light"></label>
+                    <textarea asp-for="MedicalNotes" rows="3"
+                              class="form-control bg-black text-light border-neon"
+                              placeholder="Any other medical conditions or injuries the studio should know about?"></textarea>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-neon px-5">
+                        Save Safety Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
