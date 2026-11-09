@@ -239,7 +239,6 @@ public class SeedData
             await userManager.AddToRoleAsync(dancerUser, "Dancer");
 
             // Fetch the seeded Parent to link the foreign key
-            // *Update this email if your seeded parent uses a different one!*
             parentUser = await userManager.FindByEmailAsync("parent@gmail.com");
         
             ParentProfile? parentProfile = null;
@@ -266,62 +265,467 @@ public class SeedData
             }
         }
 
-        // Provision starter Dance Classes linked to the Test Instructor
-        if (instructorUser != null)
+        // SEED ALL SPECIFIC INSTRUCTORS (WITH FULL NAMES) 
+        var instructorsToSeed = new[]
         {
-            if (!context.DanceClasses.Any())
+            ("Justine", "Reed"),
+            ("Rylee", "Evers"),
+            ("Sarah", "Howard"),
+            ("Tessa", "Carter"),
+            ("Natalie", "Lane"),
+            ("Guest", "Instructor")
+        };
+
+        foreach (var (firstName, lastName) in instructorsToSeed)
+        {
+            string email = $"{firstName.ToLower()}@eatonvilledance.com";
+            if (await userManager.FindByEmailAsync(email) == null)
             {
-                List<DanceClass> starterClasses = new List<DanceClass>
+                ApplicationUser newInstructor = new ApplicationUser
                 {
-                    new DanceClass
-                    {
-                        ClassName = "Beginner Ballet",
-                        Description = "A fun, introductory ballet class " +
-                                      "focusing on basic movement and rhythm.",
-                        MinimumAge = 3,
-                        MaximumAge = 5,
-                        RequiredSkillLevel = "Beginner",
-                        Capacity = 12,
-                        DayOfWeek = "Monday",
-                        StartTime = new TimeSpan(15, 30, 0), // 3:30 PM
-                        EndTime = new TimeSpan(16, 15, 0),   // 4:15 PM
-                        InstructorId = instructorUser.Id     // Link to Instructor
-                    },
-                    new DanceClass
-                    {
-                        ClassName = "Intermediate Hip Hop",
-                        Description = "High-energy hip hop routine focusing " +
-                                      "on choreography and stage presence.",
-                        MinimumAge = 10,
-                        MaximumAge = 15,
-                        RequiredSkillLevel = "Intermediate",
-                        Capacity = 20,
-                        DayOfWeek = "Wednesday",
-                        StartTime = new TimeSpan(17, 0, 0), // 5:00 PM
-                        EndTime = new TimeSpan(18, 0, 0),   // 6:00 PM
-                        InstructorId = instructorUser.Id    // Link to Instructor
-                    }
+                    UserName = email,
+                    Email = email,
+                    FirstName = firstName,
+                    LastName = lastName, 
+                    EmailConfirmed = true
                 };
-
-                context.DanceClasses.AddRange(starterClasses);
-                await context.SaveChangesAsync();
-            }
-            else
-            {
-                // Fallback: If classes exist but have no instructor, assign them
-                List<DanceClass> orphanedClasses = await context.DanceClasses
-                    .Where(c => string.IsNullOrEmpty(c.InstructorId))
-                    .ToListAsync();
-
-                if (orphanedClasses.Any())
+                
+                var createResult = await userManager.CreateAsync(newInstructor, "Dance123!");
+                if (createResult.Succeeded)
                 {
-                    foreach (DanceClass orphanedClass in orphanedClasses)
-                    {
-                        orphanedClass.InstructorId = instructorUser.Id;
-                    }
-
-                    await context.SaveChangesAsync();
+                    await userManager.AddToRoleAsync(newInstructor, "Instructor");
                 }
+            }
+        }
+
+        // FETCH REAL DATABASE IDs FOR ASSIGNMENT
+        // We use the 'test instructor' as a fallback so the database never crashes
+        string fallbackId = instructorUser?.Id ?? "";
+        
+        string justineId = (await userManager.FindByEmailAsync("justine@eatonvilledance.com"))?.Id ?? fallbackId;
+        string ryleeId   = (await userManager.FindByEmailAsync("rylee@eatonvilledance.com"))?.Id ?? fallbackId;
+        string sarahId   = (await userManager.FindByEmailAsync("sarah@eatonvilledance.com"))?.Id ?? fallbackId;
+        string tessaId   = (await userManager.FindByEmailAsync("tessa@eatonvilledance.com"))?.Id ?? fallbackId;
+        string natalieId = (await userManager.FindByEmailAsync("natalie@eatonvilledance.com"))?.Id ?? fallbackId;
+        string guestId   = (await userManager.FindByEmailAsync("guest@eatonvilledance.com"))?.Id ?? fallbackId;
+
+        // PROVISION CLASSES WITH REAL IDs 
+        // --- TEMPORARY DEVELOPER OVERRIDE ---
+        // This forcefully wipes out the old, imageless classes and their enrollments 
+        // to guarantee the new seed data runs, bypassing SQL Server locks.
+        var oldClasses = await context.DanceClasses.Include(c => c.Enrollments).ToListAsync();
+        if (oldClasses.Any())
+        {
+            context.Enrollments.RemoveRange(oldClasses.SelectMany(c => c.Enrollments));
+            context.DanceClasses.RemoveRange(oldClasses);
+            await context.SaveChangesAsync();
+        }
+        if (!context.DanceClasses.Any())
+        {
+            List<DanceClass> starterClasses = new List<DanceClass>
+            {
+                new DanceClass {
+                    ClassName = "Ballet 1",
+                    Description = "A fun, introductory ballet class focusing on basic movement.",
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = sarahId,
+                    ImageUrl1 = "/images/classes/ballet-1.jpg",
+                    ImageUrl2 = "/images/classes/ballet-7.jpg",
+                    ImageUrl3 = "/images/classes/ballet-8.jpeg"
+                    
+                },
+                new DanceClass {
+                    ClassName = "Ballet 2",                           
+                    Description = "Recreation class. Ages 7 and up.", 
+                    MinimumAge = 7, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = sarahId,
+                    ImageUrl1 = "/images/classes/ballet-2.jpeg",
+                    ImageUrl2 = "/images/classes/ballet-3.jpeg",
+                    ImageUrl3 = "/images/classes/ballet-6.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Ballet 3",                              
+                    Description = "Recreation class. Must be approved.", 
+                    MinimumAge = 7, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(19, 0, 0),
+                    InstructorId = sarahId,
+                    ImageUrl1 = "/images/classes/ballet-9.jpg",
+                    ImageUrl2 = "/images/classes/ballet-2.jpeg",
+                    ImageUrl3 = "/images/classes/ballet-5.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Pre pointe and Pointe",
+                    Description = "Recreation class.",  
+                    MinimumAge = 10, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(19, 0, 0), EndTime = new TimeSpan(19, 30, 0),
+                    InstructorId = sarahId,
+                    ImageUrl1 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl2 = "/images/classes/dancepose-1.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Lyrical 1 and 2",                 
+                    Description = "Recreation class. Ages 6 to 9.", 
+                    MinimumAge = 6, MaximumAge = 9, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = ryleeId,
+                    ImageUrl1 = "/images/classes/dancepose-2.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-1.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Hip Hop 1",                        
+                    Description = "Recreation class. Ages 5 to 8.", 
+                    MinimumAge = 5, MaximumAge = 8, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(15, 0, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = guestId,
+                    ImageUrl1 = "/images/classes/hiphop-1.jpg",
+                    ImageUrl2 = "/images/classes/hiphop-2.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Hip hop 2",
+                    Description = "Recreation class. Ages 8 and up.", 
+                    MinimumAge = 8, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = natalieId,
+                    ImageUrl1 = "/images/classes/hiphop-6.jpg",
+                    ImageUrl2 = "/images/classes/hiphop-7.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Hip Hop 3", 
+                    Description = "Recreation class. Ages 11 and up.", 
+                    MinimumAge = 11, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = natalieId,
+                    ImageUrl1 = "/images/classes/hiphop-3.jpg",
+                    ImageUrl2 = "/images/classes/hiphop-4.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-5.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Intermediate Hip Hop",
+                    Description = "High-energy hip hop routine focusing on choreography and stage presence.",
+                    MinimumAge = 10, MaximumAge = 15, RequiredSkillLevel = "Intermediate",
+                    Capacity = 20, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = fallbackId, 
+                    ImageUrl1 = "/images/classes/hiphop-4.jpg",
+                    ImageUrl2 = "/images/classes/hiphop-6.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-8.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Tap and Jazz Combo",
+                    Description = "A fun combo class for tap and jazz.",
+                    MinimumAge = 5, MaximumAge = 8, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(15, 0, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/acro-1.jpg",
+                    ImageUrl2 = "/images/classes/dance.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Tech 1",
+                    Description = "No recital. Works on fundamentals of dance.",
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/hiphop-1.jpg",
+                    ImageUrl2 = "/images/classes/dance.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Tech 2",                                         
+                    Description = "No recital. Works on fundamentals of dance.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/hiphop-1.jpg",
+                    ImageUrl2 = "/images/classes/hiphop-5.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Tech 3",                           
+                    Description = "Recreation class. No recital.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl2 = "/images/classes/dancepose-2.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Creative movement 1", 
+                    Description = "Recreation class.", 
+                    MinimumAge = 3, MaximumAge = 4, RequiredSkillLevel = "Beginner",
+                    Capacity = 10, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(16, 45, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl2 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Creative Movement 2",
+                    Description = "Intro to movement for the little ones.",
+                    MinimumAge = 3, MaximumAge = 4, RequiredSkillLevel = "Beginner",
+                    Capacity = 10, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(14, 45, 0), EndTime = new TimeSpan(15, 30, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Lyrical and Jazz 1",  
+                    Description = "Recreation class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancepose-1.jpg",
+                    ImageUrl2 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Lyrical and Jazz 2",  
+                    Description = "Recreation class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(18, 0, 0),
+                    InstructorId = ryleeId, 
+                    ImageUrl1 = "/images/classes/hiphop-1.jpg",
+                    ImageUrl2 = "/images/classes/ballet-9.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Jazz 3",             
+                    Description = "Recreation class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = ryleeId,
+                    ImageUrl1 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Ballet Jazz combo",                
+                    Description = "Recreation class. Ages 5 to 8.",
+                    MinimumAge = 5, MaximumAge = 8, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(15, 0, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = guestId,
+                    ImageUrl1 = "/images/classes/ballet-4.jpeg",
+                    ImageUrl2 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Acro 1",             
+                    Description = "Recreation class.",
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(15, 30, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/acro-1.jpg",
+                    ImageUrl2 = "/images/classes/acro-2.jpeg",
+                    ImageUrl3 = "/images/classes/hiphop-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Acro 3",                           
+                    Description = "Recreation class. Age 7 to 10.", 
+                    MinimumAge = 7, MaximumAge = 10, RequiredSkillLevel = "Intermediate",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(15, 0, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/hiphop-1.jpg",
+                    ImageUrl2 = "/images/classes/acro-1.jpg",
+                    ImageUrl3 = "/images/classes/acro-2.jpeg"
+                },
+                new DanceClass {
+                    ClassName = "Acro 4",                             
+                    Description = "Recreation class. Highest level.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(19, 0, 0),
+                    InstructorId = ryleeId,
+                    ImageUrl1 = "/images/classes/acro-1.jpg",
+                    ImageUrl2 = "/images/classes/dancepose-3.jpg",
+                    ImageUrl3 = "/images/classes/hiphop-6.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Acro 5",              
+                    Description = "Recreation class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(19, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/acro-2.jpeg",
+                    ImageUrl2 = "/images/classes/dancepose-2.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-3.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Group 1",                   
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(17, 0, 0), EndTime = new TimeSpan(17, 30, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Rylee Group 2",             
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(18, 30, 0),
+                    InstructorId = ryleeId,
+                    ImageUrl1 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Justine group 3",           
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(15, 30, 0), EndTime = new TimeSpan(16, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Group 4",                   
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(16, 30, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-4.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Group 5",                  
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(16, 30, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = fallbackId,
+                    ImageUrl1 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Justine Group 6",           
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(19, 0, 0), EndTime = new TimeSpan(19, 30, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancegroup-4.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Group 7 Justine",
+                    Description = "Competition team class.",
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(18, 30, 0), EndTime = new TimeSpan(19, 0, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancegroup-1.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-4.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Group 8 Justine",
+                    Description = "Competition team class.",
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Wednesday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(18, 30, 0),
+                    InstructorId = justineId,
+                    ImageUrl1 = "/images/classes/dancegroup-3.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-1.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Comp 9",                   
+                    Description = "Competition team class.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Advanced",
+                    Capacity = 12, DayOfWeek = "Monday",
+                    StartTime = new TimeSpan(19, 0, 0), EndTime = new TimeSpan(19, 30, 0),
+                    InstructorId = ryleeId,
+                    ImageUrl1 = "/images/classes/hiphop-5.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-1.jpg",
+                    ImageUrl3 = "/images/classes/dancegroup-2.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Yoga",                           
+                    Description = "Please contact 253-380-4061.", 
+                    MinimumAge = 16, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 15, DayOfWeek = "Tuesday",
+                    StartTime = new TimeSpan(19, 0, 0), EndTime = new TimeSpan(20, 0, 0),
+                    InstructorId = fallbackId
+                },
+                new DanceClass {
+                    ClassName = "Stretch and strength",            
+                    Description = "Recreation class. No recital.", 
+                    MinimumAge = 5, MaximumAge = 99, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(18, 0, 0), EndTime = new TimeSpan(19, 0, 0),
+                    InstructorId = tessaId,
+                    ImageUrl1 = "/images/classes/ballet-5.jpg",
+                    ImageUrl2 = "/images/classes/dancegroup-2.jpg",
+                    ImageUrl3 = "/images/classes/dancepose-1.jpg"
+                },
+                new DanceClass {
+                    ClassName = "Ages 4 to 7",         
+                    Description = "Recreation class.", 
+                    MinimumAge = 4, MaximumAge = 7, RequiredSkillLevel = "Beginner",
+                    Capacity = 12, DayOfWeek = "Thursday",
+                    StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 0, 0),
+                    InstructorId = guestId, // Was Lindsey
+                    ImageUrl1 = "/images/classes/hiphop-4.jpg",
+                    ImageUrl2 = "/images/classes/ballet-7.jpg",
+                    ImageUrl3 = "/images/classes/ballet-8.jpeg"
+                }
+            };
+
+            context.DanceClasses.AddRange(starterClasses);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            // Fallback: If classes exist but have no instructor, assign them
+            List<DanceClass> orphanedClasses = await context.DanceClasses
+                .Where(c => string.IsNullOrEmpty(c.InstructorId))
+                .ToListAsync();
+
+            if (orphanedClasses.Any())
+            {
+                foreach (DanceClass orphanedClass in orphanedClasses)
+                {
+                    orphanedClass.InstructorId = fallbackId;
+                }
+                await context.SaveChangesAsync();
             }
         }
     }
