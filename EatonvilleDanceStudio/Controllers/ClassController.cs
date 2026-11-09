@@ -22,13 +22,13 @@ public class ClassController : Controller
 
     // GET: Class
     /// <summary>
-    /// Displays a list of available dance classes and the parent's associated dancers.
-    /// Ensures that the user's account is approved before allowing access to the classes.
-    /// Retrieves the parent profile, associated dancers, and available dance classes from the database.
+    /// Displays the class browsing page for the authenticated parent.
+    /// Verifies that the parent profile exists and that the account is approved,
+    /// then loads available dance classes with instructor details and the parent's dancers.
     /// </summary>
-    /// <returns>An IActionResult that renders a view populated with available dance classes
-    /// and the parent's dancers, or an error response if the parent profile is not found or unauthorized.</returns>
-
+    /// <return>An IActionResult that renders the class browsing view with available classes and dancers,
+    /// or returns an error response if the parent profile is not found or the account is not approved.</return>
+    [HttpGet]
     public async Task<IActionResult> Index()
     {
         var userId = _userManager.GetUserId(User);
@@ -42,7 +42,12 @@ public class ClassController : Controller
             return Unauthorized("Your account must be approved by the studio director before you can browse classes.");
         }
 
-        var classes = await _context.DanceClasses.ToListAsync();
+        // Include the Instructor and sort the classes for the catalog
+        var classes = await _context.DanceClasses
+            .Include(c => c.Instructor)
+            .OrderBy(c => c.ClassName)
+            .ThenBy(c => c.ClassName)
+            .ToListAsync();
 
         var viewModel = new ClassBrowseViewModel
         {

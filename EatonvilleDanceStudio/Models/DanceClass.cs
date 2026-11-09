@@ -58,4 +58,13 @@ public class DanceClass
     public decimal MonthlyCost { get; set; }
     
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+    
+    [StringLength(255)]
+    public string? ImageUrl1 { get; set; }
+    
+    [StringLength(255)]
+    public string? ImageUrl2 { get; set; }
+    
+    [StringLength(255)]
+    public string? ImageUrl3 { get; set; }
 }

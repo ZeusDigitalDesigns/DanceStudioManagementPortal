@@ -23,7 +23,7 @@
                     </a>
                 </div>
                 <div class="card-body text-center p-5">
-                    <a asp-controller="Director" asp-action="DancerRoster" class="btn btn-neon btn-lg w-100 mb-3 rounded-0">
+                    <a asp-controller="Director" asp-action="DancerRoster" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
                         <i class="bi bi-people-fill me-2"></i> Manage Student Roster
                     </a>
                     <a asp-controller="Director" asp-action="CostumeManagement" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
@@ -31,6 +31,9 @@
                     </a>
                     <a href="#" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
                         <i class="bi bi-box-seam me-2"></i> Manage Instructors (Coming Soon)
+                    </a>
+                    <a asp-action="CreateClass" asp-controller="Director" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
+                        Create New Class
                     </a>
                 </div>
             </div>

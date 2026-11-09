@@ -1,0 +1,115 @@
+@model EatonvilleDanceStudio.Models.DanceClass
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Create Dance Class";
+}
+
+<div class="container mt-4 mb-5" style="max-width: 800px;">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 border border-neon rounded" style="background-color: #121212;">
+        <h2 class="text-neon mb-0">Create New Class</h2>
+        <a asp-action="ManageUsers" class="btn btn-outline-secondary btn-sm">Cancel</a>
+    </div>
+
+    <div class="card bg-dark border-neon shadow-lg">
+        <div class="card-body p-4">
+            <!-- CRITICAL: enctype is required for file uploads -->
+            <form asp-action="CreateClass" method="post" enctype="multipart/form-data">
+                
+                <!-- Core Details -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">Class Details</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-8">
+                        <label asp-for="ClassName" class="form-label text-light"></label>
+                        <input asp-for="ClassName" class="form-control bg-black text-light border-neon" placeholder="e.g. Advanced Jazz" />
+                        <span asp-validation-for="ClassName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="RequiredSkillLevel" class="form-label text-light">Skill Level</label>
+                        <select asp-for="RequiredSkillLevel" class="form-select bg-black text-light border-neon">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                            <option value="Elite">Elite</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label text-light"></label>
+                        <textarea asp-for="Description" rows="3" class="form-control bg-black text-light border-neon"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Scheduling & Assignment -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">Scheduling & Instructor</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="InstructorId" class="form-label text-light">Assign Instructor</label>
+                        <select asp-for="InstructorId" asp-items="ViewBag.Instructors" class="form-select bg-black text-light border-neon">
+                            <option value="">-- Select Instructor --</option>
+                        </select>
+                        <span asp-validation-for="InstructorId" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DayOfWeek" class="form-label text-light">Day of Week</label>
+                        <select asp-for="DayOfWeek" class="form-select bg-black text-light border-neon">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                            <option value="Sunday">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="StartTime" class="form-label text-light"></label>
+                        <input asp-for="StartTime" type="time" class="form-control bg-black text-light border-neon" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="EndTime" class="form-label text-light"></label>
+                        <input asp-for="EndTime" type="time" class="form-control bg-black text-light border-neon" />
+                    </div>
+                </div>
+
+                <!-- Requirements & Capacity -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">Requirements</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label asp-for="MinimumAge" class="form-label text-light"></label>
+                        <input asp-for="MinimumAge" type="number" class="form-control bg-black text-light border-neon" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="MaximumAge" class="form-label text-light"></label>
+                        <input asp-for="MaximumAge" type="number" class="form-control bg-black text-light border-neon" />
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Capacity" class="form-label text-light"></label>
+                        <input asp-for="Capacity" type="number" class="form-control bg-black text-light border-neon" value="15" />
+                    </div>
+                </div>
+
+                <!-- Image Uploads -->
+                <h5 class="text-neon mb-3 border-bottom border-secondary pb-2">Carousel Images (Optional)</h5>
+                <p class="text-neon small mb-3">Upload landscape (horizontal) photos for the best layout. These will cycle automatically on the Class Catalog.</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label text-light">Image 1 (Primary)</label>
+                        <input type="file" name="image1" class="form-control bg-black text-light border-neon" accept="image/*" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-light">Image 2</label>
+                        <input type="file" name="image2" class="form-control bg-black text-light border-neon" accept="image/*" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-light">Image 3</label>
+                        <input type="file" name="image3" class="form-control bg-black text-light border-neon" accept="image/*" />
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <button type="submit" class="btn btn-neon px-5">Publish Class</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

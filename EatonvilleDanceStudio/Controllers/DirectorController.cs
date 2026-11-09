@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,16 +23,19 @@ public class DirectorController : Controller
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ITuitionCalculatorService _tuitionService;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
     // Inject UserManager so we can pull the list of parents for the dropdown
     public DirectorController(
         ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        ITuitionCalculatorService tuitionService)
+        ITuitionCalculatorService tuitionService,
+        IWebHostEnvironment webHostEnvironment)
     {
         _context = context;
         _userManager = userManager;
         _tuitionService = tuitionService;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     // GET: /Director/PendingAccounts
@@ -117,8 +123,7 @@ public class DirectorController : Controller
     /// </returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateInvoice(
-        CreateInvoiceViewModel model)
+    public async Task<IActionResult> CreateInvoice(CreateInvoiceViewModel model)
     {
         if (ModelState.IsValid)
         {
@@ -300,8 +305,7 @@ public class DirectorController : Controller
     /// </return>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateEvent(
-        CreateStudioEventViewModel model)
+    public async Task<IActionResult> CreateEvent(CreateStudioEventViewModel model)
     {
         if (ModelState.IsValid)
         {
@@ -357,8 +361,79 @@ public class DirectorController : Controller
         return View(model);
     }
 
-    // POST: /Director/DeleteEvent
+    // GET: /Director/CreateClass
+    /// <summary>
+    /// Displays the form for creating a new dance class and prepares the available instructor list for selection.
+    /// </summary>
+    /// <return>
+    /// An IActionResult containing the create class view.
+    /// </return>
+    [HttpGet]
+    public async Task<IActionResult> CreateClass()
+    {
+        // Fetch all users specifically assigned to the Instructor role
+        var instructors = await _userManager.GetUsersInRoleAsync("Instructor");
+        
+        ViewBag.Instructors = new SelectList(
+            instructors.Select(i => new { i.Id, FullName = i.FirstName + " " + i.LastName })
+                .OrderBy(i => i.FullName), 
+            "Id", "FullName");
 
+        // FIX: Just return the empty View. ASP.NET will handle the empty form bindings automatically!
+        return View();
+    }
+
+    // POST: /Director/CreateClass
+    /// <summary>
+    /// Creates a new dance class and saves up to three associated class images when the submitted model is valid.
+    /// </summary>
+    /// <param name="model">
+    /// The dance class information to create, including instructor assignment and class details.
+    /// </param>
+    /// <param name="image1">
+    /// The first optional image file to associate with the dance class.
+    /// </param>
+    /// <param name="image2">
+    /// The second optional image file to associate with the dance class.
+    /// </param>
+    /// <param name="image3">
+    /// The third optional image file to associate with the dance class.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the user management view after successful creation, or returns the class creation view with validation errors and instructor options when the submitted model is invalid.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateClass(DanceClass model, IFormFile? image1, IFormFile? image2,
+        IFormFile? image3)
+    {
+        // Strip navigation properties so ModelState doesn't fail
+        ModelState.Remove(nameof(model.Instructor));
+        ModelState.Remove(nameof(model.Enrollments));
+
+        if (ModelState.IsValid)
+        {
+            // Process and save the images before saving to the database
+            model.ImageUrl1 = await SaveClassImageAsync(image1);
+            model.ImageUrl2 = await SaveClassImageAsync(image2);
+            model.ImageUrl3 = await SaveClassImageAsync(image3);
+
+            _context.DanceClasses.Add(model);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(ManageUsers)); 
+        }
+
+        // Repopulate dropdown if validation fails
+        var instructors = await _userManager.GetUsersInRoleAsync("Instructor");
+        ViewBag.Instructors = new SelectList(
+            instructors.Select(i => new { i.Id, FullName = i.FirstName + " " + i.LastName })
+                       .OrderBy(i => i.FullName), 
+            "Id", "FullName", model.InstructorId);
+
+        return View(model);
+    }
+    
+    // POST: /Director/DeleteEvent
     /// <summary>
     /// Deletes a specified studio event based on its unique identifier.
     /// </summary>
@@ -787,7 +862,7 @@ public class DirectorController : Controller
             }
         }
 
-        // 4. Save all new invoices to the database in one shot
+        // Save all new invoices to the database in one shot
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = 
@@ -957,6 +1032,39 @@ public class DirectorController : Controller
             "Id", "ClassName", model.DanceClassId);
 
         return View(model);
+    }
+
+    /// <summary>
+    /// Saves an uploaded class image file to the class images directory and returns its relative URL.
+    /// </summary>
+    /// <param name="file">
+    /// The uploaded image file to save. If null or empty, no file is saved.
+    /// </param>
+    /// <return>
+    /// A relative URL for the saved image file, or null if no valid file was provided.
+    /// </return>
+    private async Task<string?> SaveClassImageAsync(IFormFile? file)
+    {
+        if (file == null || file.Length == 0) return null;
+
+        // Find wwwroot/images/classes
+        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "classes");
+        
+        // Safety check: Create the folder if it doesn't exist yet
+        Directory.CreateDirectory(uploadsFolder);
+
+        // Generate a unique filename using a GUID
+        string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(file.FileName);
+        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        // Save the file to the hard drive
+        using (var fileStream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(fileStream);
+        }
+
+        // Return the relative URL string to save to SQL Server
+        return "/images/classes/" + uniqueFileName;
     }
 } 
 

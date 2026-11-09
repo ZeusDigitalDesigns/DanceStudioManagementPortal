@@ -1,70 +1,160 @@
 @model EatonvilleDanceStudio.ViewModels.ClassBrowseViewModel
 
 @{
-    ViewData["Title"] = "Class Registration Portal";
+    ViewData["Title"] = "Dance Classes";
 }
 
-<div class="container mt-5">
-    <h1 class="text-center text-neon mb-4">Browse Classes</h1>
+<style>
+    /* Creates a smooth horizontal swipe carousel */
+    .class-carousel-wrapper {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        gap: 1.5rem;
+        padding-bottom: 2rem;
+    }
+
+    /* Custom Neon Pink Horizontal Scrollbar */
+    .class-carousel-wrapper::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .class-carousel-wrapper::-webkit-scrollbar-track {
+        background: #121212;
+        border-radius: 10px;
+        margin: 0 15px; /* Keeps the scrollbar from touching the absolute edges */
+    }
+
+    .class-carousel-wrapper::-webkit-scrollbar-thumb {
+        background: #ff10f0; /* Deep Neon Pink */
+        border-radius: 10px;
+        border: 2px solid #121212; /* Adds a gap between track and thumb */
+    }
+
+    .class-carousel-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #ff3399; /* Brighter pink when they hover over it */
+    }
     
+    /* Locks the card width so they don't stretch */
+    .class-card {
+        flex: 0 0 auto;
+        width: 350px;
+        scroll-snap-align: center;
+    }
+    
+    /* Forces the slideshow images to fit perfectly in the top half */
+    .card-img-wrapper {
+        height: 200px;
+        overflow: hidden;
+    }
+    .card-img-wrapper img {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<div class="container mt-5 mb-5">
+    
+    <!-- System Messages for Enrollment Success/Failure -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success bg-dark text-success border-success fw-bold">
+        <div class="alert alert-success bg-dark text-success border-success alert-dismissible fade show" role="alert">
             @TempData["SuccessMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger bg-dark text-danger border-danger fw-bold">
+        <div class="alert alert-danger bg-dark text-danger border-danger alert-dismissible fade show" role="alert">
             @TempData["ErrorMessage"]
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
-    <div class="row">
-        @if (!Model.AvailableClasses.Any())
+
+    <div class="text-center mb-5">
+        <h1 class="text-neon display-5 fw-bold">Explore Our Classes</h1>
+        <p class="text-light">
+            Swipe to view our upcoming season. 
+            Find the perfect fit for your dancer.
+        </p>
+    </div>
+
+    <div class="class-carousel-wrapper px-3">
+        @foreach (var danceClass in Model.AvailableClasses)
         {
-            <div class="col-12 text-center text-light mt-5">
-                <h4>No classes are currently scheduled for the upcoming season. Check back soon!</h4>
-            </div>
-        }
-        else
-        {
-            @foreach (var danceClass in Model.AvailableClasses)
-            {
-                <div class="col-md-4 mb-4">
-                    <div class="card card-dark h-100 shadow-lg border-neon">
-                        <div class="card-body">
-                            <h4 class="card-title text-neon">@danceClass.ClassName</h4>
-                            <p class="text-light small mb-2">@danceClass.Description</p>
-                            <hr class="border-secondary"/>
-                            <p class="text-light mb-1"><strong>Ages:</strong>@danceClass.MinimumAge - @danceClass.MaximumAge</p>
-                            <p class="text-light mb-1"><strong>Level:</strong>@danceClass.RequiredSkillLevel</p>
-                            <p class="text-light mb-1"><strong>Schedule:</strong>@danceClass.DayOfWeek at @danceClass.StartTime.ToString(@"hh\:mm") - @danceClass.EndTime.ToString(@"hh\:mm")</p>
+            <!-- Individual Class Card -->
+            <div class="card bg-dark border-neon shadow-lg class-card rounded-3">
+                
+                <!-- Nested Image Slideshow (Top Half) -->
+                <div id="slideshow-@danceClass.Id" class="carousel slide" 
+                     data-bs-ride="carousel" data-bs-pause="false">
+                    <div class="carousel-inner card-img-wrapper rounded-top">
+        
+                        <!-- Image 1 -->
+                        <div class="carousel-item active" data-bs-interval="3000">
+                            <img src="@(string.IsNullOrEmpty(danceClass.ImageUrl1) ? $"https://picsum.photos/seed/{danceClass.Id}A/400/250" : danceClass.ImageUrl1)" 
+                                 alt="@danceClass.ClassName Image 1">
                         </div>
-                        
-                        <div class="card-footer border-secondary bg-transparent">
-                            @if (Model.MyDancers.Any())
-                            {
-                                <form asp-controller="Class" asp-action="Enroll" method="post" class="d-flex align-items-center">
-                                    <input type="hidden" name="classId" value="@danceClass.Id" />
-                                    <select name="dancerId" class="form-select bg-dark text-light border-secondary me-2" required>
-                                        <option value="">Select Dancer...</option>
-                                        @foreach (var dancer in Model.MyDancers)
-                                        {
-                                            <option value="@dancer.Id">@dancer.FirstName @dancer.LastName</option>
-                                        }
-                                    </select>
-                                    <button type="submit" class="btn btn-neon btn-sm">Enroll</button>
-                                </form>
-                            }
-                            else
-                            {
-                                <p class="text-danger small mb-0">Please add a dancer to your profile to enroll.</p>
-                            }
+        
+                        <!-- Image 2 -->
+                        <div class="carousel-item" data-bs-interval="3000">
+                            <img src="@(string.IsNullOrEmpty(danceClass.ImageUrl2) ? $"https://picsum.photos/seed/{danceClass.Id}B/400/250" : danceClass.ImageUrl2)" 
+                                 alt="@danceClass.ClassName Image 2">
                         </div>
+        
+                        <!-- Image 3 -->
+                        <div class="carousel-item" data-bs-interval="3000">
+                            <img src="@(string.IsNullOrEmpty(danceClass.ImageUrl3) ? $"https://picsum.photos/seed/{danceClass.Id}C/400/250" : danceClass.ImageUrl3)" 
+                                 alt="@danceClass.ClassName Image 3">
+                        </div>
+
                     </div>
                 </div>
-            }
+
+                <!-- Card Info (Bottom Half) -->
+                <div class="card-body d-flex flex-column">
+                    <h4 class="text-neon mb-1">@danceClass.ClassName</h4>
+                    <p class="text-muted small mb-3">
+                        Instructor: 
+                        @(danceClass.Instructor != null ? danceClass.Instructor.FirstName : "TBD")
+                    </p>
+
+                    <p class="text-light small flex-grow-1">
+                        @danceClass.Description
+                    </p>
+
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item bg-transparent text-light border-secondary px-0 d-flex justify-content-between">
+                            <span><i class="bi bi-clock text-neon"></i> Schedule</span>
+                            <strong>@danceClass.DayOfWeek @danceClass.StartTime.ToString(@"hh\:mm")</strong>
+                        </li>
+                        <li class="list-group-item bg-transparent text-light border-secondary px-0 d-flex justify-content-between">
+                            <span><i class="bi bi-star text-neon"></i> Level</span>
+                            <strong>@danceClass.RequiredSkillLevel</strong>
+                        </li>
+                    </ul>
+
+                    <!-- Enrollment Form: Posts directly to the existing Enroll Action -->
+                    <form asp-action="Enroll" method="post" class="mt-auto">
+                        <input type="hidden" name="classId" value="@danceClass.Id" />
+                        
+                        <div class="input-group">
+                            <select name="dancerId" class="form-select bg-black text-light border-secondary" required>
+                                <option value="">Select Dancer...</option>
+                                @foreach (var dancer in Model.MyDancers)
+                                {
+                                    <option value="@dancer.Id">@dancer.FirstName @dancer.LastName</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-neon">Enroll</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
         }
     </div>
 </div>
