@@ -1,5 +1,8 @@
 using System;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -39,7 +42,20 @@ builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 StripeConfiguration.ApiKey = builder.Configuration
     .GetSection("Stripe")["SecretKey"];
 
-builder.Services.AddScoped<ITuitionCalculatorService, TuitionCalculatorService>();
+builder.Services.AddScoped<ITuitionCalculatorService,
+    TuitionCalculatorService>();
+
+// Summary: Increases Kestrel and multipart form upload limits to
+// 500 MB so formatted rehearsal videos do not fail on POST.
+builder.WebHost.ConfigureKestrel((KestrelServerOptions options) =>
+{
+    options.Limits.MaxRequestBodySize = 524_288_000;
+});
+
+builder.Services.Configure<FormOptions>((FormOptions options) =>
+{
+    options.MultipartBodyLengthLimit = 524_288_000;
+});
 
 WebApplication app = builder.Build();
 

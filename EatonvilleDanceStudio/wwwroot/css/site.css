@@ -109,36 +109,20 @@ body {
 .btn-link.nav-link:focus,
 .form-control:focus,
 .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem #000000,
+    0 0 0 0.25rem var(--neon-pink) !important;
 }
 
-.btn-neon {
-    background-color: transparent;
-    color: var(--neon-pink);
-    border: 2px solid var(--neon-pink);
-    box-shadow: 0 0 8px var(--neon-pink) inset, 0 0 8px var(--neon-pink);
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-neon:hover,
-.btn-neon:focus {
-    background-color: var(--neon-pink);
-    color: #000;
-    box-shadow: 0 0 15px var(--neon-pink) inset, 0 0 15px var(--neon-pink);
-}
-
-.btn-outline-neon {
-    color: var(--neon-pink);
-    border: 1px solid var(--neon-pink);
-    background-color: transparent;
-    font-weight: 500;
-    transition: all 0.2s ease-in-out;
-}
-
-.btn-outline-neon:hover {
-    background-color: var(--neon-pink);
-    color: #000;
-    box-shadow: 0 0 10px var(--neon-pink-glow);
+.btn-primary {
+    --bs-btn-bg: var(--neon-pink) !important;
+    --bs-btn-border-color: var(--neon-pink) !important;
+    --bs-btn-color: #000000 !important;
+    --bs-btn-hover-bg: #ff00ff !important;
+    --bs-btn-hover-border-color: #ff00ff !important;
+    --bs-btn-hover-color: #000000 !important;
+    --bs-btn-active-bg: #ff00ff !important;
+    --bs-btn-active-border-color: #ff00ff !important;
+    font-weight: 700;
 }
 
 /* =========================================
@@ -336,18 +320,48 @@ body.theme-instructor .btn-outline-success:focus {
      Global Flat Neon Overrides
 =====================================*/
 
-.text-neon, .btn-neon, .btn-outline-neon, .border-neon, .bg-neon {
+.text-neon,
+.btn-neon,
+.btn-neon:hover,
+.btn-neon:focus,
+.btn-outline-neon,
+.btn-outline-neon:hover,
+.btn-outline-neon:focus,
+.border-neon,
+.hero-border,
+.bg-neon,
+.card-neon,
+.card-neon:hover,
+.form-control-dark:focus {
     text-shadow: none !important;
     box-shadow: none !important;
 }
 
 .text-neon {
-    color: #ff00ff !important; /* Change this hex if your studio's pink is slightly different */
+    color: var(--neon-pink) !important;
 }
 
-.btn-neon:hover, .btn-outline-neon:hover, .btn-outline-neon:focus {
+.btn-neon {
+    background-color: transparent !important;
+    color: var(--neon-pink) !important;
+    border: 2px solid var(--neon-pink) !important;
+    font-weight: 600;
+}
+
+.btn-outline-neon {
+    background-color: transparent !important;
+    color: var(--neon-pink) !important;
+    border: 1px solid var(--neon-pink) !important;
+    font-weight: 500;
+}
+
+.btn-neon:hover,
+.btn-neon:focus,
+.btn-outline-neon:hover,
+.btn-outline-neon:focus {
     color: #000000 !important;
-    background-color: #ff00ff !important; /* Matches the border/text color */
+    background-color: var(--neon-pink) !important;
+    border-color: var(--neon-pink) !important;
 }
 
 /*===================================
@@ -365,4 +379,110 @@ body.theme-instructor .btn-outline-success:focus {
 .navbar .nav-link:hover,
 .navbar .navbar-brand:hover {
     color: var(--neon-pink)  !important; /* Turns white on hover for a nice clean effect */
+}
+
+
+/* =========================================
+               VIDEO VAULT (#31)
+   ========================================= */
+
+.vault-card {
+    background-color: var(--bg-surface-alt) !important;
+    border: 1px solid var(--neon-pink) !important;
+    border-radius: 0.75rem;
+    color: #f8f9fa;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vault-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 20px var(--neon-pink-glow) !important;
+}
+
+.vault-title {
+    color: #f8f9fa;
+    font-weight: 700;
+}
+
+.vault-accent-text {
+    color: var(--neon-pink) !important;
+    font-weight: 700;
+}
+
+.vault-muted {
+    color: #b0b3b8;
+}
+
+.badge-pink {
+    background-color: rgba(255, 16, 240, 0.15);
+    color: var(--neon-pink);
+    border: 1px solid var(--neon-pink);
+    font-weight: 600;
+    padding: 0.4em 0.75em;
+}
+
+.btn-pink {
+    background-color: var(--neon-pink);
+    color: #000000;
+    border: 2px solid var(--neon-pink);
+    font-weight: 700;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-pink:hover,
+.btn-pink:focus {
+    background-color: transparent;
+    color: var(--neon-pink)!important;
+    border-color: var(--neon-pink)!important;
+}
+
+.btn-outline-pink {
+    color: var(--neon-pink) !important;
+    border: 1px solid var(--neon-pink) !important;
+    background-color: transparent;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-outline-pink:hover,
+.btn-outline-pink:focus {
+    background-color: var(--neon-pink) !important;
+    color: #000000;
+}
+
+.vault-input,
+.form-select.vault-input {
+    background-color: #222222;
+    color: #ffffff;
+    border: 1px solid #444444;
+}
+
+.vault-input:focus,
+.form-select.vault-input:focus {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 5px var(--neon-pink);
+}
+
+.vault-video-player {
+    background-color: #000000;
+    border: 1px solid var(--neon-pink);
+    border-radius: 0.5rem;
+}
+
+/* Flat Admin & Instructor Overrides for Video Vault */
+body.theme-admin .vault-card,
+body.theme-instructor .vault-card {
+    background-color: #383838 !important;
+    border: 1px solid var(--neon-pink) !important;
+    box-shadow: none !important;
+}
+
+body.theme-admin .vault-input:focus,
+body.theme-instructor .vault-input:focus {
+    border-color: var(--neon-pink) !important;
+    box-shadow: none !important;
+    background-color: #2b2b2b !important;
+    color: #d265f3;
 }
