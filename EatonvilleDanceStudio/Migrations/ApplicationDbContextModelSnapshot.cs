@@ -159,6 +159,91 @@ namespace EatonvilleDanceStudio.Migrations
                     b.ToTable("ClassAnnouncements");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.Competition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventFormat")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsStudioAttending")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VenueAddress")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("VenueName")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Competitions");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.CompetitionEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("BackstageCallTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("BackstageNotes")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("CompetitionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DanceClassId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PerformanceOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RoutineName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTime?>("StageTime")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompetitionId");
+
+                    b.HasIndex("DanceClassId");
+
+                    b.ToTable("CompetitionEntries");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.CostumeOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -912,6 +997,25 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Navigation("DanceClass");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.CompetitionEntry", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.Competition", "Competition")
+                        .WithMany("Entries")
+                        .HasForeignKey("CompetitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EatonvilleDanceStudio.Models.DanceClass", "DanceClass")
+                        .WithMany()
+                        .HasForeignKey("DanceClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Competition");
+
+                    b.Navigation("DanceClass");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.CostumeOrder", b =>
                 {
                     b.HasOne("EatonvilleDanceStudio.Models.DanceClass", "DanceClass")
@@ -1122,6 +1226,11 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.Competition", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.DanceClass", b =>

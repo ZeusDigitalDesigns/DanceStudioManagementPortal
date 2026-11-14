@@ -57,4 +57,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<StudioMessage> StudioMessages { get; set; }
     
     public DbSet<RehearsalVideo> RehearsalVideos { get; set; }
+    
+    public DbSet<Competition> Competitions { get; set; }
+    
+    public DbSet<CompetitionEntry> CompetitionEntries { get; set; }
 }       

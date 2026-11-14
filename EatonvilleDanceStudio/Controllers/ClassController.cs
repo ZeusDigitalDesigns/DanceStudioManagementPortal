@@ -31,28 +31,44 @@ public class ClassController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        var userId = _userManager.GetUserId(User);
-        var parentProfile = await _context.ParentProfiles.Include(p => p.Dancers)
-            .FirstOrDefaultAsync(p => p.UserId == userId);
+        string? userId = _userManager.GetUserId(User);
+        bool isStaffOrDancer = User.IsInRole("Director")
+                               || User.IsInRole("Instructor")
+                               || User.IsInRole("Dancer");
 
-        if (parentProfile == null) return NotFound("Parent profile not found");
+        List<Dancer> myDancers = new List<Dancer>();
 
-        if (parentProfile.AccountStatus != "Approved")
+        if (!isStaffOrDancer)
         {
-            return Unauthorized("Your account must be approved by the studio director before you can browse classes.");
+            ParentProfile? parentProfile = await _context.ParentProfiles
+                .Include(p => p.Dancers)
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (parentProfile == null)
+            {
+                return NotFound("Parent profile not found.");
+            }
+
+            if (parentProfile.AccountStatus != "Approved")
+            {
+                return Unauthorized(
+                    "Your account must be approved by the " +
+                    "studio director before browsing classes.");
+            }
+
+            myDancers = parentProfile.Dancers.ToList();
         }
 
         // Include the Instructor and sort the classes for the catalog
-        var classes = await _context.DanceClasses
+        List<DanceClass> classes = await _context.DanceClasses
             .Include(c => c.Instructor)
             .OrderBy(c => c.ClassName)
-            .ThenBy(c => c.ClassName)
             .ToListAsync();
 
-        var viewModel = new ClassBrowseViewModel
+        ClassBrowseViewModel viewModel = new ClassBrowseViewModel
         {
             AvailableClasses = classes,
-            MyDancers = parentProfile.Dancers.ToList()
+            MyDancers = myDancers
         };
 
         return View(viewModel);
