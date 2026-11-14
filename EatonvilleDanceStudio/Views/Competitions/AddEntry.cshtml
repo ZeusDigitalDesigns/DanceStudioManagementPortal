@@ -1,0 +1,87 @@
+@*
+    Summary: Form for Directors and Instructors to schedule a class
+    routine's performance order and backstage call time.
+*@
+@model EatonvilleDanceStudio.Models.CompetitionEntry
+
+@{
+    ViewData["Title"] = "Add Routine Call Time";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4">
+        <h2 class="text-neon mb-1">Add Routine Call Time</h2>
+        <p class="text-light mb-3">
+            Event: <strong>@ViewBag.CompetitionName</strong>
+        </p>
+        <hr class="border-neon" />
+
+        <form asp-action="AddEntry" method="post">
+            <input type="hidden" asp-for="CompetitionId" />
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DanceClassId"
+                           class="form-label text-neon"></label>
+                    <select asp-for="DanceClassId"
+                            asp-items="ViewBag.DanceClasses"
+                            class="form-select form-control-dark">
+                        <option value="">-- Select Class --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="RoutineName"
+                           class="form-label text-neon"></label>
+                    <input asp-for="RoutineName"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="PerformanceOrder"
+                           class="form-label text-neon"></label>
+                    <input asp-for="PerformanceOrder"
+                           type="number"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="BackstageCallTime"
+                           class="form-label text-neon"></label>
+                    <input asp-for="BackstageCallTime"
+                           type="datetime-local"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="StageTime"
+                           class="form-label text-neon"></label>
+                    <input asp-for="StageTime"
+                           type="datetime-local"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="BackstageNotes"
+                       class="form-label text-neon"></label>
+                <input asp-for="BackstageNotes"
+                       class="form-control form-control-dark"
+                       placeholder="e.g., High bun, rhinestones, Dressing Room B" />
+            </div>
+
+            <button type="submit" class="btn btn-neon">
+                Save Call Time
+            </button>
+            <a asp-action="Details"
+               asp-route-id="@Model.CompetitionId"
+               class="btn btn-outline-neon ms-2">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>

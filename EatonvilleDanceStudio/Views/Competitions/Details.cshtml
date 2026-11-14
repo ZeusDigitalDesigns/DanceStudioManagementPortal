@@ -1,0 +1,120 @@
+@*
+    Summary: Shows venue address details and the ordered table of
+    routine performance orders, backstage call times, and stage times.
+*@
+@model EatonvilleDanceStudio.Models.Competition
+
+@{
+    ViewData["Title"] = Model.Name + " - Itinerary";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <span class="badge border-neon text-neon mb-2">
+                    @Model.EventFormat
+                </span>
+                <h2 class="text-neon mb-1">@Model.Name</h2>
+                <p class="text-light mb-1">
+                    <strong>Dates:</strong>
+                    @Model.StartDate.ToString("MMMM d, yyyy")
+                    @if (Model.EndDate.HasValue)
+                    {
+                        <span>
+                            - @Model.EndDate.Value.ToString("MMMM d, yyyy")
+                        </span>
+                    }
+                </p>
+                <p class="text-light mb-1">
+                    <strong>Venue:</strong>
+                    @(string.IsNullOrWhiteSpace(Model.VenueName)
+                        ? "Location TBD"
+                        : Model.VenueName)
+                </p>
+                @if (!string.IsNullOrWhiteSpace(Model.VenueAddress))
+                {
+                    <p class="text-light mb-1">
+                        <strong>Address:</strong> @Model.VenueAddress
+                    </p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                {
+                    <p class="text-muted mb-0">
+                        <strong>Event Notes:</strong> @Model.Notes
+                    </p>
+                }
+            </div>
+
+            <div class="d-flex gap-2">
+                @if (User.IsInRole("Director")
+                    || User.IsInRole("Instructor"))
+                {
+                    <a asp-action="AddEntry"
+                       asp-route-competitionId="@Model.Id"
+                       class="btn btn-neon">
+                        + Add Routine Call Time
+                    </a>
+                }
+                <a asp-action="Index" class="btn btn-outline-neon">
+                    Back to Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-neon p-4">
+        <h4 class="text-neon mb-3">
+            Performance Order &amp; Backstage Call Times
+        </h4>
+
+        @if (!Model.Entries.Any())
+        {
+            <p class="text-light mb-0">
+                No routine call times have been posted for this
+                competition yet.
+            </p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr class="text-neon">
+                            <th>Order #</th>
+                            <th>Class</th>
+                            <th>Routine</th>
+                            <th>Backstage Call Time</th>
+                            <th>Stage Time</th>
+                            <th>Backstage Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (EatonvilleDanceStudio.Models.CompetitionEntry
+                            entry in Model.Entries)
+                        {
+                            <tr>
+                                <td class="fw-bold text-neon">
+                                    #@entry.PerformanceOrder
+                                </td>
+                                <td>@entry.DanceClass?.ClassName</td>
+                                <td>@entry.RoutineName</td>
+                                <td class="fw-bold">
+                                    @entry.BackstageCallTime.ToString(
+                                        "MMM d, h:mm tt")
+                                </td>
+                                <td>
+                                    @(entry.StageTime.HasValue
+                                        ? entry.StageTime.Value.ToString(
+                                            "h:mm tt")
+                                        : "TBD")
+                                </td>
+                                <td>@entry.BackstageNotes</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

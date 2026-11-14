@@ -1,0 +1,101 @@
+@*
+    Summary: Form for Directors and Instructors to add a new
+    competition or convention event to the studio calendar.
+*@
+@model EatonvilleDanceStudio.Models.Competition
+
+@{
+    ViewData["Title"] = "Add Competition";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4">
+        <h2 class="text-neon mb-3">Add Competition / Convention</h2>
+        <hr class="border-neon" />
+
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Name"
+                           class="form-label text-neon"></label>
+                    <input asp-for="Name"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="EventFormat"
+                           class="form-label text-neon"></label>
+                    <select asp-for="EventFormat"
+                            class="form-select form-control-dark">
+                        <option value="Competition">Competition</option>
+                        <option value="Comp/Convention">
+                            Comp/Convention
+                        </option>
+                        <option value="Convention">Convention</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="VenueName"
+                           class="form-label text-neon"></label>
+                    <input asp-for="VenueName"
+                           class="form-control form-control-dark"
+                           placeholder="e.g., Tacoma Convention Center" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="VenueAddress"
+                           class="form-label text-neon"></label>
+                    <input asp-for="VenueAddress"
+                           class="form-control form-control-dark"
+                           placeholder="1500 Commerce St, Tacoma, WA" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StartDate"
+                           class="form-label text-neon"></label>
+                    <input asp-for="StartDate"
+                           type="date"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="EndDate"
+                           class="form-label text-neon"></label>
+                    <input asp-for="EndDate"
+                           type="date"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes"
+                       class="form-label text-neon"></label>
+                <input asp-for="Notes"
+                       class="form-control form-control-dark"
+                       placeholder="e.g., Not leveled, Scholarships" />
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="IsStudioAttending"
+                       class="form-check-input" />
+                <label asp-for="IsStudioAttending"
+                       class="form-check-label text-light"></label>
+            </div>
+
+            <button type="submit" class="btn btn-neon">
+                Save Competition
+            </button>
+            <a asp-action="Index" class="btn btn-outline-neon ms-2">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>

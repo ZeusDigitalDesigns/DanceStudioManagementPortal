@@ -34,7 +34,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - EatonvilleDanceStudio</title>
+    <title>@ViewData["Title"] EatonvilleDanceStudio</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -42,8 +42,7 @@
           asp-append-version="true" />
 </head>
 <!-- The calculated theme class controls the CSS layout -->
-<body class="text-neon" style="background-color: #050505;">
-    <header>
+<body class="@roleThemeClass text-neon" style="background-color: #050505;">    <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark 
                     bg-dark border-bottom border-neon box-shadow mb-3">
             <div class="container-fluid">
@@ -79,6 +78,7 @@
                                 Video Vault
                             </a>
                         </li>
+                        
                         <!-- Dynamic Dashboard Routing -->
                         @if (SignInManager.IsSignedIn(User))
                         {
@@ -114,6 +114,13 @@
                                        asp-action="Dashboard">Dashboard</a>
                                 </li>
                             }
+
+                            <li class="nav-item">
+                                <a class="nav-link text-neon fw-bold"
+                                   asp-area=""
+                                   asp-controller="Competitions"
+                                   asp-action="Index">Competitions</a>
+                            </li>
                         }
                     </ul>
                     <partial name="_LoginPartial" />
