@@ -310,8 +310,8 @@ public class SeedData
         string guestId   = (await userManager.FindByEmailAsync("guest@eatonvilledance.com"))?.Id ?? fallbackId;
 
         // PROVISION CLASSES WITH REAL IDs 
-        // --- TEMPORARY DEVELOPER OVERRIDE ---
-        // This forcefully wipes out the old, imageless classes and their enrollments 
+        // TEMPORARY DEVELOPER OVERRIDE
+        // This forcefully wipes out the old, image-less classes and their enrollments 
         // to guarantee the new seed data runs, bypassing SQL Server locks.
         var oldClasses = await context.DanceClasses.Include(c => c.Enrollments).ToListAsync();
         if (oldClasses.Any())

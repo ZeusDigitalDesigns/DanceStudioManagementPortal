@@ -56,5 +56,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     // Maps the StudioMessage class to the StudioMessages SQL table
     public DbSet<StudioMessage> StudioMessages { get; set; }
     
-    
+    public DbSet<RehearsalVideo> RehearsalVideos { get; set; }
 }       

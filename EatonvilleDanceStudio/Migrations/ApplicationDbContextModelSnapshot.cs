@@ -628,6 +628,44 @@ namespace EatonvilleDanceStudio.Migrations
                     b.ToTable("PrivateLessonBlocks");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.RehearsalVideo", b =>
+                {
+                    b.Property<int>("RehearsalVideoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RehearsalVideoId"));
+
+                    b.Property<int>("DanceClassId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsLocalFile")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpLoadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("RehearsalVideoId");
+
+                    b.HasIndex("DanceClassId");
+
+                    b.ToTable("RehearsalVideos");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.StudioEvent", b =>
                 {
                     b.Property<int>("Id")
@@ -996,6 +1034,17 @@ namespace EatonvilleDanceStudio.Migrations
                         .IsRequired();
 
                     b.Navigation("Instructor");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.RehearsalVideo", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.DanceClass", "DanceClass")
+                        .WithMany()
+                        .HasForeignKey("DanceClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DanceClass");
                 });
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.StudioEvent", b =>

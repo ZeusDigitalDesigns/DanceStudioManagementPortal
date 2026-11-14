@@ -71,7 +71,14 @@
                                asp-area="" asp-controller="Class" 
                                asp-action="Index">Classes</a>
                         </li>
-                        
+                        <li class="nav-item">
+                            <a class="nav-link"
+                               asp-area=""
+                               asp-controller="VideoVault"
+                               asp-action="Index">
+                                Video Vault
+                            </a>
+                        </li>
                         <!-- Dynamic Dashboard Routing -->
                         @if (SignInManager.IsSignedIn(User))
                         {

@@ -1,0 +1,76 @@
+@*
+    Summary: Upload and link form styled with the studio's .card-neon,
+    .form-control-dark, and .btn-neon classes.
+*@
+@model EatonvilleDanceStudio.ViewModels.RehearsalVideoUploadViewModel
+
+@{
+    ViewData["Title"] = "Add Rehearsal Video";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4">
+        <h2 class="text-neon mb-3">Upload or Link Practice Video</h2>
+        <hr class="border-neon" />
+
+        <form asp-action="Create"
+              method="post"
+              enctype="multipart/form-data">
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="DanceClassId"
+                       class="form-label text-neon"></label>
+                <select asp-for="DanceClassId"
+                        asp-items="ViewBag.DanceClasses"
+                        class="form-select form-control-dark">
+                    <option value="">-- Select a Class --</option>
+                </select>
+                <span asp-validation-for="DanceClassId"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Title"
+                       class="form-label text-neon"></label>
+                <input asp-for="Title"
+                       class="form-control form-control-dark" />
+                <span asp-validation-for="Title"
+                      class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description"
+                       class="form-label text-neon"></label>
+                <textarea asp-for="Description"
+                          class="form-control form-control-dark"
+                          rows="3"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="VideoFile"
+                       class="form-label text-neon"></label>
+                <input asp-for="VideoFile"
+                       type="file"
+                       accept="video/mp4,video/webm"
+                       class="form-control form-control-dark" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ExternalOrLocalUrl"
+                       class="form-label text-neon"></label>
+                <input asp-for="ExternalOrLocalUrl"
+                       class="form-control form-control-dark"
+                       placeholder="/videos/rehearsals/routine.mp4" />
+            </div>
+
+            <button type="submit" class="btn btn-neon">
+                Save to Vault
+            </button>
+            <a asp-action="Index" class="btn btn-outline-neon ms-2">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
