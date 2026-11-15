@@ -13,12 +13,9 @@ namespace EatonvilleDanceStudio.Data;
 /// The ApplicationDbContext serves as the bridge between the application and the database. It defines
 /// the entity sets for the core models in the system, allowing for interaction with the database.
 /// </remarks>
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<ApplicationUser>(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
-
     // Maps the ParentProfile class to the ParentProfiles SQL table
     public DbSet<ParentProfile> ParentProfiles { get; set; }
 

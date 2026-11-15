@@ -18,25 +18,14 @@ using Microsoft.EntityFrameworkCore;
 namespace EatonvilleDanceStudio.Controllers;
 
 [Authorize(Roles = "Director")]
-public class DirectorController : Controller
+public class DirectorController(
+    ApplicationDbContext context,
+    UserManager<ApplicationUser> userManager,
+    ITuitionCalculatorService tuitionService,
+    IWebHostEnvironment webHostEnvironment)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly ITuitionCalculatorService _tuitionService;
-    private readonly IWebHostEnvironment _webHostEnvironment;
-
     // Inject UserManager so we can pull the list of parents for the dropdown
-    public DirectorController(
-        ApplicationDbContext context,
-        UserManager<ApplicationUser> userManager,
-        ITuitionCalculatorService tuitionService,
-        IWebHostEnvironment webHostEnvironment)
-    {
-        _context = context;
-        _userManager = userManager;
-        _tuitionService = tuitionService;
-        _webHostEnvironment = webHostEnvironment;
-    }
 
     // GET: /Director/PendingAccounts
     /// <summary>
@@ -49,7 +38,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> PendingAccounts()
     {
         // Fetch all profiles where the status is still pending
-        List<ParentProfile> pending = await _context.ParentProfiles
+        List<ParentProfile> pending = await context.ParentProfiles
             .Where(p => p.AccountStatus == "Pending")
             .ToListAsync();
 
@@ -71,12 +60,12 @@ public class DirectorController : Controller
     public async Task<IActionResult> Approve(int id)
     {
         // Explicitly type the profile instead of using var
-        ParentProfile? profile = await _context.ParentProfiles.FindAsync(id);
+        ParentProfile? profile = await context.ParentProfiles.FindAsync(id);
 
         if (profile != null)
         {
             profile.AccountStatus = "Approved";
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         return RedirectToAction(nameof(PendingAccounts));
@@ -98,7 +87,7 @@ public class DirectorController : Controller
 
         // Fetch all users to populate the "Bill To" dropdown
         List<ApplicationUser> users =
-            await _userManager.Users.ToListAsync();
+            await userManager.Users.ToListAsync();
 
         viewModel.UsersList = users.Select(u => new SelectListItem
         {
@@ -137,8 +126,8 @@ public class DirectorController : Controller
                 Status = "Pending"
             };
 
-            _context.Invoices.Add(newInvoice);
-            await _context.SaveChangesAsync();
+            context.Invoices.Add(newInvoice);
+            await context.SaveChangesAsync();
 
             // Send the boss back to the dashboard
             return RedirectToAction("ManageUsers");
@@ -146,7 +135,7 @@ public class DirectorController : Controller
         
         // If form fails validation, reload the dropdown to prevent crashes
         List<ApplicationUser> users =
-            await _userManager.Users.ToListAsync();
+            await userManager.Users.ToListAsync();
 
         model.UsersList = users.Select(u => new SelectListItem
         {
@@ -174,14 +163,14 @@ public class DirectorController : Controller
 
         // Fetch all Pending or Overdue invoices.
         // .Include(i => i.User) = access to the parent's name
-        viewModel.ActiveInvoices = await _context.Invoices
+        viewModel.ActiveInvoices = await context.Invoices
             .Include(i => i.User)
             .Where(i => i.Status != "Paid")
             .OrderBy(i => i.DueDate)
             .ToListAsync();
 
         // Fetch the last 10 Paid invoices for quick reference.
-        viewModel.RecentPaidInvoices = await _context.Invoices
+        viewModel.RecentPaidInvoices = await context.Invoices
             .Include(i => i.User)
             .Where(i => i.Status == "Paid")
             .OrderByDescending(i => i.CreatedDate)
@@ -189,12 +178,12 @@ public class DirectorController : Controller
             .ToListAsync();
 
         // Calculate total outstanding (everything unpaid)
-        viewModel.TotalOutstanding = await _context.Invoices
+        viewModel.TotalOutstanding = await context.Invoices
             .Where(i => i.Status != "Paid")
             .SumAsync(i => i.Amount);
 
         // Calculate Total PastDue (unpaid and late)
-        viewModel.TotalPastDue = await _context.Invoices
+        viewModel.TotalPastDue = await context.Invoices
             .Where(i => i.Status != "Paid" && i.DueDate < DateTime.Now)
             .SumAsync(i => i.Amount);
 
@@ -202,12 +191,12 @@ public class DirectorController : Controller
         DateTime startOfMonth = new DateTime(
             DateTime.Now.Year, DateTime.Now.Month, 1);
 
-        viewModel.RevenueThisMonth = await _context.Invoices
+        viewModel.RevenueThisMonth = await context.Invoices
             .Where(i => i.Status == "Paid" && i.CreatedDate >= startOfMonth)
             .SumAsync(i => i.Amount);
 
         // Calculate Upcoming Events (upcoming events within the next 5 days)
-        viewModel.UpcomingEvents = await _context.StudioEvents
+        viewModel.UpcomingEvents = await context.StudioEvents
             .Include(e => e.Instructor)
             .Where(e => e.StartTime > DateTime.Now)
             .OrderBy(e => e.StartTime)
@@ -233,12 +222,12 @@ public class DirectorController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkInvoicePaid(int invoiceId)
     {
-        Invoice? invoice = await _context.Invoices.FindAsync(invoiceId);
+        Invoice? invoice = await context.Invoices.FindAsync(invoiceId);
 
         if (invoice != null)
         {
             invoice.Status = "Paid";
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         // Refresh the dashboard so the invoice moves to the "Recently Paid" table
@@ -260,7 +249,7 @@ public class DirectorController : Controller
 
         // Fetch only users who are officially Instructors
         IList<ApplicationUser> instructors =
-            await _userManager.GetUsersInRoleAsync("Instructor");
+            await userManager.GetUsersInRoleAsync("Instructor");
 
         viewModel.InstructorsList = instructors.Select(i => new SelectListItem
         {
@@ -321,8 +310,8 @@ public class DirectorController : Controller
                 InstructorId = model.InstructorId
             };
 
-            _context.StudioEvents.Add(newEvent);
-            await _context.SaveChangesAsync();
+            context.StudioEvents.Add(newEvent);
+            await context.SaveChangesAsync();
 
             // Send the boss back to the dashboard once the event is saved
             return RedirectToAction("ManageUsers");
@@ -331,7 +320,7 @@ public class DirectorController : Controller
         // If validation fails, we MUST reload the dropdowns 
         // to prevent the view from crashing
         IList<ApplicationUser> instructors =
-            await _userManager.GetUsersInRoleAsync("Instructor");
+            await userManager.GetUsersInRoleAsync("Instructor");
 
         model.InstructorsList = instructors.Select(i => new SelectListItem
         {
@@ -372,7 +361,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> CreateClass()
     {
         // Fetch all users specifically assigned to the Instructor role
-        var instructors = await _userManager.GetUsersInRoleAsync("Instructor");
+        var instructors = await userManager.GetUsersInRoleAsync("Instructor");
         
         ViewBag.Instructors = new SelectList(
             instructors.Select(i => new { i.Id, FullName = i.FirstName + " " + i.LastName })
@@ -418,13 +407,13 @@ public class DirectorController : Controller
             model.ImageUrl2 = await SaveClassImageAsync(image2);
             model.ImageUrl3 = await SaveClassImageAsync(image3);
 
-            _context.DanceClasses.Add(model);
-            await _context.SaveChangesAsync();
+            context.DanceClasses.Add(model);
+            await context.SaveChangesAsync();
             return RedirectToAction(nameof(ManageUsers)); 
         }
 
         // Repopulate dropdown if validation fails
-        var instructors = await _userManager.GetUsersInRoleAsync("Instructor");
+        var instructors = await userManager.GetUsersInRoleAsync("Instructor");
         ViewBag.Instructors = new SelectList(
             instructors.Select(i => new { i.Id, FullName = i.FirstName + " " + i.LastName })
                        .OrderBy(i => i.FullName), 
@@ -449,13 +438,13 @@ public class DirectorController : Controller
     public async Task<IActionResult> DeleteEvent(int eventId)
     {
         // Find the event in the database
-        StudioEvent? eventToDelete = await _context.StudioEvents.FindAsync(eventId);
+        StudioEvent? eventToDelete = await context.StudioEvents.FindAsync(eventId);
 
         if (eventToDelete != null)
         {
             // Remove it and save changes
-            _context.StudioEvents.Remove(eventToDelete);
-            await _context.SaveChangesAsync();
+            context.StudioEvents.Remove(eventToDelete);
+            await context.SaveChangesAsync();
         }
 
         // Refresh the dashboard
@@ -476,7 +465,7 @@ public class DirectorController : Controller
     [HttpGet]
     public async Task<IActionResult> EditEvent(int id)
     {
-        StudioEvent? studioEvent = await _context.StudioEvents.FindAsync(id);
+        StudioEvent? studioEvent = await context.StudioEvents.FindAsync(id);
 
         if (studioEvent == null)
         {
@@ -498,7 +487,7 @@ public class DirectorController : Controller
 
         // Load the dropdown lists
         IList<ApplicationUser> instructors =
-            await _userManager.GetUsersInRoleAsync("Instructor");
+            await userManager.GetUsersInRoleAsync("Instructor");
 
         viewModel.InstructorsList = instructors.Select(i => new SelectListItem
         {
@@ -554,7 +543,7 @@ public class DirectorController : Controller
 
         if (ModelState.IsValid)
         {
-            StudioEvent? eventToUpdate = await _context.StudioEvents.FindAsync(id);
+            StudioEvent? eventToUpdate = await context.StudioEvents.FindAsync(id);
 
             if (eventToUpdate == null)
             {
@@ -571,7 +560,7 @@ public class DirectorController : Controller
             eventToUpdate.Capacity = model.Capacity;
             eventToUpdate.InstructorId = model.InstructorId;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             // Kick back to the dashboard to see the updated schedule
             return RedirectToAction(nameof(ManageUsers));
@@ -579,7 +568,7 @@ public class DirectorController : Controller
 
         // If validation fails, reload those dropdowns so the view doesn't crash
         IList<ApplicationUser> instructors =
-            await _userManager.GetUsersInRoleAsync("Instructor");
+            await userManager.GetUsersInRoleAsync("Instructor");
 
         model.InstructorsList = instructors.Select(i => new SelectListItem
         {
@@ -633,7 +622,7 @@ public class DirectorController : Controller
         
         // Fetch logs within the date range, include the Instructor Data so we have their names
         // Assumes your DbSet in ApplicationDBContext is named InstructorTimeLogs
-        viewModel.TimeLogs = await _context.InstructorTimeLogs
+        viewModel.TimeLogs = await context.InstructorTimeLogs
             .Include(t => t.Instructor)
             .Where(t => t.Date >= start && t.Date <= end)
             .OrderByDescending(t => t.Date)
@@ -662,7 +651,7 @@ public class DirectorController : Controller
         DateTime start = startDate ?? DateTime.Today.AddDays(-14);
         DateTime end = endDate ?? DateTime.Today;
 
-        var logs = await _context.InstructorTimeLogs
+        var logs = await context.InstructorTimeLogs
             .Include(t => t.Instructor)
             .Where(t => t.Date >= start && t.Date <= end)
             .OrderByDescending(t => t.Date)
@@ -706,7 +695,7 @@ public class DirectorController : Controller
     [HttpGet]
     public async Task<IActionResult> Messages()
     {
-        string? currentUserId = _userManager.GetUserId(User);
+        string? currentUserId = userManager.GetUserId(User);
     
         if (currentUserId == null) 
         {
@@ -716,14 +705,14 @@ public class DirectorController : Controller
         MessagesViewModel viewModel = new MessagesViewModel();
 
         // INBOX: Messages directed to you specifically, or studio-wide blasts (ReceiverId is null)
-        viewModel.Inbox = await _context.StudioMessages
+        viewModel.Inbox = await context.StudioMessages
             .Include(m => m.Sender)
             .Where(m => m.ReceiverId == currentUserId || m.ReceiverId == null)
             .OrderByDescending(m => m.SentAt)
             .ToListAsync();
 
         // SENT: Messages where you are the sender
-        viewModel.Sent = await _context.StudioMessages
+        viewModel.Sent = await context.StudioMessages
             .Include(m => m.Receiver)
             .Where(m => m.SenderId == currentUserId)
             .OrderByDescending(m => m.SentAt)
@@ -747,7 +736,7 @@ public class DirectorController : Controller
         ComposeMessageViewModel viewModel = new ComposeMessageViewModel();
     
         // Fetch all users and sort them alphabetically by last name for the dropdown
-        var allUsers = _userManager.Users.OrderBy(u => u.LastName).ToList();
+        var allUsers = userManager.Users.OrderBy(u => u.LastName).ToList();
     
         viewModel.UsersList = allUsers.Select(u => new SelectListItem
         {
@@ -778,7 +767,7 @@ public class DirectorController : Controller
         if (ModelState.IsValid)
         {
             // Get the currently logged-in Director's ID
-            string? senderId = _userManager.GetUserId(User);
+            string? senderId = userManager.GetUserId(User);
         
             if (senderId != null)
             {
@@ -794,8 +783,8 @@ public class DirectorController : Controller
                     IsRead = false
                 };
 
-                _context.StudioMessages.Add(newMessage);
-                await _context.SaveChangesAsync();
+                context.StudioMessages.Add(newMessage);
+                await context.SaveChangesAsync();
 
                 // Kick back to the dashboard once the message flies
                 return RedirectToAction(nameof(ManageUsers));
@@ -803,7 +792,7 @@ public class DirectorController : Controller
         }
 
         // If validation fails, reload the dropdown so the view doesn't crash
-        var allUsers = _userManager.Users.OrderBy(u => u.LastName).ToList();
+        var allUsers = userManager.Users.OrderBy(u => u.LastName).ToList();
     
         model.UsersList = allUsers.Select(u => new SelectListItem
         {
@@ -827,7 +816,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> RunMonthlyBilling()
     {
         // Fetch all parents with their dancers and enrollments
-        List<ParentProfile> parents = await _context.ParentProfiles
+        List<ParentProfile> parents = await context.ParentProfiles
             .Include(p => p.Dancers)
                 .ThenInclude(d => d.Enrollments)
                     .ThenInclude(e => e.DanceClass)
@@ -840,7 +829,7 @@ public class DirectorController : Controller
         {
             List<Dancer> familyDancers = parent.Dancers.ToList();
             
-            decimal monthlyTuition = _tuitionService.CalculateMonthlyTuition(
+            decimal monthlyTuition = tuitionService.CalculateMonthlyTuition(
                 parent, 
                 familyDancers);
 
@@ -857,13 +846,13 @@ public class DirectorController : Controller
                     Status = "Pending"
                 };
 
-                _context.Invoices.Add(newInvoice);
+                context.Invoices.Add(newInvoice);
                 invoicesGenerated++;
             }
         }
 
         // Save all new invoices to the database in one shot
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = 
             $"Generated {invoicesGenerated} invoices for {DateTime.Now:MMMM}.";
@@ -881,7 +870,7 @@ public class DirectorController : Controller
     [HttpGet]
     public async Task<IActionResult> CostumeManagement()
     {
-        List<CostumeOrder> orders = await _context.CostumeOrders
+        List<CostumeOrder> orders = await context.CostumeOrders
             .Include(c => c.Dancer)
             .Include(c => c.DanceClass)
             .OrderBy(c => c.ExpectedDeliveryDate)
@@ -903,7 +892,7 @@ public class DirectorController : Controller
     [HttpGet]
     public async Task<IActionResult> EditDancer(int id)
     {
-        Dancer? dancer = await _context.Dancers.FindAsync(id);
+        Dancer? dancer = await context.Dancers.FindAsync(id);
 
         if (dancer == null)
         {
@@ -937,8 +926,8 @@ public class DirectorController : Controller
 
         if (ModelState.IsValid)
         {
-            _context.Update(model);
-            await _context.SaveChangesAsync();
+            context.Update(model);
+            await context.SaveChangesAsync();
 
             // Send them back to the Costume Management dashboard after saving sizes
             return RedirectToAction(nameof(CostumeManagement));
@@ -957,7 +946,7 @@ public class DirectorController : Controller
     [HttpGet]
     public async Task<IActionResult> DancerRoster()
     {
-        List<Dancer> dancers = await _context.Dancers
+        List<Dancer> dancers = await context.Dancers
             .Include(d => d.Parent)
             .OrderBy(d => d.LastName)
             .ThenBy(d => d.FirstName)
@@ -977,7 +966,7 @@ public class DirectorController : Controller
     public async Task<IActionResult> CreateCostumeOrder()
     {
         // Prep dropdown data for Dancers (FullName) and Classes
-        var dancers = await _context.Dancers
+        var dancers = await context.Dancers
             .Select(d => new { d.Id, FullName = d.FirstName + " " + d.LastName })
             .OrderBy(d => d.FullName)
             .ToListAsync();
@@ -986,7 +975,7 @@ public class DirectorController : Controller
             dancers, "Id", "FullName");
             
         ViewBag.Classes = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-            await _context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
+            await context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
             "Id", "ClassName");
 
         return View(new CostumeOrder());
@@ -1013,13 +1002,13 @@ public class DirectorController : Controller
 
         if (ModelState.IsValid)
         {
-            _context.CostumeOrders.Add(model);
-            await _context.SaveChangesAsync();
+            context.CostumeOrders.Add(model);
+            await context.SaveChangesAsync();
             return RedirectToAction(nameof(CostumeManagement));
         }
 
         // Repopulate dropdowns if validation fails
-        var dancers = await _context.Dancers
+        var dancers = await context.Dancers
             .Select(d => new { d.Id, FullName = d.FirstName + " " + d.LastName })
             .OrderBy(d => d.FullName)
             .ToListAsync();
@@ -1028,7 +1017,7 @@ public class DirectorController : Controller
             dancers, "Id", "FullName", model.DancerId);
             
         ViewBag.Classes = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(
-            await _context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
+            await context.DanceClasses.OrderBy(c => c.ClassName).ToListAsync(), 
             "Id", "ClassName", model.DanceClassId);
 
         return View(model);
@@ -1048,7 +1037,7 @@ public class DirectorController : Controller
         if (file == null || file.Length == 0) return null;
 
         // Find wwwroot/images/classes
-        string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "classes");
+        string uploadsFolder = Path.Combine(webHostEnvironment.WebRootPath, "images", "classes");
         
         // Safety check: Create the folder if it doesn't exist yet
         Directory.CreateDirectory(uploadsFolder);

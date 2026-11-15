@@ -19,30 +19,22 @@ namespace EatonvilleDanceStudio.Controllers
     /// practice videos to specific classes for at-home rehearsal.
     /// </summary>
     [Authorize]
-    public class VideoVaultController : Controller
+    public class VideoVaultController(
+        ApplicationDbContext context,
+        IWebHostEnvironment env)
+        : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _env;
-
-        public VideoVaultController(
-            ApplicationDbContext context,
-            IWebHostEnvironment env)
-        {
-            _context = context;
-            _env = env;
-        }
-
         // GET: /VideoVault?danceClassId=5
         // Defaults to the first class if none is selected so videos
         // from different classes never bleed together.
         [HttpGet]
         public async Task<IActionResult> Index(int? danceClassId)
         {
-            List<DanceClass> classes = await _context.DanceClasses
+            List<DanceClass> classes = await context.DanceClasses
                 .OrderBy(c => c.ClassName)
                 .ToListAsync();
 
-            IQueryable<RehearsalVideo> query = _context.RehearsalVideos
+            IQueryable<RehearsalVideo> query = context.RehearsalVideos
                 .Include(v => v.DanceClass)
                 .OrderByDescending(v => v.UpLoadedAt);
 
@@ -108,7 +100,7 @@ namespace EatonvilleDanceStudio.Controllers
             if (hasFile && model.VideoFile != null)
             {
                 string uploadsFolder = Path.Combine(
-                    _env.WebRootPath,
+                    env.WebRootPath,
                     "videos",
                     "rehearsals");
 
@@ -147,8 +139,8 @@ namespace EatonvilleDanceStudio.Controllers
                 UpLoadedAt = DateTime.UtcNow
             };
 
-            _context.RehearsalVideos.Add(newVideo);
-            await _context.SaveChangesAsync();
+            context.RehearsalVideos.Add(newVideo);
+            await context.SaveChangesAsync();
 
             return RedirectToAction(
                 nameof(Index),
@@ -159,7 +151,7 @@ namespace EatonvilleDanceStudio.Controllers
         private async Task PopulateClassesDropdownAsync(
             int? selectedClassId)
         {
-            List<DanceClass> classes = await _context.DanceClasses
+            List<DanceClass> classes = await context.DanceClasses
                 .OrderBy(c => c.ClassName)
                 .ToListAsync();
 

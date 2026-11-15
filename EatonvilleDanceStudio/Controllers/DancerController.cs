@@ -11,18 +11,9 @@ namespace EatonvilleDanceStudio.Controllers;
 
 // [Issue #68] Locked down specifically to the Dancer role
 [Authorize(Roles = "Dancer")]
-public class DancerController : Controller
+public class DancerController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public DancerController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
-    {
-        _context = context;
-        _userManager = userManager;
-    }
-    
-
     //GET 
     /// <summary>
     /// Displays the dashboard for the authenticated dancer, including the dancer
@@ -35,11 +26,11 @@ public class DancerController : Controller
     /// </return>
     public async Task<IActionResult> Dashboard()
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
         
         //Fetch the Dancer Profile
-        Dancer? dancer = await _context.Dancers
+        Dancer? dancer = await context.Dancers
             .Include(d => d.Enrollments)
             .ThenInclude(e => e.DanceClass)
             .FirstOrDefaultAsync(d => d.UserId == userId);

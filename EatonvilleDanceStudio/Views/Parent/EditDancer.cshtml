@@ -1,0 +1,207 @@
+@*
+    Summary: Allows a parent to edit their child's basic info,
+    skill level, and medical alert details from the Family Hub.
+*@
+@model EatonvilleDanceStudio.Models.Dancer
+
+@{
+    ViewData["Title"] = "Edit Dancer";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4">
+        <h2 class="text-neon mb-1">
+            Edit Dancer: @Model.FirstName @Model.LastName
+        </h2>
+        <p class="text-light small mb-3">
+            Update your dancer's profile details and medical alerts.
+        </p>
+        <hr class="border-neon" />
+
+        <form asp-action="EditDancer"
+              asp-route-id="@Model.Id"
+              method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FirstName"
+                           class="form-label text-neon">
+                        First Name
+                    </label>
+                    <input asp-for="FirstName"
+                           class="form-control form-control-dark"
+                           required />
+                    <span asp-validation-for="FirstName"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="LastName"
+                           class="form-label text-neon">
+                        Last Name
+                    </label>
+                    <input asp-for="LastName"
+                           class="form-control form-control-dark"
+                           required />
+                    <span asp-validation-for="LastName"
+                          class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="DateOfBirth"
+                           class="form-label text-neon">
+                        Date of Birth
+                    </label>
+                    <input asp-for="DateOfBirth"
+                           type="date"
+                           class="form-control form-control-dark"
+                           required />
+                    <span asp-validation-for="DateOfBirth"
+                          class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="SkillLevel"
+                           class="form-label text-neon">
+                        Skill Level
+                    </label>
+                    <select asp-for="SkillLevel"
+                            class="form-select form-control-dark">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">
+                            Intermediate
+                        </option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                    <span asp-validation-for="SkillLevel"
+                          class="text-danger"></span>
+                </div>
+            </div>
+
+            <hr class="border-secondary my-3" />
+            <h5 class="text-neon mb-3">Medical &amp; Allergy Info</h5>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Allergies"
+                           class="form-label text-neon">
+                        Allergies
+                    </label>
+                    <input asp-for="Allergies"
+                           class="form-control form-control-dark"
+                           placeholder="None, or list allergies" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MedicalAlerts"
+                           class="form-label text-neon">
+                        Quick Medical Alert Tag
+                    </label>
+                    <input asp-for="MedicalAlerts"
+                           class="form-control form-control-dark"
+                           placeholder="e.g., Asthma, Peanut Allergy" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="MedicalNotes"
+                       class="form-label text-neon">
+                    Detailed Medical Notes
+                </label>
+                <textarea asp-for="MedicalNotes"
+                          class="form-control form-control-dark"
+                          rows="3"></textarea>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input asp-for="RequiresEpiPen"
+                               class="form-check-input" />
+                        <label asp-for="RequiresEpiPen"
+                               class="form-check-label text-light">
+                            Requires EpiPen on site
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        <input asp-for="CarriesInhaler"
+                               class="form-check-input" />
+                        <label asp-for="CarriesInhaler"
+                               class="form-check-label text-light">
+                            Carries Inhaler
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-neon">
+                Save Changes
+            </button>
+            <a asp-action="Dashboard"
+               class="btn btn-outline-neon ms-2">
+                Cancel
+            </a>
+        </form>
+        <hr class="border-danger my-4"/>
+        <div class="d-flex justify-content-between allign-items-center">
+            <div>
+                <h5 class="text-danger mb-1">Remove Dancer</h5>
+                <p class="text-warning small mb-0">
+                    Permanently remove @Model.FirstName from your family profile and unenroll from all classes.
+                </p>
+            </div>
+            <button type="button"
+                    class="btn btn-outline-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteDancerModal">
+                Delete Dancer
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="deleteDancerModal"
+     tabindex="-1"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-danger">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-danger"
+                    id="deleteDancerModalLabel">
+                    Delete Dancer
+                </h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-light">
+                Are you sure you want to permanently remove <srong>@Model.FirstName @Model.LastName</srong>?
+                This will also remove their active class enrollments.
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <form asp-controller="Parent"
+                      asp-action="DeleteDancer"
+                      asp-route-id="@Model.Id"
+                      method="post">
+                    <button type="submit" class="btn btn-danger">
+                        Yes, Delete Dancer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
