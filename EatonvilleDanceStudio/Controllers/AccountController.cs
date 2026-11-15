@@ -13,19 +13,11 @@ namespace EatonvilleDanceStudio.Controllers
     /// Provides methods for managing user accounts, including registration, authentication, and profile settings.
     /// </summary>
     [Authorize] // Restricts access to logged-in users
-    public class AccountController : Controller
+    public class AccountController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager)
+        : Controller
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-
-        public AccountController(
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-        }
-
         // Allow anonymous access for registration
         [AllowAnonymous]
         [HttpGet]
@@ -50,14 +42,14 @@ namespace EatonvilleDanceStudio.Controllers
                     AccountStatus = "Approved"
                 };
         
-                IdentityResult result = await _userManager.CreateAsync(
+                IdentityResult result = await userManager.CreateAsync(
                     user, 
                     model.Password);
 
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, "Director");
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    await userManager.AddToRoleAsync(user, "Director");
+                    await signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("ManageUsers", "Director");
                 }
 
@@ -84,7 +76,7 @@ namespace EatonvilleDanceStudio.Controllers
         [HttpGet]
         public async Task<IActionResult> Manage()
         {
-            ApplicationUser user = await _userManager.GetUserAsync(User);
+            ApplicationUser user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("Unable to load current user profile.");
@@ -114,7 +106,7 @@ namespace EatonvilleDanceStudio.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Manage(AccountManageViewModel model)
         {
-            ApplicationUser user = await _userManager.GetUserAsync(User);
+            ApplicationUser user = await userManager.GetUserAsync(User);
             if (user == null)
             {
                 return NotFound("Unable to load current user profile.");
@@ -124,7 +116,7 @@ namespace EatonvilleDanceStudio.Controllers
             if (model.PhoneNumber != user.PhoneNumber)
             {
                 user.PhoneNumber = model.PhoneNumber;
-                var result = await _userManager.UpdateAsync(user);
+                var result = await userManager.UpdateAsync(user);
                 
                 if (!result.Succeeded)
                 {

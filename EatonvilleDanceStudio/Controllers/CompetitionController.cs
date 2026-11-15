@@ -19,15 +19,8 @@ namespace EatonvilleDanceStudio.Controllers
     /// restricted to users in director or instructor roles.
     /// </remarks>
     [Authorize]
-    public class CompetitionsController : Controller
+    public class CompetitionsController(ApplicationDbContext context) : Controller
     {
-        private readonly ApplicationDbContext _context;
-
-        public CompetitionsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: /Competitions?attendingOnly=true
         /// <summary>
         /// Displays the competitions list, ordered by start date and including related entries, optionally filtering to competitions the studio is attending.
@@ -38,7 +31,7 @@ namespace EatonvilleDanceStudio.Controllers
         public async Task<IActionResult> Index(
             bool attendingOnly = true)
         {
-            IQueryable<Competition> query = _context.Competitions
+            IQueryable<Competition> query = context.Competitions
                 .Include(c => c.Entries)
                 .OrderBy(c => c.StartDate);
 
@@ -61,7 +54,7 @@ namespace EatonvilleDanceStudio.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            Competition? competition = await _context.Competitions
+            Competition? competition = await context.Competitions
                 .Include(c => c.Entries)
                     .ThenInclude(e => e.DanceClass)
                 .FirstOrDefaultAsync(c => c.Id == id);
@@ -111,8 +104,8 @@ namespace EatonvilleDanceStudio.Controllers
                 return View(model);
             }
 
-            _context.Competitions.Add(model);
-            await _context.SaveChangesAsync();
+            context.Competitions.Add(model);
+            await context.SaveChangesAsync();
 
             return RedirectToAction(
                 nameof(Details),
@@ -129,7 +122,7 @@ namespace EatonvilleDanceStudio.Controllers
         [Authorize(Roles = "Director,Instructor")]
         public async Task<IActionResult> AddEntry(int competitionId)
         {
-            Competition? competition = await _context.Competitions
+            Competition? competition = await context.Competitions
                 .FindAsync(competitionId);
 
             if (competition == null)
@@ -167,8 +160,8 @@ namespace EatonvilleDanceStudio.Controllers
                 return View(model);
             }
 
-            _context.CompetitionEntries.Add(model);
-            await _context.SaveChangesAsync();
+            context.CompetitionEntries.Add(model);
+            await context.SaveChangesAsync();
 
             return RedirectToAction(
                 nameof(Details),
@@ -189,14 +182,14 @@ namespace EatonvilleDanceStudio.Controllers
             int id,
             bool attendingOnly)
         {
-            Competition? competition = await _context.Competitions
+            Competition? competition = await context.Competitions
                 .FindAsync(id);
 
             if (competition != null)
             {
                 competition.IsStudioAttending =
                     !competition.IsStudioAttending;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
 
             return RedirectToAction(
@@ -207,7 +200,7 @@ namespace EatonvilleDanceStudio.Controllers
         private async Task PopulateClassesDropdownAsync(
             int? selectedClassId)
         {
-            List<DanceClass> classes = await _context.DanceClasses
+            List<DanceClass> classes = await context.DanceClasses
                 .OrderBy(c => c.ClassName)
                 .ToListAsync();
 

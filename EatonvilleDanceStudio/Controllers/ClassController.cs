@@ -9,17 +9,9 @@ using EatonvilleDanceStudio.ViewModels;
 namespace EatonvilleDanceStudio.Controllers;
 
 [Authorize]
-public class ClassController : Controller
+public class ClassController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public ClassController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
-    {
-        _context = context;
-        _userManager = userManager;
-    }
-
     // GET: Class
     /// <summary>
     /// Displays the class browsing page for the authenticated parent.
@@ -31,7 +23,7 @@ public class ClassController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         bool isStaffOrDancer = User.IsInRole("Director")
                                || User.IsInRole("Instructor")
                                || User.IsInRole("Dancer");
@@ -40,7 +32,7 @@ public class ClassController : Controller
 
         if (!isStaffOrDancer)
         {
-            ParentProfile? parentProfile = await _context.ParentProfiles
+            ParentProfile? parentProfile = await context.ParentProfiles
                 .Include(p => p.Dancers)
                 .FirstOrDefaultAsync(p => p.UserId == userId);
 
@@ -60,7 +52,7 @@ public class ClassController : Controller
         }
 
         // Include the Instructor and sort the classes for the catalog
-        List<DanceClass> classes = await _context.DanceClasses
+        List<DanceClass> classes = await context.DanceClasses
             .Include(c => c.Instructor)
             .OrderBy(c => c.ClassName)
             .ToListAsync();
@@ -89,9 +81,9 @@ public class ClassController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Enroll(int classId, int dancerId)
     {
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
 
-        var parentProfile = await _context.ParentProfiles
+        var parentProfile = await context.ParentProfiles
             .Include(p => p.Dancers)
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
@@ -108,12 +100,12 @@ public class ClassController : Controller
 
         // Start a strict transaction to prevent concurrent race conditions
         await using var transaction =
-            await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+            await context.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
 
         try
         {
             // 1. Prevent Double Enrollment
-            var alreadyEnrolled = await _context.Enrollments
+            var alreadyEnrolled = await context.Enrollments
                 .AnyAsync(e => e.DanceClassId == classId && e.DancerId == dancerId);
 
             if (alreadyEnrolled)
@@ -123,7 +115,7 @@ public class ClassController : Controller
             }
 
             // 2. Load the Class to check Capacity
-            var danceClass = await _context.DanceClasses
+            var danceClass = await context.DanceClasses
                 .Include(c => c.Enrollments)
                 .FirstOrDefaultAsync(c => c.Id == classId);
 
@@ -141,8 +133,8 @@ public class ClassController : Controller
                 Status = enrollmentStatus
             };
 
-            _context.Enrollments.Add(enrollment);
-            await _context.SaveChangesAsync();
+            context.Enrollments.Add(enrollment);
+            await context.SaveChangesAsync();
 
             // 5. Lock it in
             await transaction.CommitAsync();

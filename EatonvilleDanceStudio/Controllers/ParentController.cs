@@ -15,17 +15,9 @@ namespace EatonvilleDanceStudio.Controllers;
 
 // [Issue #67] Locked this down specifically to the Parent role
 [Authorize(Roles = "Parent")] 
-public class ParentController : Controller
+public class ParentController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public ParentController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
-    {
-        _context = context;
-        _userManager = userManager;
-    }
-
     // GET: /Parent/Dashboard
     /// <summary>
     /// Displays the main parent dashboard including financial balances, linked dancers,
@@ -33,11 +25,11 @@ public class ParentController : Controller
     /// </summary>
     public async Task<IActionResult> Dashboard()
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         // Fetch the Parent Profile
-        ParentProfile? profile = await _context.ParentProfiles
+        ParentProfile? profile = await context.ParentProfiles
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
         if (profile == null)
@@ -45,7 +37,7 @@ public class ParentController : Controller
             return NotFound("Parent profile not found. Please contact the studio.");
         }
         
-        bool hasSignedWaiver = await _context.LegalWaivers
+        bool hasSignedWaiver = await context.LegalWaivers
             .AnyAsync(w => w.ParentProfileId == profile.Id && w.Season == "2026-2027");
 
         if (!hasSignedWaiver)
@@ -55,14 +47,14 @@ public class ParentController : Controller
         }
 
         // Fetch all Dancers belonging to this household
-        List<Dancer> dancers = await _context.Dancers
+        List<Dancer> dancers = await context.Dancers
             .Where(d => d.ParentProfileId == profile.Id)
             .ToListAsync();
 
         List<int> dancerIds = dancers.Select(d => d.Id).ToList();
 
         // Consolidate the weekly schedule across all linked dancers
-        List<Enrollment> enrolledClasses = await _context.Enrollments
+        List<Enrollment> enrolledClasses = await context.Enrollments
             .Include(e => e.DanceClass)
             .Include(e => e.Dancer)
             .Where(e => dancerIds.Contains(e.DancerId)) 
@@ -70,7 +62,7 @@ public class ParentController : Controller
             .ToListAsync();
 
         // Calculate Financials based on LedgerEntry schema
-        List<LedgerEntry> allEntries = await _context.LedgerEntries
+        List<LedgerEntry> allEntries = await context.LedgerEntries
             .Where(l => l.ParentId == userId)          // Links via ApplicationUser ID
             .OrderByDescending(l => l.TransactionDate) // Uses TransactionDate
             .ToListAsync();
@@ -83,7 +75,7 @@ public class ParentController : Controller
         decimal calculatedBalance = allEntries.Sum(l => l.Amount);
         
         // Fetch Direct Messages & Studio Blasts for this Parent
-        List<StudioMessage> messages = await _context.StudioMessages
+        List<StudioMessage> messages = await context.StudioMessages
             .Include(m => m.Sender) // <-- ADD THIS LINE!
             .Where(m => m.ReceiverId == userId || m.ReceiverId == null)
             .OrderByDescending(m => m.SentAt)
@@ -121,7 +113,7 @@ public class ParentController : Controller
         string subject,
         string body)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         if (!string.IsNullOrWhiteSpace(receiverId) && 
@@ -138,8 +130,8 @@ public class ParentController : Controller
                 IsRead = false
             };
             
-            _context.StudioMessages.Add(reply);
-            await _context.SaveChangesAsync();
+            context.StudioMessages.Add(reply);
+            await context.SaveChangesAsync();
             
             TempData["SuccessMessage"] = "Message sent successfully!";
         }
@@ -160,11 +152,11 @@ public class ParentController : Controller
     /// </summary>
     public async Task<IActionResult> Board(int id)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         // Fetch the Parent Profile first to get the integer ID
-        ParentProfile? profile = await _context.ParentProfiles
+        ParentProfile? profile = await context.ParentProfiles
             .FirstOrDefaultAsync(p => p.UserId == userId);
 
         if (profile == null)
@@ -175,7 +167,7 @@ public class ParentController : Controller
 
         // Security check: Verify the parent has a dancer in this class
         // Now we compare the integer ParentProfileId to our profile.Id
-        bool isEnrolled = await _context.Enrollments
+        bool isEnrolled = await context.Enrollments
             .Include(e => e.Dancer)
             .AnyAsync(e => e.DanceClassId == id && 
                            e.Dancer != null && 
@@ -187,12 +179,12 @@ public class ParentController : Controller
             return RedirectToAction(nameof(Dashboard));
         }
 
-        DanceClass? danceClass = await _context.DanceClasses
+        DanceClass? danceClass = await context.DanceClasses
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (danceClass == null) return NotFound();
 
-        List<ClassAnnouncement> announcements = await _context
+        List<ClassAnnouncement> announcements = await context
             .ClassAnnouncements
             .Where(a => a.DanceClassId == id)
             .OrderByDescending(a => a.DatePosted)
@@ -224,8 +216,8 @@ public class ParentController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddDancer(AddDancerViewModel input)
     {
-        var userId = _userManager.GetUserId(User);
-        var parentProfile = await _context.ParentProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
+        var userId = userManager.GetUserId(User);
+        var parentProfile = await context.ParentProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
 
         if (parentProfile == null) return NotFound();
 
@@ -243,8 +235,8 @@ public class ParentController : Controller
                 MedicalAlerts = input.MedicalAlerts
             };
 
-            _context.Dancers.Add(newDancer);
-            await _context.SaveChangesAsync();
+            context.Dancers.Add(newDancer);
+            await context.SaveChangesAsync();
             return RedirectToAction(nameof(Dashboard));
         }
 
@@ -261,10 +253,10 @@ public class ParentController : Controller
     [HttpGet]
     public async Task<IActionResult> SignWaiver()
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
 
-        ParentProfile? profile = await _context.ParentProfiles
+        ParentProfile? profile = await context.ParentProfiles
             .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
         if (profile == null) return NotFound("Parent profile not found.");
@@ -299,8 +291,8 @@ public class ParentController : Controller
             model.SignedDate = DateTime.Now;
             model.IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
 
-            _context.LegalWaivers.Add(model);
-            await _context.SaveChangesAsync();
+            context.LegalWaivers.Add(model);
+            await context.SaveChangesAsync();
 
             // Send them back to their dashboard once signed
             return RedirectToAction(nameof(Dashboard));
@@ -319,10 +311,10 @@ public class ParentController : Controller
     [HttpGet]
     public async Task<IActionResult> MedicalRoster()
     {
-        ApplicationUser? user = await _userManager.GetUserAsync(User);
+        ApplicationUser? user = await userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
 
-        ParentProfile? profile = await _context.ParentProfiles
+        ParentProfile? profile = await context.ParentProfiles
             .Include(p => p.Dancers)
             .FirstOrDefaultAsync(p => p.UserId == user.Id);
 
@@ -340,7 +332,7 @@ public class ParentController : Controller
     [HttpGet]
     public async Task<IActionResult> UpdateMedical(int id)
     {
-        Dancer? dancer = await _context.Dancers.FindAsync(id);
+        Dancer? dancer = await context.Dancers.FindAsync(id);
         if (dancer == null) return NotFound();
         
         return View(dancer);
@@ -359,7 +351,7 @@ public class ParentController : Controller
     {
         if (id != model.Id) return NotFound();
 
-        Dancer? existingDancer = await _context.Dancers.FindAsync(id);
+        Dancer? existingDancer = await context.Dancers.FindAsync(id);
         if (existingDancer == null) return NotFound();
 
         // We only map the medical fields here. This prevents a nasty bug 
@@ -370,9 +362,163 @@ public class ParentController : Controller
         existingDancer.RequiresEpiPen = model.RequiresEpiPen;
         existingDancer.CarriesInhaler = model.CarriesInhaler;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         
         return RedirectToAction(nameof(MedicalRoster));
+    }
+    
+    // GET: /Parent/EditDancer/{id}
+    /// <summary>
+    /// Displays the edit form for a dancer associated with the current parent profile.
+    /// </summary>
+    /// <param name="id">The identifier of the dancer to edit.</param>
+    /// <returns>The edit dancer view when found; otherwise, an unauthorized, not found, or redirect result.</returns>
+    [HttpGet]
+    public async Task<IActionResult> EditDancer(int id)
+    {
+        string? userId = userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        ParentProfile? profile = await context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound("Parent profile not found.");
+        }
+
+        Dancer? dancer = await context.Dancers
+            .FirstOrDefaultAsync(
+                d => d.Id == id && d.ParentProfileId == profile.Id);
+
+        if (dancer == null)
+        {
+            TempData["ErrorMessage"] = "Dancer not found.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        return View(dancer);
+    }
+
+    // POST: /Parent/EditDancer/{id}
+    /// <summary>
+    /// Updates an existing dancer profile owned by the authenticated parent and saves the allowed profile, skill, and medical information changes.
+    /// </summary>
+    /// <param name="id">The identifier of the dancer profile to update.</param>
+    /// <param name="model">The dancer data submitted from the edit form.</param>
+    /// <returns>An action result that redirects to the dashboard on success, returns an error result when access or ownership checks fail, or redisplay the form when validation fails.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditDancer(int id, Dancer model)
+    {
+        if (id != model.Id)
+        {
+            return NotFound();
+        }
+
+        string? userId = userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        ParentProfile? profile = await context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound("Parent profile not found.");
+        }
+
+        Dancer? existingDancer = await context.Dancers
+            .FirstOrDefaultAsync(
+                d => d.Id == id && d.ParentProfileId == profile.Id);
+
+        if (existingDancer == null)
+        {
+            TempData["ErrorMessage"] = "Dancer not found.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        // Remove navigation properties before checking ModelState
+        ModelState.Remove(nameof(model.Parent));
+        ModelState.Remove(nameof(model.Enrollments));
+
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        // Map only parent-editable fields so foreign keys stay intact
+        existingDancer.FirstName = model.FirstName;
+        existingDancer.LastName = model.LastName;
+        existingDancer.DateOfBirth = model.DateOfBirth;
+        existingDancer.SkillLevel = model.SkillLevel;
+        existingDancer.MedicalAlerts = model.MedicalAlerts;
+        existingDancer.MedicalNotes = model.MedicalNotes;
+        existingDancer.Allergies = model.Allergies;
+        existingDancer.RequiresEpiPen = model.RequiresEpiPen;
+        existingDancer.CarriesInhaler = model.CarriesInhaler;
+
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] =
+            $"{existingDancer.FirstName}'s profile has been updated.";
+
+        return RedirectToAction(nameof(Dashboard));
+    }
+    //POST
+    /// <summary>
+    /// Removes the specified dancer from the current parent's family profile, including any associated enrollments.
+    /// </summary>
+    /// <param name="id">The identifier of the dancer to delete.</param>
+    /// <returns>A redirect to the dashboard, or an authorization or not found result when the request cannot be completed.</returns>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteDancer(int id)
+    {
+        string? userId = userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        ParentProfile? profile = await context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound("Parent profile not found.");
+        }
+
+        Dancer? dancer = await context.Dancers
+            .Include(d => d.Enrollments)
+            .FirstOrDefaultAsync(
+                d => d.Id == id && d.ParentProfileId == profile.Id);
+
+        if (dancer == null)
+        {
+            TempData["ErrorMessage"] = "Dancer not found.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        string dancerName = $"{dancer.FirstName} {dancer.LastName}";
+
+        if (dancer.Enrollments.Any())
+        {
+            context.Enrollments.RemoveRange(dancer.Enrollments);
+        }
+
+        context.Dancers.Remove(dancer);
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] =
+            $"{dancerName} has been removed from your family profile.";
+
+        return RedirectToAction(nameof(Dashboard));
     }
     
 }

@@ -14,19 +14,11 @@ namespace EatonvilleDanceStudio.Controllers;
 
 // Locked down to satisfy the security requirement of Issue #66
 [Authorize(Roles = "Instructor")]
-public class InstructorController : Controller
+public class InstructorController(
+    ApplicationDbContext context,
+    UserManager<ApplicationUser> userManager)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<ApplicationUser> _userManager;
-    
-    public InstructorController(
-        ApplicationDbContext context, 
-        UserManager<ApplicationUser> userManager)
-    {
-        _context = context;
-        _userManager = userManager;
-    }
-    
     // GET
     /// <summary>
     /// Displays the instructor's dashboard, including their assigned classes, private lessons,
@@ -36,21 +28,21 @@ public class InstructorController : Controller
     public async Task<IActionResult> Dashboard()
     {
         // Identify current logged in Instructor
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
         
-        ApplicationUser? instructor = await _userManager.FindByIdAsync(userId);
+        ApplicationUser? instructor = await userManager.FindByIdAsync(userId);
         if (instructor == null) return NotFound();
         
         // Fetch all classes assigned to this Instructor
-        List<DanceClass> assignedClasses = await _context.DanceClasses
+        List<DanceClass> assignedClasses = await context.DanceClasses
             .Where(c => c.InstructorId == userId)
             .ToListAsync();
 
         string today = DateTime.Today.DayOfWeek.ToString();
         
         // Fetch upcoming private lesson slots today or in the future
-        List<PrivateLessonBlock> privateLessons = await _context
+        List<PrivateLessonBlock> privateLessons = await context
             .PrivateLessonBlocks
             .Where(p => p.InstructorId == userId && p.Date >= DateTime.Today)
             .OrderBy(p => p.Date)
@@ -58,7 +50,7 @@ public class InstructorController : Controller
             .ToListAsync();
 
         // Fetch the instructor's 10 most recent time logs
-        List<InstructorTimeLog> recentLogs = await _context.InstructorTimeLogs
+        List<InstructorTimeLog> recentLogs = await context.InstructorTimeLogs
             .Where(t => t.InstructorId == userId)
             .OrderByDescending(t => t.Date)
             .Take(10)
@@ -98,7 +90,7 @@ public class InstructorController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> LogHours(InstructorDashboardViewModel model)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         if (model.NewLog.Hours > 0 && model.NewLog.Date != default)
@@ -112,8 +104,8 @@ public class InstructorController : Controller
                 IsApproved = false 
             };
 
-            _context.InstructorTimeLogs.Add(timeLog);
-            await _context.SaveChangesAsync();
+            context.InstructorTimeLogs.Add(timeLog);
+            await context.SaveChangesAsync();
             
             TempData["SuccessMessage"] = 
                 "Hours successfully logged and sent to Director for approval.";
@@ -140,7 +132,7 @@ public class InstructorController : Controller
     public async Task<IActionResult> AddPrivateLesson(
         InstructorDashboardViewModel model)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         bool isValidDate = model.NewLessonBlock.Date >= DateTime.Today;
@@ -158,8 +150,8 @@ public class InstructorController : Controller
                 IsBooked = false
             };
 
-            _context.PrivateLessonBlocks.Add(block);
-            await _context.SaveChangesAsync();
+            context.PrivateLessonBlocks.Add(block);
+            await context.SaveChangesAsync();
             
             TempData["SuccessMessage"] = "Private lesson block opened!";
         }
@@ -182,19 +174,19 @@ public class InstructorController : Controller
     /// <returns>An <see cref="IActionResult"/> that renders the class roster view or an error result if the class is not found or the user is unauthorized.</returns>
     public async Task<IActionResult> Roster(int id, DateTime? date)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         DateTime selectedDate = date ?? DateTime.Today;
 
-        DanceClass? danceClass = await _context.DanceClasses
+        DanceClass? danceClass = await context.DanceClasses
             .Include(c => c.Enrollments)
                 .ThenInclude(e => e.Dancer)
             .FirstOrDefaultAsync(c => c.Id == id && c.InstructorId == userId);
 
         if (danceClass == null) return NotFound();
 
-        Dictionary<int, AttendanceRecord> existingRecords = await _context
+        Dictionary<int, AttendanceRecord> existingRecords = await context
             .AttendanceRecords
             .Where(a => a.Enrollment!.DanceClassId == id 
                         && a.Date == selectedDate)
@@ -242,22 +234,22 @@ public class InstructorController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SubmitAttendance(ClassRosterViewModel model)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
         foreach (AttendanceRecord record in model.AttendanceList)
         {
             if (record.Id > 0)
             {
-                _context.AttendanceRecords.Update(record);
+                context.AttendanceRecords.Update(record);
             }
             else
             {
-                _context.AttendanceRecords.Add(record);
+                context.AttendanceRecords.Add(record);
             }
         }
         
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         TempData["SuccessMessage"] = "Attendance successfully saved!";
         
         return RedirectToAction(nameof(Roster), 
@@ -274,22 +266,22 @@ public class InstructorController : Controller
     /// <returns>A view displaying the dance class board, including its announcements and pagination details.</returns>
     public async Task<IActionResult> Board(int id, int page = 1)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
-        DanceClass? danceClass = await _context.DanceClasses
+        DanceClass? danceClass = await context.DanceClasses
             .FirstOrDefaultAsync(c => c.Id == id && c.InstructorId == userId);
 
         if (danceClass == null) return NotFound();
 
         int pageSize = 5; 
-        int totalPosts = await _context.ClassAnnouncements
+        int totalPosts = await context.ClassAnnouncements
             .CountAsync(a => a.DanceClassId == id);
             
         int totalPages = (int)Math.Ceiling(totalPosts / (double)pageSize);
         if (totalPages == 0) totalPages = 1;
 
-        List<ClassAnnouncement> announcements = await _context
+        List<ClassAnnouncement> announcements = await context
             .ClassAnnouncements
             .Where(a => a.DanceClassId == id)
             .OrderByDescending(a => a.DatePosted)
@@ -322,10 +314,10 @@ public class InstructorController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PostAnnouncement(ClassBoardViewModel model)
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
         
-        DanceClass? danceClass = await _context.DanceClasses
+        DanceClass? danceClass = await context.DanceClasses
             .FirstOrDefaultAsync(c => c.Id == model.NewAnnouncement.DanceClassId 
                                       && c.InstructorId == userId);
         
@@ -339,8 +331,8 @@ public class InstructorController : Controller
                 DatePosted = DateTime.Now
             };
 
-            _context.ClassAnnouncements.Add(safeAnnouncement);
-            await _context.SaveChangesAsync();
+            context.ClassAnnouncements.Add(safeAnnouncement);
+            await context.SaveChangesAsync();
             
             TempData["SuccessMessage"] = "Announcement successfully posted!";
         }
@@ -362,10 +354,10 @@ public class InstructorController : Controller
     /// <returns>Returns a view containing the list of studio messages ordered by the time they were sent.</returns>
     public async Task<IActionResult> Inbox()
     {
-        string? userId = _userManager.GetUserId(User);
+        string? userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
 
-        List<StudioMessage> messages = await _context.StudioMessages
+        List<StudioMessage> messages = await context.StudioMessages
             .Include(m => m.Sender)
             // Fix: Check for m.ReceiverId == null instead of MessageType
             .Where(m => m.ReceiverId == userId || m.SenderId == userId || m.ReceiverId == null)

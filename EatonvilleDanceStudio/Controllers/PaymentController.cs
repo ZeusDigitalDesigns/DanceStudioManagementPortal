@@ -20,25 +20,15 @@ namespace EatonvilleDanceStudio.Controllers;
 /// This controller interacts with the database for payment-related data and utilizes user
 /// management functionality for processing payments associated with authenticated users.
 /// </remarks>
-public class PaymentController : Controller
+public class PaymentController(
+    ApplicationDbContext context,
+    IOptions<StripeSettings> stripeSettings,
+    UserManager<ApplicationUser> userManager,
+    IStripePaymentService paymentService)
+    : Controller
 {
-    private readonly ApplicationDbContext _context;
-    private readonly StripeSettings _stripeSettings;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IStripePaymentService _paymentService;
+    private readonly StripeSettings _stripeSettings = stripeSettings.Value;
 
-    public PaymentController(
-        ApplicationDbContext context, 
-        IOptions<StripeSettings> stripeSettings,
-        UserManager<ApplicationUser> userManager,
-        IStripePaymentService paymentService)
-    {
-        _context = context;
-        _stripeSettings = stripeSettings.Value;
-        _userManager = userManager;
-        _paymentService = paymentService;
-    }
-    
     // POST
 
     /// <summary>
@@ -53,7 +43,7 @@ public class PaymentController : Controller
     public async Task<IActionResult> Checkout() 
     {
         // Get the current logged in parent
-        var userId = _userManager.GetUserId(User);
+        var userId = userManager.GetUserId(User);
         if (userId == null) return Unauthorized();
         
         // TEMPORARY: Hardcode the server-side amount for now. 
@@ -102,7 +92,7 @@ public class PaymentController : Controller
             IdempotencyKey = $"tuition-{userId}-{DateTime.UtcNow:yyyy-MM}"
         };
         
-        Session session = await _paymentService.CreateSessionAsync(options, requestOptions);        
+        Session session = await paymentService.CreateSessionAsync(options, requestOptions);        
         
         // Redirect the user to Stripe's secure hosted checkout page
         Response.Headers.Add("Location", session.Url);
@@ -137,7 +127,7 @@ public class PaymentController : Controller
         try
         {
             // 2. Fetch the authoritative session directly from Stripe's servers
-            Session session = await _paymentService.GetSessionAsync(session_id);
+            Session session = await paymentService.GetSessionAsync(session_id);
 
             // 3. Verify the actual payment status
             if (session.PaymentStatus == "paid")
@@ -147,7 +137,7 @@ public class PaymentController : Controller
                 {
                     // 5. Anti-Refresh Check: Make sure we haven't already credited this exact Stripe session
                     // (Requires: using Microsoft.EntityFrameworkCore;)
-                    bool alreadyRecorded = await _context.LedgerEntries
+                    bool alreadyRecorded = await context.LedgerEntries
                         .AnyAsync(l => l.Description.Contains(session.Id));
 
                     if (!alreadyRecorded)
@@ -166,8 +156,8 @@ public class PaymentController : Controller
                             Category = "Payment"
                         };
 
-                        _context.LedgerEntries.Add(paymentEntry);
-                        await _context.SaveChangesAsync();
+                        context.LedgerEntries.Add(paymentEntry);
+                        await context.SaveChangesAsync();
                     }
                 }
 

@@ -1,16 +1,50 @@
-@using ServiceStack.Messaging
+@using System.Globalization
 @model EatonvilleDanceStudio.ViewModels.ParentDashboardViewModel
 
 @{
     ViewData["Title"] = "Family Hub";
 }
 
-
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+
+    @*
+        Summary: Displays success and error TempData banners right
+        above the Family Hub header after editing a dancer or
+        sending a message.
+    *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-dark text-success
+                    border-success alert-dismissible fade show"
+             role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger bg-dark text-danger
+                    border-danger alert-dismissible fade show"
+             role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between
+                align-items-center mb-4">
         <h1 class="text-neon mb-0">Family Hub</h1>
         <p class="text-light mb-0">Account: 
-            <span class="badge @(Model.Profile.AccountStatus == "Approved" ? "bg-success" : "bg-warning text-dark")">
+            <span class="badge @(Model.Profile.AccountStatus == "Approved"
+                                   ? "bg-success"
+                                   : "bg-warning text-dark")">
                 @Model.Profile.AccountStatus
             </span>
         </p>
@@ -55,7 +89,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
                         <div>
                             <p class="text-neon mb-1"><strong>Current Balance:</strong></p>
-                            <h2 class="text-danger mb-0">@Model.CurrentBalance.ToString("C")</h2>
+                            <h2 class="text-danger mb-0">@Model.CurrentBalance.ToString("C", CultureInfo.InvariantCulture)</h2>
                         </div>
                         @if (Model.CurrentBalance > 0)
                         {
@@ -66,52 +100,55 @@
                     </div>
 
                     <div class="row g-3">
+                        
                         <!-- Charges Table -->
+                        
                         <div class="col-md-6">
                             <h6 class="text-neon mb-2">Recent Charges</h6>
                             <div class="table-responsive">
                                 <table class="table table-dark table-sm table-hover mb-0 align-middle">
                                     <thead>
-                                        <tr class="border-secondary">
-                                            <th class="text-neon">Date</th>
-                                            <th class="text-neon">Description</th>
-                                            <th class="text-neon text-end">Amount</th>
-                                        </tr>
+                                    <tr class="border-secondary">
+                                        <th class="text-neon">Date</th>
+                                        <th class="text-neon">Description</th>
+                                        <th class="text-neon text-end">Amount</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        @if (Model.RecentCharges.Any())
+                                    @if (Model.RecentCharges.Any())
+                                    {
+                                        foreach (var charge in Model.RecentCharges)
                                         {
-                                            foreach (var charge in Model.RecentCharges)
-                                            {
-                                                <tr class="border-secondary">
-                                                    <td class="text-muted small">@charge.TransactionDate.ToShortDateString()</td>
-                                                    <td>@charge.Description</td>
-                                                    <td class="text-end">@charge.Amount.ToString("C")</td>
-                                                </tr>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <tr>
-                                                <td colspan="3" class="text-center text-muted py-2">No recent charges.</td>
+                                            <tr class="border-secondary">
+                                                <td class="text-muted small">@charge.TransactionDate.ToShortDateString()</td>
+                                                <td>@charge.Description</td>
+                                                <td class="text-end">@charge.Amount.ToString("C", CultureInfo.InvariantCulture)</td>
                                             </tr>
                                         }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-2">No recent charges.</td>
+                                        </tr>
+                                    }
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
                         <!-- Payments Table -->
+                        
                         <div class="col-md-6">
                             <h6 class="text-neon mb-2">Payment History</h6>
                             <div class="table-responsive">
                                 <table class="table table-dark table-sm table-hover mb-0 align-middle">
                                     <thead>
-                                        <tr class="border-secondary">
-                                            <th class="text-neon">Date</th>
-                                            <th class="text-neon">Description</th>
-                                            <th class="text-neon text-end">Amount</th>
-                                        </tr>
+                                    <tr class="border-secondary">
+                                        <th class="text-neon">Date</th>
+                                        <th class="text-neon">Description</th>
+                                        <th class="text-neon text-end">Amount</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
                                     @if (Model.RecentPayments.Any())
@@ -122,7 +159,7 @@
                                                 <td class="text-light small">@payment.TransactionDate.ToShortDateString()</td>
                                                 <td>@payment.Description</td>
                                                 <!-- Formatting payments as positive numbers for the UI -->
-                                                <td class="text-end text-success">@Math.Abs(payment.Amount).ToString("C")</td>
+                                                <td class="text-end text-success">@Math.Abs(payment.Amount).ToString("C", CultureInfo.InvariantCulture)</td>
                                             </tr>
                                         }
                                     }
@@ -141,6 +178,7 @@
             </div>
             
             <!-- Enrolled Classes Roster -->
+            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
                     <h4 class="text-neon mb-0">Current Enrollments</h4>
@@ -200,6 +238,7 @@
             </div>
 
             <!-- Dancer Profiles -->
+            
             <div class="card card-dark shadow-lg border-neon">
                 <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
                     <h4 class="text-neon mb-0">My Dancers</h4>
@@ -207,26 +246,43 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        @foreach (var dancer in Model.Dancers)
+                        @foreach (Dancer dancer in Model.Dancers)
                         {
                             <div class="col-md-6">
                                 <div class="card bg-transparent border-neon h-100">
-                                    <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div class="card-body d-flex justify-content-between
+                        align-items-center">
                                         <div>
-                                            <h5 class="text-neon mb-0">@dancer.FirstName @dancer.LastName</h5>
-                                            <small class="text-light">Level: @dancer.SkillLevel | Age: @dancer.Age</small>
-                                            
-                                            @if (!string.IsNullOrEmpty(dancer.MedicalNotes) || 
-                                                 !string.IsNullOrEmpty(dancer.Allergies) || 
-                                                 dancer.RequiresEpiPen || 
-                                                 dancer.CarriesInhaler)
+                                            <h5 class="mb-0">
+                                                <a asp-controller="Parent"
+                                                   asp-action="EditDancer"
+                                                   asp-route-id="@dancer.Id"
+                                                   class="text-neon text-decoration-none">
+                                                    @dancer.FirstName @dancer.LastName
+                                                </a>
+                                            </h5>
+                                            <small class="text-light">
+                                                Level: @dancer.SkillLevel | Age: @dancer.Age
+                                            </small>
+
+                                            @if (!string.IsNullOrEmpty(dancer.MedicalNotes)
+                                                 || !string.IsNullOrEmpty(dancer.Allergies)
+                                                 || dancer.RequiresEpiPen
+                                                 || dancer.CarriesInhaler)
                                             {
                                                 <div class="mt-2">
-                                                    <span class="badge bg-danger rounded-0">Medical Alert</span>
+                                                    <span class="badge bg-danger rounded-0">
+                                                        Medical Alert
+                                                    </span>
                                                 </div>
                                             }
                                         </div>
-                                        <a asp-action="EditDancer" asp-route-id="@dancer.Id" class="btn btn-outline-neon btn-sm">Edit</a>
+                                        <a asp-controller="Parent"
+                                           asp-action="EditDancer"
+                                           asp-route-id="@dancer.Id"
+                                           class="btn btn-outline-neon btn-sm">
+                                            Edit
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -238,9 +294,11 @@
         </div>
 
         <!-- Right Column: Informational Feeds -->
+        
         <div class="col-lg-4">
         
             <!-- Quick Links (Waivers & Medical Notes) -->
+            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Quick Actions</h5>
@@ -257,19 +315,20 @@
             </div>
 
             <!-- Secure Messages & Blasts -->
+            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Studio Announcements</h5>
                 </div>
                 <div class="list-group list-group-flush">
-                    @if (Model.Messages != null && Model.Messages.Any())
+                    @if (Model.Messages.Any())
                     {
                         foreach (var message in Model.Messages)
                         {
                             <div class="list-group-item bg-transparent text-light border-secondary">
                                 <div class="d-flex w-100 justify-content-between mb-1">
                                     <h6 class="mb-0 text-neon fw-bold">@message.Subject</h6>
-                                    <small class="text-muted">@message.SentAt.ToString("MMM dd")</small>
+                                    <small class="text-muted">@message.SentAt.ToString("MMM dd", CultureInfo.InvariantCulture)</small>
                                 </div>
                                 <p class="mb-2 small text-secondary">
                                     @if(message.Sender != null)
@@ -282,14 +341,16 @@
                                 </p>
                                 
                                 <!-- Badges and Reply Button -->
+                                
                                 <div class="d-flex justify-content-between align-items-center mt-3">
                                     <span class="badge @(message.ReceiverId == null ? "bg-info text-dark" : "bg-neon text-dark") rounded-0">
                                         @(message.ReceiverId == null ? "Studio Blast" : "Direct Message")
                                     </span>
                                     
-                                    @if(message.SenderId != null)
+                                    @if(true)
                                     {
                                         <!-- Triggers the Modal below -->
+                                        
                                         <button type="button" class="btn btn-sm btn-outline-neon rounded-0" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#replyModal-@message.Id">
@@ -300,6 +361,7 @@
                             </div>
 
                             <!-- Individual Reply Modal for this message -->
+                            
                             <div class="modal fade" id="replyModal-@message.Id" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content bg-dark border-neon rounded-0">
@@ -350,6 +412,7 @@
             </div>
 
             <!-- Upcoming Events -->
+            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Upcoming Events</h5>
@@ -365,6 +428,7 @@
             </div>
 
             <!-- Competition History -->
+            
             <div class="card card-dark shadow-lg border-neon">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Trophy Case</h5>

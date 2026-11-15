@@ -8,12 +8,7 @@ namespace EatonvilleDanceStudio.Services;
 /// </summary>
 public class StripePaymentService : IStripePaymentService
 {
-    private readonly SessionService _sessionService;
-
-    public StripePaymentService()
-    {
-        _sessionService = new SessionService();
-    }
+    private readonly SessionService _sessionService = new();
 
     public async Task<Session> CreateSessionAsync(SessionCreateOptions options, Stripe.RequestOptions requestOptions)
     {
