@@ -104,4 +104,17 @@ public class Dancer
     [Display(Name = "Requires EpiPen")] public bool RequiresEpiPen { get; set; }
 
     [Display(Name = "Carries Inhaler")] public bool CarriesInhaler { get; set; }
+    
+    // Financial & Fundraiser Ledger Tracking
+    [Column(TypeName = "decimal(18,2)")]
+    [Display(Name = "Outstanding Balance")]
+    public decimal OutstandingBalance { get; set; }
+
+    // Navigation property for immutable fundraiser credit transactions
+    public ICollection<FundraiserLedgerTransaction> FundraiserCredits { get; set; } 
+        = new List<FundraiserLedgerTransaction>();
+
+    // Helper for displaying the dancer's full name in memory
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 }
