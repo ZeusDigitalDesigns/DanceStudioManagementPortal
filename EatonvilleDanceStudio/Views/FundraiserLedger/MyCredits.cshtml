@@ -1,0 +1,58 @@
+@using DanceStudioManagementPortal.ViewModels
+@using EatonvilleDanceStudio.ViewModels
+@using EatonvilleDanceStudio.ViewModels
+@model DanceStudioManagementPortal.ViewModels.ParentFundraiserPortalViewModel
+
+<h2>My Fundraising Credits</h2>
+
+<div class="card mb-4 p-3 bg-light">
+    <h4>
+        Family Running Total Earned:
+        $@Model.FamilyRunningTotalCredits.ToString("F2")
+    </h4>
+</div>
+
+@foreach (DancerFundraiserSummaryViewModel dancer in Model.Dancers)
+{
+    <div class="card mb-3">
+        <div class="card-header">
+            <strong>@dancer.DancerName</strong> |
+            Running Fundraising Total:
+            $@dancer.TotalFundraisingCreditsEarned.ToString("F2") |
+            Remaining Balance:
+            $@dancer.CurrentOutstandingBalance.ToString("F2")
+        </div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Fundraiser ID</th>
+                        <th>Event</th>
+                        <th>Credit Applied</th>
+                        <th>Running Total</th>
+                        <th>Balance After</th>
+                        <th>Timestamp (UTC)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ParentLedgerItemViewModel item
+                        in dancer.CreditHistory)
+                    {
+                        <tr>
+                            <td>#@item.FundraiserEventId</td>
+                            <td>@item.EventName</td>
+                            <td>+$@item.CreditAmount.ToString("F2")</td>
+                            <td>
+                                $@item.RunningTotalAfterCredit.ToString("F2")
+                            </td>
+                            <td>$@item.BalanceAfterCredit.ToString("F2")</td>
+                            <td>
+                                @item.TimestampUtc.ToString("yyyy-MM-dd HH:mm")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

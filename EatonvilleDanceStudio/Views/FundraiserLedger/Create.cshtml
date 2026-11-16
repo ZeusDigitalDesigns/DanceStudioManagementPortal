@@ -1,0 +1,88 @@
+@using EatonvilleDanceStudio.Models
+@model EatonvilleDanceStudio.ViewModels.CreateFundraiserAllocationViewModel
+
+<h2>Director Fundraiser Credit Ledger</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="EventName" class="form-label">Event Name</label>
+        <input asp-for="EventName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="EventDate" class="form-label">Event Date</label>
+        <input asp-for="EventDate" type="date" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="GrossRevenue" class="form-label">
+            Gross Revenue ($)
+        </label>
+        <input asp-for="GrossRevenue" type="number" step="0.01"
+               class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Expenses" class="form-label">Expenses ($)</label>
+        <input asp-for="Expenses" type="number" step="0.01"
+               class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="SplitMode" class="form-label">
+            Credit Allocation Mode
+        </label>
+        <select asp-for="SplitMode" class="form-select"
+                asp-items="Html.GetEnumSelectList<AllocationMode>()">
+        </select>
+    </div>
+
+    <h4>Select Dancers &amp; Allocations</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Include</th>
+                <th>Dancer</th>
+                <th>Current Balance</th>
+                <th>Custom Credit ($)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Allocations.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <input asp-for="Allocations[i].IsSelected"
+                               type="checkbox" />
+                        <input asp-for="Allocations[i].DancerId"
+                               type="hidden" />
+                        <input asp-for="Allocations[i].DancerName"
+                               type="hidden" />
+                        <input asp-for="Allocations[i].CurrentBalance"
+                               type="hidden" />
+                    </td>
+                    <td>@Model.Allocations[i].DancerName</td>
+                    <td>$@Model.Allocations[i].CurrentBalance.ToString("F2")</td>
+                    <td>
+                        <input asp-for="Allocations[i].CustomCreditAmount"
+                               type="number" step="0.01"
+                               class="form-control" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">
+        Record Fundraiser &amp; Apply Credits
+    </button>
+</form>
