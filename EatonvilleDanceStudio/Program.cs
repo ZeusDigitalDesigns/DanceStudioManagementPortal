@@ -57,6 +57,10 @@ builder.Services.Configure<FormOptions>((FormOptions options) =>
     options.MultipartBodyLengthLimit = 524_288_000;
 });
 
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<EatonvilleDanceStudio.Services.INotificationService,
+    EatonvilleDanceStudio.Services.NotificationService>();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

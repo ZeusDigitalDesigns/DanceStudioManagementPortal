@@ -1,10 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using System.IO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
 using EatonvilleDanceStudio.ViewModels;
@@ -22,7 +15,8 @@ public class DirectorController(
     ApplicationDbContext context,
     UserManager<ApplicationUser> userManager,
     ITuitionCalculatorService tuitionService,
-    IWebHostEnvironment webHostEnvironment)
+    IWebHostEnvironment webHostEnvironment,
+    INotificationService notificationService)
     : Controller
 {
     // Inject UserManager so we can pull the list of parents for the dropdown
@@ -209,28 +203,45 @@ public class DirectorController(
 
     // POST: /Director/MarkInvoicePaid
     /// <summary>
-    /// Marks the specified invoice as "Paid" and updates the database accordingly.
-    /// Redirects to the ManageUsers view after processing.
+    /// Marks the specified invoice as paid, saves the updated status, and sends a payment confirmation notification.
     /// </summary>
     /// <param name="invoiceId">
-    /// The unique identifier of the invoice to be marked as paid.
+    /// The unique identifier of the invoice to mark as paid.
     /// </param>
-    /// <returns>
-    /// An IActionResult that redirects the user to the ManageUsers view.
-    /// </returns>
+    /// <return>
+    /// An IActionResult that redirects to the user management view after processing the invoice payment status.
+    /// </return>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkInvoicePaid(int invoiceId)
     {
-        Invoice? invoice = await context.Invoices.FindAsync(invoiceId);
+        Invoice? invoice = await context.Invoices
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.Id == invoiceId);
 
         if (invoice != null)
         {
             invoice.Status = "Paid";
             await context.SaveChangesAsync();
+
+            ParentProfile? parent = await context.ParentProfiles
+                .FirstOrDefaultAsync(p => p.UserId == invoice.UserId);
+
+            string email = invoice.User?.Email ?? "";
+            string phone = parent?.PrimaryPhone ?? "";
+            string firstName =
+                parent?.FirstName ?? invoice.User?.FirstName ?? "Parent";
+
+            await notificationService.SendPaymentConfirmationAsync(
+                email,
+                phone,
+                firstName,
+                invoice.Amount);
+
+            TempData["SuccessMessage"] =
+                "Invoice marked paid and receipt sent.";
         }
 
-        // Refresh the dashboard so the invoice moves to the "Recently Paid" table
         return RedirectToAction(nameof(ManageUsers));
     }
 
@@ -597,7 +608,7 @@ public class DirectorController(
         return View(model);
     }
 
-    //GET
+    //GET/PayrollReview
     /// <summary>
     /// Retrieves a view displaying a summary of payroll activity for instructors within a specified date range.
     /// The default date range is the last 14 days if no dates are provided.
@@ -1023,6 +1034,110 @@ public class DirectorController(
         return View(model);
     }
 
+    // POST: /Director/SendInvoiceReminders
+    /// <summary>
+    /// Dispatches SMS and Email due-date reminders for all unpaid
+    /// invoices currently in the system.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendInvoiceReminders()
+    {
+        List<Invoice> unpaidInvoices = await context.Invoices
+            .Include(i => i.User)
+            .Where(i => i.Status != "Paid")
+            .ToListAsync();
+
+        int remindersSent = 0;
+
+        foreach (Invoice invoice in unpaidInvoices)
+        {
+            ParentProfile? parent = await context.ParentProfiles
+                .FirstOrDefaultAsync(p => p.UserId == invoice.UserId);
+
+            string email = invoice.User?.Email ?? "";
+            string phone = parent?.PrimaryPhone ?? "";
+            string firstName =
+                parent?.FirstName ?? invoice.User?.FirstName ?? "Parent";
+
+            await notificationService.SendInvoiceDueReminderAsync(
+                email,
+                phone,
+                firstName,
+                invoice.Amount,
+                invoice.DueDate);
+
+            remindersSent++;
+        }
+
+        TempData["SuccessMessage"] =
+            $"Sent {remindersSent} invoice due-date reminder(s) " +
+            "via SMS & Email.";
+
+        return RedirectToAction(nameof(ManageUsers));
+    }
+
+    // POST: /Director/SendClosureAlert
+    /// <summary>
+    /// Sends an emergency studio closure alert to all parent profiles and creates a portal blast message for the Family Hub.
+    /// </summary>
+    /// <param name="closureReason">
+    /// The reason for the studio closure to include in the alert message.
+    /// </param>
+    /// <param name="closureDate">
+    /// The date of the studio closure.
+    /// </param>
+    /// <return>
+    /// An IActionResult that redirects to the user management view after sending the alert, or redirects with an error message if the closure reason is missing.
+    /// </return>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendClosureAlert(
+        string closureReason,
+        DateTime closureDate)
+    {
+        if (string.IsNullOrWhiteSpace(closureReason))
+        {
+            TempData["ErrorMessage"] =
+                "Please provide a reason for the studio closure.";
+            return RedirectToAction(nameof(ManageUsers));
+        }
+
+        List<ParentProfile> parents = await context.ParentProfiles
+            .Include(p => p.User)
+            .ToListAsync();
+
+        await notificationService.SendStudioClosureAlertAsync(
+            parents,
+            closureReason,
+            closureDate);
+
+        // Also post a Studio Blast so it shows inside Family Hub
+        string? directorId = userManager.GetUserId(User);
+        if (directorId != null)
+        {
+            StudioMessage blast = new StudioMessage
+            {
+                SenderId = directorId,
+                ReceiverId = null,
+                Subject =
+                    $"URGENT: Studio Closure ({closureDate:MMM dd})",
+                Body = closureReason,
+                SentAt = DateTime.Now,
+                IsRead = false
+            };
+
+            context.StudioMessages.Add(blast);
+            await context.SaveChangesAsync();
+        }
+
+        TempData["SuccessMessage"] =
+            $"Emergency closure alert sent to {parents.Count} " +
+            "families via SMS, Email, and Portal Blast.";
+
+        return RedirectToAction(nameof(ManageUsers));
+    }
+    
     /// <summary>
     /// Saves an uploaded class image file to the class images directory and returns its relative URL.
     /// </summary>
