@@ -252,6 +252,9 @@ namespace EatonvilleDanceStudio.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("CostumeName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -268,6 +271,9 @@ namespace EatonvilleDanceStudio.Migrations
 
                     b.Property<DateTime?>("HandedOutDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsBindingConfirmed")
+                        .HasColumnType("bit");
 
                     b.Property<string>("OrderStatus")
                         .IsRequired()

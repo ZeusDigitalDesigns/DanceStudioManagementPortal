@@ -37,17 +37,23 @@ public class CostumeOrder
 
     // --- Lifecycle Tracking ---
     
-    [Display(Name = "Payment Status")]
+    [Display(Name = "Payment Status.")]
     public string PaymentStatus { get; set; } = "Unpaid"; // Unpaid, Paid
 
     // Statuses: Not Ordered, Ordered, Shipped, Received at Studio, Handed Out
-    [Display(Name = "Order Status")]
+    [Display(Name = "Order Status.")]
     public string OrderStatus { get; set; } = "Not Ordered"; 
     
 
-    [Display(Name = "Expected Delivery")]
+    [Display(Name = "Expected Delivery.")]
     public DateTime? ExpectedDeliveryDate { get; set; }
 
-    [Display(Name = "Date Handed to Dancer")]
+    [Display(Name = "Date Handed to Dancer.")]
     public DateTime? HandedOutDate { get; set; }
+
+    [Display(Name = "Binding Readiness Confirmed.")]
+    public bool IsBindingConfirmed { get; set; } = false;
+    
+    [Display(Name = "Date Confirmed by Parent.")]
+    public DateTime? ConfirmedAt { get; set; }
 }
