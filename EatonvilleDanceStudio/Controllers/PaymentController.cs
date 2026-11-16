@@ -24,7 +24,8 @@ public class PaymentController(
     ApplicationDbContext context,
     IOptions<StripeSettings> stripeSettings,
     UserManager<ApplicationUser> userManager,
-    IStripePaymentService paymentService)
+    IStripePaymentService paymentService,
+    INotificationService notificationService)
     : Controller
 {
     private readonly StripeSettings _stripeSettings = stripeSettings.Value;
@@ -158,6 +159,21 @@ public class PaymentController(
 
                         context.LedgerEntries.Add(paymentEntry);
                         await context.SaveChangesAsync();
+                        
+                        ParentProfile? parentProfile = await context.ParentProfiles
+                            .Include(p=>p.User)
+                            .FirstOrDefaultAsync(p => p.UserId == parentId);
+
+                        if (parentProfile != null)
+                        {
+                            string email = parentProfile.User?.Email ?? "";
+                            await notificationService
+                                .SendPaymentConfirmationAsync(
+                                    email,
+                                    parentProfile.PrimaryPhone,
+                                    parentProfile.FirstName,
+                                    paymentAmount);
+                        }
                     }
                 }
 
