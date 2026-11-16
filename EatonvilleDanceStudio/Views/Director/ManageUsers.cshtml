@@ -1,4 +1,8 @@
-@await Component.InvokeAsync("WeatherWidget")
+@*
+    Summary: Director Dashboard view displaying weather, user and
+    class management, studio calendar, live filterable costume
+    tracker (#81), financials, and SMS/Email notification triggers.
+*@
 @using EatonvilleDanceStudio.Models
 @model EatonvilleDanceStudio.ViewModels.DirectorDashboardViewModel
 
@@ -7,33 +11,77 @@
 }
 
 <div class="container mt-4">
+    @await Component.InvokeAsync("WeatherWidget")
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success bg-dark text-success
+                    border-success alert-dismissible fade show"
+             role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger bg-dark text-danger
+                    border-danger alert-dismissible fade show"
+             role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
     <h2 class="text-neon mb-2">Director Dashboard</h2>
     <hr class="border-neon mb-4" />
 
+    <!-- Top Row: User Management & Studio Calendar -->
     <div class="row">
         <!-- Students & Instructors Management -->
         <div class="col-md-6 mb-4">
             <div class="card card-dark h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header d-flex justify-content-between
+                            align-items-center">
                     <h4 class="mb-0 text-neon">User Management</h4>
-                    <a asp-controller="Director" asp-action="Messages" class="btn btn-neon btn-sm">
-                        Inbox
-                    </a>
-                    <a asp-controller="Director" asp-action="ComposeMessage" class="btn btn-neon btn-sm">
-                        Compose Message
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a asp-controller="Director"
+                           asp-action="Messages"
+                           class="btn btn-neon btn-sm">
+                            Inbox
+                        </a>
+                        <a asp-controller="Director"
+                           asp-action="ComposeMessage"
+                           class="btn btn-neon btn-sm">
+                            Compose Message
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body text-center p-5">
-                    <a asp-controller="Director" asp-action="DancerRoster" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
-                        <i class="bi bi-people-fill me-2"></i> Manage Student Roster
+                    <a asp-controller="Director"
+                       asp-action="DancerRoster"
+                       class="btn btn-outline-neon btn-lg w-100
+                              mb-3 rounded-0">
+                        <i class="bi bi-people-fill me-2"></i>
+                        Manage Student Roster
                     </a>
-                    <a asp-controller="Director" asp-action="CostumeManagement" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
-                        <i class="bi bi-box-seam me-2"></i> Costume Order Tracking
+                    
+                    <a href="#"
+                       class="btn btn-outline-neon btn-lg w-100
+                              mb-3 rounded-0">
+                        <i class="bi bi-box-seam me-2"></i>
+                        Manage Instructors (Coming Soon)
                     </a>
-                    <a href="#" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
-                        <i class="bi bi-box-seam me-2"></i> Manage Instructors (Coming Soon)
-                    </a>
-                    <a asp-action="CreateClass" asp-controller="Director" class="btn btn-outline-neon btn-lg w-100 mb-3 rounded-0">
+                    <a asp-controller="Director"
+                       asp-action="CreateClass"
+                       class="btn btn-outline-neon btn-lg w-100
+                              mb-3 rounded-0">
                         Create New Class
                     </a>
                 </div>
@@ -41,12 +89,14 @@
         </div>
 
         <!-- Shared Calendar -->
-        
         <div class="col-md-6 mb-4">
             <div class="card card-dark h-100">
-                <div class="card-header d-flex justify-content-between align-items-center border-neon">
+                <div class="card-header d-flex justify-content-between
+                            align-items-center border-neon">
                     <h4 class="mb-0 text-neon">Studio Calendar</h4>
-                    <a asp-controller="Director" asp-action="CreateEvent" class="btn btn-neon btn-sm">
+                    <a asp-controller="Director"
+                       asp-action="CreateEvent"
+                       class="btn btn-neon btn-sm">
                         + Schedule Event
                     </a>
                 </div>
@@ -54,40 +104,44 @@
                     @if (Model.UpcomingEvents.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover border-neon align-middle">
+                            <table class="table table-hover border-neon
+                                          align-middle">
                                 <thead>
                                     <tr>
                                         <th>Event</th>
-                                        <th>Date & Time</th>
+                                        <th>Date &amp; Time</th>
                                         <th>Room</th>
                                         <th>Instructor</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (StudioEvent ev in Model.UpcomingEvents)
+                                    @foreach (StudioEvent ev in
+                                        Model.UpcomingEvents)
                                     {
-                                        <!-- Added cursor pointer and modal triggers -->
-                                        <tr style="border-bottom: 1px solid #444; cursor: pointer;"
+                                        <tr style="border-bottom: 1px solid #444;
+                                                   cursor: pointer;"
                                             data-bs-toggle="modal"
                                             data-bs-target="#eventModal-@ev.Id">
-                                            
                                             <td>
-                                                <strong>@ev.Title</strong><br/>
+                                                <strong>@ev.Title</strong><br />
                                                 <small class="text-neon">
                                                     @ev.EventType
                                                 </small>
                                             </td>
                                             <td>
-                                                @ev.StartTime.ToString("MMM dd") <br/>
+                                                @ev.StartTime.ToString("MMM dd")
+                                                <br />
                                                 <small class="text-muted">
-                                                    @ev.StartTime.ToString("h:mm tt") - 
+                                                    @ev.StartTime.ToString("h:mm tt")
+                                                    -
                                                     @ev.EndTime.ToString("h:mm tt")
                                                 </small>
                                             </td>
                                             <td>@ev.Room</td>
                                             <td>
-                                                @(ev.Instructor != null 
-                                                    ? $"{ev.Instructor.FirstName} {ev.Instructor.LastName}" 
+                                                @(ev.Instructor != null
+                                                    ? $"{ev.Instructor.FirstName} " +
+                                                      $"{ev.Instructor.LastName}"
                                                     : "Unassigned")
                                             </td>
                                         </tr>
@@ -96,43 +150,74 @@
                             </table>
                         </div>
 
-                        <!-- Generate the hidden modals for each scheduled event -->
                         @foreach (StudioEvent ev in Model.UpcomingEvents)
                         {
-                            <div class="modal fade" id="eventModal-@ev.Id" tabindex="-1" aria-hidden="true">
+                            <div class="modal fade"
+                                 id="eventModal-@ev.Id"
+                                 tabindex="-1"
+                                 aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content bg-dark text-light border-neon">
+                                    <div class="modal-content bg-dark text-light
+                                                border-neon">
                                         <div class="modal-header border-secondary">
-                                            <h5 class="modal-title text-neon">Manage Event</h5>
-                                            <button type="button" class="btn-close btn-close-white" 
-                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <h5 class="modal-title text-neon">
+                                                Manage Event
+                                            </h5>
+                                            <button type="button"
+                                                    class="btn-close btn-close-white"
+                                                    data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <p><strong>@ev.Title</strong> (@ev.EventType)</p>
-                                            <p class="text-muted small mb-4">
-                                                Date: @ev.StartTime.ToString("MMM dd, yyyy")<br/>
-                                                Time: @ev.StartTime.ToString("h:mm tt") to @ev.EndTime.ToString("h:mm tt")<br/>
-                                                Room: @ev.Room <br/>
-                                                Instructor: @(ev.Instructor != null ? $"{ev.Instructor.FirstName} {ev.Instructor.LastName}" : "Unassigned")
+                                            <p>
+                                                <strong>@ev.Title</strong>
+                                                (@ev.EventType)
                                             </p>
-                                            <p>What would you like to do with this event?</p>
+                                            <p class="text-muted small mb-4">
+                                                Date:
+                                                @ev.StartTime.ToString("MMM dd, yyyy")
+                                                <br />
+                                                Time:
+                                                @ev.StartTime.ToString("h:mm tt")
+                                                to
+                                                @ev.EndTime.ToString("h:mm tt")
+                                                <br />
+                                                Room: @ev.Room<br />
+                                                Instructor:
+                                                @(ev.Instructor != null
+                                                    ? $"{ev.Instructor.FirstName} " +
+                                                      $"{ev.Instructor.LastName}"
+                                                    : "Unassigned")
+                                            </p>
+                                            <p>
+                                                What would you like to do with
+                                                this event?
+                                            </p>
                                         </div>
-                                        <div class="modal-footer border-secondary justify-content-between">
-                                            
-                                            <!-- Delete Form -->
-                                            <form asp-controller="Director" asp-action="DeleteEvent" method="post">
-                                                <input type="hidden" name="eventId" value="@ev.Id" />
-                                                <button type="submit" class="btn btn-outline-danger">
+                                        <div class="modal-footer border-secondary
+                                                    justify-content-between">
+                                            <form asp-controller="Director"
+                                                  asp-action="DeleteEvent"
+                                                  method="post">
+                                                <input type="hidden"
+                                                       name="eventId"
+                                                       value="@ev.Id" />
+                                                <button type="submit"
+                                                        class="btn btn-outline-danger">
                                                     Delete
                                                 </button>
                                             </form>
 
                                             <div>
-                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary"
+                                                        data-bs-dismiss="modal">
                                                     Cancel
                                                 </button>
-                                                <!-- We will build the Edit route next! -->
-                                                <a asp-controller="Director" asp-action="EditEvent" asp-route-id="@ev.Id" class="btn btn-neon">
+                                                <a asp-controller="Director"
+                                                   asp-action="EditEvent"
+                                                   asp-route-id="@ev.Id"
+                                                   class="btn btn-neon">
                                                     Edit Event
                                                 </a>
                                             </div>
@@ -150,41 +235,206 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Live Costume Order Tracker (#81) -->
+    <div class="card card-dark border-neon shadow-lg mb-4">
+        <div class="card-header border-secondary bg-transparent
+                    d-flex justify-content-between align-items-center
+                    flex-wrap gap-2">
+            <div>
+                <h4 class="text-neon mb-0">
+                    Costume Order Tracker
+                </h4>
+                <small class="text-light">
+                    Real-time parent order confirmations &amp; comp readiness
+                </small>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-controller="Director"
+                   asp-action="CreateCostumeOrder"
+                   class="btn btn-neon btn-sm">
+                    + New Costume Order
+                </a>
+                <a asp-controller="Director"
+                   asp-action="CostumeManagement"
+                   class="btn btn-outline-neon btn-sm">
+                    Full Costume Manager
+                </a>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a asp-controller="Director"
+                   asp-action="ManageUsers"
+                   asp-route-costumeFilter="all"
+                   class="btn btn-sm @(Model.CostumeFilter == "all"
+                       ? "btn-neon"
+                       : "btn-outline-neon")">
+                    All Orders (@Model.TotalCostumeOrders)
+                </a>
+                <a asp-controller="Director"
+                   asp-action="ManageUsers"
+                   asp-route-costumeFilter="paid"
+                   class="btn btn-sm @(Model.CostumeFilter == "paid"
+                       ? "btn-success"
+                       : "btn-outline-success")">
+                    Paid / Ordered (@Model.PaidOrOrderedCostumeCount)
+                </a>
+                <a asp-controller="Director"
+                   asp-action="ManageUsers"
+                   asp-route-costumeFilter="unpaid"
+                   class="btn btn-sm @(Model.CostumeFilter == "unpaid"
+                       ? "btn-danger"
+                       : "btn-outline-danger")">
+                    Still Owe / Unordered (@Model.PendingCostumeCount)
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="border-secondary">
+                            <th class="text-neon">Dancer</th>
+                            <th class="text-neon">Class</th>
+                            <th class="text-neon">Costume</th>
+                            <th class="text-neon">Price</th>
+                            <th class="text-neon">Payment</th>
+                            <th class="text-neon">Order Status</th>
+                            <th class="text-neon">Binding Agreement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.CostumeOrders.Any())
+                        {
+                            @foreach (CostumeOrder order in Model.CostumeOrders)
+                            {
+                                <tr class="border-secondary">
+                                    <td class="fw-bold text-light">
+                                        @(order.Dancer != null
+                                            ? $"{order.Dancer.FirstName} " +
+                                              $"{order.Dancer.LastName}"
+                                            : "Unassigned")
+                                    </td>
+                                    <td class="text-light">
+                                        @(order.DanceClass?.ClassName ?? "TBD")
+                                    </td>
+                                    <td>
+                                        <span class="text-light">
+                                            @order.CostumeName
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(
+                                            order.VendorLink))
+                                        {
+                                            <br />
+                                            <a href="@order.VendorLink"
+                                               target="_blank"
+                                               rel="noopener noreferrer"
+                                               class="small text-neon">
+                                                Vendor Link &nearr;
+                                            </a>
+                                        }
+                                    </td>
+                                    <td class="text-light">
+                                        @order.Price.ToString("C")
+                                    </td>
+                                    <td>
+                                        <span class="badge @(
+                                            order.PaymentStatus == "Paid"
+                                                ? "bg-success"
+                                                : "bg-danger")">
+                                            @order.PaymentStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(
+                                            order.OrderStatus == "Not Ordered"
+                                                ? "bg-warning text-dark"
+                                                : "bg-info text-dark")">
+                                            @order.OrderStatus
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (order.IsBindingConfirmed)
+                                        {
+                                            <span class="badge bg-success">
+                                                Confirmed Ready
+                                            </span>
+                                            @if (order.ConfirmedAt.HasValue)
+                                            {
+                                                <div class="small text-muted">
+                                                    @order.ConfirmedAt.Value
+                                                        .ToString("MMM dd")
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Awaiting Parent
+                                            </span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7"
+                                    class="text-center text-muted py-3">
+                                    No costume orders match the selected filter.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financials Row -->
     <div class="row">
-        
-        <!-- Financials (Payroll & Payments) -->
-        
         <div class="col-md-12 mb-4">
             <div class="card card-dark">
-
-                <div class="d-flex justify-content-between align-items-center mb-4 p-3 border border-neon rounded">
-                    <!-- Left Side: Title & Manual Actions -->
+                <div class="d-flex justify-content-between
+                            align-items-center mb-4 p-3
+                            border border-neon rounded">
                     <div>
                         <h2 class="text-neon mb-2">Financials Overview</h2>
                         <div class="d-flex gap-2">
-                            <a asp-controller="Director" asp-action="PayrollReview" class="btn btn-outline-neon btn-sm">Review Payroll</a>
-                            <a asp-controller="Director" asp-action="CreateInvoice" class="btn btn-outline-neon btn-sm">+ Create Manual Invoice</a>
+                            <a asp-controller="Director"
+                               asp-action="PayrollReview"
+                               class="btn btn-outline-neon btn-sm">
+                                Review Payroll
+                            </a>
+                            <a asp-controller="Director"
+                               asp-action="CreateInvoice"
+                               class="btn btn-outline-neon btn-sm">
+                                + Create Manual Invoice
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Right Side: Automated Billing (Compact) -->
                     <div class="text-end" style="max-width: 350px;">
-                        <form asp-controller="Director" asp-action="RunMonthlyBilling" method="post">
-                            <button type="submit" class="btn btn-neon w-100 mb-1">
-                                Run Automated Billing (@DateTime.Now.ToString("MMM yyyy"))
+                        <form asp-controller="Director"
+                              asp-action="RunMonthlyBilling"
+                              method="post">
+                            <button type="submit"
+                                    class="btn btn-neon w-100 mb-1">
+                                Run Automated Billing
+                                (@DateTime.Now.ToString("MMM yyyy"))
                             </button>
-                            <small class="text-neon d-block" style="font-size: 0.75rem;">
-                                Generates invoices based on active enrollments & studio discount rules.
+                            <small class="text-neon d-block"
+                                   style="font-size: 0.75rem;">
+                                Generates invoices based on active enrollments
+                                &amp; studio discount rules.
                             </small>
                         </form>
                     </div>
                 </div>
 
                 <div class="card-body">
-                    
-                    <!-- REVENUE WIDGETS -->
-                    
                     <div class="row mb-5 text-center">
                         <div class="col-md-4">
                             <div class="p-3 border border-neon rounded bg-dark">
@@ -218,63 +468,70 @@
                         </div>
                     </div>
 
-                    <!-- END REVENUE WIDGETS -->
-
-                    <h5 class="text-neon mb-3">Active Invoices (Pending / Late)</h5>
+                    <h5 class="text-neon mb-3">
+                        Active Invoices (Pending / Late)
+                    </h5>
                     @if (Model.ActiveInvoices.Any())
                     {
                         <div class="table-responsive mb-4">
-                            <table class="table table-hover table-borderless align-middle">
+                            <table class="table table-hover table-borderless
+                                          align-middle">
                                 <thead>
-                                <tr>
-                                    <th>Bill To</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
-                                    <th>Due Date</th>
-                                    <th>Status</th>
-                                </tr>
+                                    <tr>
+                                        <th>Bill To</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @foreach (Invoice inv in Model.ActiveInvoices)
-                                {
-                                    bool isLate = inv.DueDate < DateTime.Now;
+                                    @foreach (Invoice inv in
+                                        Model.ActiveInvoices)
+                                    {
+                                        bool isLate =
+                                            inv.DueDate < DateTime.Now;
 
-                                    // Angry red background if late, standard dark if not
-                                    // Make it look clickable (cursor: pointer)
+                                        string rowStyle = isLate
+                                            ? "background-color: rgba(220, 53, 69, 0.15);"
+                                            : "border-bottom: 1px solid #444;";
 
-                                    string rowStyle = isLate
-                                        ? "background-color: rgba(220, 53, 69, 0.15);"
-                                        : "border-bottom: 1px solid #444;";
-
-                                    <!-- Trigger the specific modal for this invoice ID -->
-
-                                    <tr style="@rowStyle cursor: pointer;"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#payModal-@inv.Id">
-
-                                        <td>@inv.User?.FirstName @inv.User?.LastName</td>
-                                        <td>@inv.Description</td>
-                                        <td>@inv.Amount.ToString("C")</td>
-                                        <td>@inv.DueDate.ToShortDateString()</td>
-                                        <td>
-                                            <span class="badge @(isLate ? "bg-danger" : "bg-warning text-dark")">
-                                                @(isLate ? "Overdue" : inv.Status)
-                                            </span>
-                                        </td>
-                                    </tr>
-                                }
+                                        <tr style="@rowStyle cursor: pointer;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#payModal-@inv.Id">
+                                            <td>
+                                                @inv.User?.FirstName
+                                                @inv.User?.LastName
+                                            </td>
+                                            <td>@inv.Description</td>
+                                            <td>@inv.Amount.ToString("C")</td>
+                                            <td>
+                                                @inv.DueDate.ToShortDateString()
+                                            </td>
+                                            <td>
+                                                <span class="badge @(isLate
+                                                    ? "bg-danger"
+                                                    : "bg-warning text-dark")">
+                                                    @(isLate
+                                                        ? "Overdue"
+                                                        : inv.Status)
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
 
-                        <!-- Generate the hidden modals for each active invoice -->
-
                         @foreach (Invoice inv in Model.ActiveInvoices)
                         {
-                            <div class="modal fade" id="payModal-@inv.Id"
-                                 tabindex="-1" aria-hidden="true">
+                            <div class="modal fade"
+                                 id="payModal-@inv.Id"
+                                 tabindex="-1"
+                                 aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content bg-dark text-light border-neon">
+                                    <div class="modal-content bg-dark text-light
+                                                border-neon">
                                         <div class="modal-header border-secondary">
                                             <h5 class="modal-title text-neon">
                                                 Update Invoice Status
@@ -285,23 +542,32 @@
                                                     aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
-                                            <p>Mark invoice for <strong>@inv.Description</strong>
-                                                (@inv.Amount.ToString("C")) as Paid?</p>
+                                            <p>
+                                                Mark invoice for
+                                                <strong>@inv.Description</strong>
+                                                (@inv.Amount.ToString("C"))
+                                                as Paid?
+                                            </p>
                                             <p class="text-muted small">
-                                                Billed to: @inv.User?.FirstName @inv.User?.LastName
+                                                Billed to:
+                                                @inv.User?.FirstName
+                                                @inv.User?.LastName
                                             </p>
                                         </div>
                                         <div class="modal-footer border-secondary">
                                             <form asp-controller="Director"
-                                                  asp-action="MarkInvoicePaid" method="post">
-                                                <input type="hidden" name="invoiceId"
-                                                       value="@inv.Id"/>
+                                                  asp-action="MarkInvoicePaid"
+                                                  method="post">
+                                                <input type="hidden"
+                                                       name="invoiceId"
+                                                       value="@inv.Id" />
                                                 <button type="button"
                                                         class="btn btn-outline-secondary"
                                                         data-bs-dismiss="modal">
                                                     Cancel
                                                 </button>
-                                                <button type="submit" class="btn btn-neon">
+                                                <button type="submit"
+                                                        class="btn btn-neon">
                                                     Confirm Paid
                                                 </button>
                                             </form>
@@ -313,32 +579,41 @@
                     }
                     else
                     {
-                        <p class="text-muted mb-4">No active invoices at this time.</p>
+                        <p class="text-muted mb-4">
+                            No active invoices at this time.
+                        </p>
                     }
 
                     <h5 class="text-neon mb-3">Recently Paid (Last 10)</h5>
                     @if (Model.RecentPaidInvoices.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover table-borderless align-middle">
+                            <table class="table table-hover table-borderless
+                                          align-middle">
                                 <thead>
-                                <tr>
-                                    <th>Bill To</th>
-                                    <th>Description</th>
-                                    <th>Amount</th>
-                                    <th>Date Paid</th>
-                                </tr>
+                                    <tr>
+                                        <th>Bill To</th>
+                                        <th>Description</th>
+                                        <th>Amount</th>
+                                        <th>Date Paid</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @foreach (Invoice inv in Model.RecentPaidInvoices)
-                                {
-                                    <tr style="border-bottom: 1px solid #444;">
-                                        <td>@inv.User?.FirstName @inv.User?.LastName</td>
-                                        <td>@inv.Description</td>
-                                        <td>@inv.Amount.ToString("C")</td>
-                                        <td>@inv.CreatedDate.ToShortDateString()</td>
-                                    </tr>
-                                }
+                                    @foreach (Invoice inv in
+                                        Model.RecentPaidInvoices)
+                                    {
+                                        <tr style="border-bottom: 1px solid #444;">
+                                            <td>
+                                                @inv.User?.FirstName
+                                                @inv.User?.LastName
+                                            </td>
+                                            <td>@inv.Description</td>
+                                            <td>@inv.Amount.ToString("C")</td>
+                                            <td>
+                                                @inv.CreatedDate.ToShortDateString()
+                                            </td>
+                                        </tr>
+                                    }
                                 </tbody>
                             </table>
                         </div>
@@ -351,11 +626,8 @@
             </div>
         </div>
     </div>
-    @*
-    Summary: Provides Director controls to trigger automated SMS
-    and Email invoice reminders or broadcast emergency studio
-    closure alerts.
-*@
+
+    <!-- SMS & Email Notification Triggers -->
     <div class="card card-dark border-neon shadow-lg mb-4">
         <div class="card-header border-secondary bg-transparent
                     d-flex justify-content-between align-items-center">

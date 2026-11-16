@@ -8,14 +8,17 @@
     --neon-pink-glow: rgba(255, 16, 240, 0.4);
     --neon-pink-glow-strong: rgba(255, 16, 240, 0.6);
 
-    /* Dark mode surfaces */
-    --bg-dark: #0a0a0a;
-    --bg-surface: #1a1a1a;
-    --bg-surface-alt: #121212;
+    /* Unified matte dark-almost-black surfaces */
+    --bg-dark: #131314;
+    --bg-surface: #1b1b1f;
+    --bg-surface-alt: #16161a;
+    --bg-input: #101013;
 
-    /* FORCE BOOTSTRAP TO USE YOUR NEON PINK INSTEAD OF BLUE */
+    /* FORCE BOOTSTRAP TO USE NEON PINK INSTEAD OF BLUE */
     --bs-primary: var(--neon-pink);
     --bs-primary-rgb: 255, 16, 240;
+    --bs-body-bg: var(--bg-dark);
+    --bs-body-color: #e3e3e8;
 }
 
 /* =========================================
@@ -26,6 +29,7 @@ html {
     font-size: 14px;
     position: relative;
     min-height: 100%;
+    background-color: var(--bg-dark);
 }
 
 @media (min-width: 768px) {
@@ -36,8 +40,30 @@ html {
 
 body {
     margin-bottom: 60px;
-    background-color: var(--bg-dark);
-    color: #f8f9fa;
+    background-color: var(--bg-dark) !important;
+    color: #e3e3e8;
+}
+
+/* Force Bootstrap utility backgrounds and tables to match */
+.bg-dark,
+.modal-content.bg-dark {
+    background-color: var(--bg-surface) !important;
+    color: #e3e3e8 !important;
+}
+
+.bg-black {
+    background-color: var(--bg-input) !important;
+}
+
+.table,
+.table-dark {
+    --bs-table-bg: var(--bg-surface) !important;
+    --bs-table-striped-bg: var(--bg-surface-alt) !important;
+    --bs-table-hover-bg: #222228 !important;
+    --bs-table-color: #e3e3e8 !important;
+    --bs-table-border-color: #2c2c34 !important;
+    background-color: var(--bg-surface) !important;
+    color: #e3e3e8 !important;
 }
 
 /* =========================================
@@ -76,20 +102,20 @@ body {
 }
 
 .form-control-dark {
-    background-color: #222;
-    color: white;
-    border: 1px solid #444;
+    background-color: var(--bg-input);
+    color: #ffffff;
+    border: 1px solid #34343d;
 }
 
 .form-control-dark:focus {
-    background-color: #2a2a2a;
-    color: white;
+    background-color: var(--bg-surface-alt);
+    color: #ffffff;
     border-color: var(--neon-pink);
     box-shadow: 0 0 5px var(--neon-pink);
 }
 
 .form-control-dark::placeholder {
-    color: #999 !important;
+    color: #8e8e98 !important;
     opacity: 1;
 }
 
@@ -109,7 +135,7 @@ body {
 .btn-link.nav-link:focus,
 .form-control:focus,
 .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem #000000,
+    box-shadow: 0 0 0 0.1rem var(--bg-dark),
     0 0 0 0.25rem var(--neon-pink) !important;
 }
 
@@ -130,8 +156,9 @@ body {
    ========================================= */
 
 .card-dark {
-    background-color: var(--bg-surface);
+    background-color: var(--bg-surface) !important;
     border: 1px solid var(--neon-pink);
+    color: #e3e3e8;
 }
 
 .card-neon {
@@ -148,7 +175,7 @@ body {
 
 .card-neon .card-header,
 .card-neon .card-footer {
-    background-color: rgba(255, 16, 240, 0.1) !important;
+    background-color: rgba(255, 16, 240, 0.08) !important;
     border-color: rgba(255, 16, 240, 0.3) !important;
 }
 
@@ -163,6 +190,11 @@ body {
 /* =========================================
                     NAVBAR
    ========================================= */
+
+.navbar {
+    background-color: var(--bg-surface-alt) !important;
+    border-bottom: 1px solid var(--neon-pink) !important;
+}
 
 .navbar .nav-link,
 .navbar .navbar-brand {
@@ -189,14 +221,14 @@ body {
           DIRECTOR & INSTRUCTOR THEMES
    ========================================= */
 
-/* Swap the stark black for a clean, flat dark grey */
+/* Unified matte dark-almost-black across Admin & Instructor */
 body.theme-admin,
 body.theme-instructor {
-    background-color: #2c2c2c !important;
-    color: #f8f9fa !important;
+    background-color: var(--bg-dark) !important;
+    color: #e3e3e8 !important;
 }
 
-/* Keep the pink, but murder the glowing shadows */
+/* Keep the pink accents, but remove glowing shadows */
 body.theme-admin .text-neon,
 body.theme-instructor .text-neon,
 body.theme-admin .border-neon,
@@ -232,19 +264,19 @@ body.theme-instructor .btn-outline-neon {
     border-color: var(--neon-pink) !important;
 }
 
-/* Cards get a slightly lighter grey to pop off the background */
+/* Cards use the unified dark surface instead of #383838 grey */
 body.theme-admin .card-neon,
 body.theme-instructor .card-neon,
 body.theme-admin .card-dark,
 body.theme-instructor .card-dark {
-    background-color: #383838 !important;
+    background-color: var(--bg-surface) !important;
     border: 1px solid var(--neon-pink) !important;
 }
 
-/* Navbar matches the flat theme with a solid pink border */
+/* Navbar matches the unified dark surface */
 body.theme-admin .navbar,
 body.theme-instructor .navbar {
-    background-color: #222222 !important;
+    background-color: var(--bg-surface-alt) !important;
     border-bottom: 1px solid var(--neon-pink) !important;
     box-shadow: none !important;
 }
@@ -255,39 +287,38 @@ body.theme-instructor .btn-neon:hover,
 body.theme-admin .btn-outline-neon:hover,
 body.theme-instructor .btn-outline-neon:hover {
     background-color: var(--neon-pink) !important;
-    color: #000 !important;
+    color: #000000 !important;
     box-shadow: none !important;
 }
 
-/* Ensure normal text pops off the dark grey */
+/* Keep standard body and table text crisp off-white so pink
+   acts as an accent instead of taking over the screen */
 body.theme-admin p,
 body.theme-instructor p,
-body.theme-admin span,
-body.theme-instructor span,
 body.theme-admin label,
 body.theme-instructor label,
 body.theme-admin td,
 body.theme-instructor td {
-    color: #d265f3 !important;
+    color: #e3e3e8;
 }
 
 body.theme-admin .text-muted,
 body.theme-instructor .text-muted {
-    color: #e197f8 !important;
+    color: #9aa0a6 !important;
 }
 
-/* Make Tables look sharp on the dashboard */
+/* Make tables look sharp on the dark surface */
 body.theme-admin .table,
 body.theme-instructor .table {
-    color: #d265f3;
-    border-color: #d265f3;
+    color: #e3e3e8;
+    border-color: #2c2c34;
 }
 
 body.theme-admin .table th,
 body.theme-instructor .table th {
     color: var(--neon-pink);
     border-bottom: 2px solid var(--neon-pink);
-    text-transform:uppercase;
+    text-transform: uppercase;
     font-size: 0.85rem;
 }
 
@@ -299,8 +330,8 @@ body.theme-instructor .form-select:focus {
     border-color: var(--neon-pink) !important;
     box-shadow: none !important;
     outline: none !important;
-    background-color: #2b2b2b !important;
-    color: #d265f3;
+    background-color: var(--bg-input) !important;
+    color: #ffffff;
 }
 
 body.theme-admin .btn:focus,
@@ -316,9 +347,9 @@ body.theme-instructor .btn-outline-success:focus {
     outline-color: #198754 !important;
 }
 
-/*===================================
-     Global Flat Neon Overrides
-=====================================*/
+/* =========================================
+         GLOBAL FLAT NEON OVERRIDES
+   ========================================= */
 
 .text-neon,
 .btn-neon,
@@ -339,6 +370,11 @@ body.theme-instructor .btn-outline-success:focus {
 
 .text-neon {
     color: var(--neon-pink) !important;
+}
+
+.bg-neon {
+    background-color: var(--neon-pink) !important;
+    color: #000000 !important;
 }
 
 .btn-neon {
@@ -364,33 +400,31 @@ body.theme-instructor .btn-outline-success:focus {
     border-color: var(--neon-pink) !important;
 }
 
-/*===================================
-         Navbar Overrides
-=====================================*/
+/* =========================================
+              NAVBAR OVERRIDES
+   ========================================= */
 
 .navbar .navbar-brand,
 .navbar .nav-link,
 .navbar .text-neon {
-    color: #ff00ff !important; /* Forces neon pink */
-    text-shadow: none !important; /* Kills the glow */
+    color: #ff00ff !important;
+    text-shadow: none !important;
 }
 
-/* Ensure navbar links don't turn black when you hover over them */
 .navbar .nav-link:hover,
 .navbar .navbar-brand:hover {
-    color: var(--neon-pink)  !important; /* Turns white on hover for a nice clean effect */
+    color: #ffffff !important;
 }
-
 
 /* =========================================
                VIDEO VAULT (#31)
    ========================================= */
 
 .vault-card {
-    background-color: var(--bg-surface-alt) !important;
+    background-color: var(--bg-surface) !important;
     border: 1px solid var(--neon-pink) !important;
     border-radius: 0.75rem;
-    color: #f8f9fa;
+    color: #e3e3e8;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -410,7 +444,7 @@ body.theme-instructor .btn-outline-success:focus {
 }
 
 .vault-muted {
-    color: #b0b3b8;
+    color: #9aa0a6;
 }
 
 .badge-pink {
@@ -432,8 +466,8 @@ body.theme-instructor .btn-outline-success:focus {
 .btn-pink:hover,
 .btn-pink:focus {
     background-color: transparent;
-    color: var(--neon-pink)!important;
-    border-color: var(--neon-pink)!important;
+    color: var(--neon-pink) !important;
+    border-color: var(--neon-pink) !important;
 }
 
 .btn-outline-pink {
@@ -452,14 +486,14 @@ body.theme-instructor .btn-outline-success:focus {
 
 .vault-input,
 .form-select.vault-input {
-    background-color: #222222;
+    background-color: var(--bg-input);
     color: #ffffff;
-    border: 1px solid #444444;
+    border: 1px solid #34343d;
 }
 
 .vault-input:focus,
 .form-select.vault-input:focus {
-    background-color: #2a2a2a;
+    background-color: var(--bg-surface-alt);
     color: #ffffff;
     border-color: var(--neon-pink);
     box-shadow: 0 0 5px var(--neon-pink);
@@ -474,7 +508,7 @@ body.theme-instructor .btn-outline-success:focus {
 /* Flat Admin & Instructor Overrides for Video Vault */
 body.theme-admin .vault-card,
 body.theme-instructor .vault-card {
-    background-color: #383838 !important;
+    background-color: var(--bg-surface) !important;
     border: 1px solid var(--neon-pink) !important;
     box-shadow: none !important;
 }
@@ -483,6 +517,6 @@ body.theme-admin .vault-input:focus,
 body.theme-instructor .vault-input:focus {
     border-color: var(--neon-pink) !important;
     box-shadow: none !important;
-    background-color: #2b2b2b !important;
-    color: #d265f3;
+    background-color: var(--bg-input) !important;
+    color: #ffffff;
 }

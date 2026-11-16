@@ -2,23 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
 using EatonvilleDanceStudio.Data;
 
 namespace EatonvilleDanceStudio.Areas.Identity.Pages.Account;
 
-public class LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<LoginModel> logger)
+public class LoginModel(
+    SignInManager<ApplicationUser> signInManager,
+    UserManager<ApplicationUser> userManager,
+    ILogger<LoginModel> logger)
     : PageModel
 {
     /// <summary>
@@ -94,26 +90,88 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<Lo
         ReturnUrl = returnUrl;
     }
 
-    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
+    /// <summary>
+    /// Authenticates the user and routes them directly to their
+    /// role-specific dashboard, or reloads the page on failure.
+    /// </summary>
+    public async Task<IActionResult> OnPostAsync(
+        string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
 
-        ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+        ExternalLogins = (await signInManager
+            .GetExternalAuthenticationSchemesAsync())
+            .ToList();
 
         if (ModelState.IsValid)
         {
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            var result = await signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            Microsoft.AspNetCore.Identity.SignInResult result =
+                await signInManager.PasswordSignInAsync(
+                    Input.Email,
+                    Input.Password,
+                    Input.RememberMe,
+                    lockoutOnFailure: false);
+
             if (result.Succeeded)
             {
                 logger.LogInformation("User logged in.");
+
+                ApplicationUser? user =
+                    await userManager.FindByEmailAsync(
+                        Input.Email);
+
+                if (user != null)
+                {
+                    IList<string> roles =
+                        await userManager.GetRolesAsync(user);
+
+                    if (roles.Contains("Director"))
+                    {
+                        return RedirectToAction(
+                            "ManageUsers",
+                            "Director",
+                            new { area = "" });
+                    }
+
+                    if (roles.Contains("Instructor"))
+                    {
+                        return RedirectToAction(
+                            "Dashboard",
+                            "Instructor",
+                            new { area = "" });
+                    }
+
+                    if (roles.Contains("Parent"))
+                    {
+                        return RedirectToAction(
+                            "Dashboard",
+                            "Parent",
+                            new { area = "" });
+                    }
+
+                    if (roles.Contains("Dancer"))
+                    {
+                        return RedirectToAction(
+                            "Dashboard",
+                            "Dancer",
+                            new { area = "" });
+                    }
+                }
+
                 return LocalRedirect(returnUrl);
             }
+
             if (result.RequiresTwoFactor)
             {
-                return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
+                return RedirectToPage(
+                    "./LoginWith2fa",
+                    new
+                    {
+                        ReturnUrl = returnUrl,
+                        RememberMe = Input.RememberMe
+                    });
             }
+
             if (result.IsLockedOut)
             {
                 logger.LogWarning("User account locked out.");
@@ -121,12 +179,16 @@ public class LoginModel(SignInManager<ApplicationUser> signInManager, ILogger<Lo
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Invalid login attempt.");
                 return Page();
             }
         }
 
-        // If we got this far, something failed, redisplay form
+        // Fallback when ModelState.IsValid is false
         return Page();
     }
 }
+    
+

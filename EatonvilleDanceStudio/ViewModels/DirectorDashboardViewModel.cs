@@ -27,4 +27,14 @@ public class DirectorDashboardViewModel
     
     // Holds the upcoming schedule for the calendar widget
     public List<StudioEvent> UpcomingEvents { get; set; } = new List<StudioEvent>();
+    
+    public List<EatonvilleDanceStudio.Models.CostumeOrder> CostumeOrders { get; set; } = new List<EatonvilleDanceStudio.Models.CostumeOrder>();
+    
+    public string CostumeFilter { get; set; } = "all";
+    
+    public int TotalCostumeOrders { get; set; }
+    
+    public int PaidOrOrderedCostumeCount { get; set; }
+    
+    public int PendingCostumeCount { get; set; }
 }

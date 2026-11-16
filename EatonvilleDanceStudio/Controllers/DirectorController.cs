@@ -151,7 +151,7 @@ public class DirectorController(
     /// which provides details about invoices and related financial data.
     /// </returns>
     [HttpGet]
-    public async Task<IActionResult> ManageUsers()
+    public async Task<IActionResult> ManageUsers(string costumeFilter = "all")
     {
         DirectorDashboardViewModel viewModel = new DirectorDashboardViewModel();
 
@@ -197,7 +197,48 @@ public class DirectorController(
             .Take(5)
             .ToListAsync();
 
+        List<CostumeOrder> allOrders = await context.CostumeOrders
+            .Include(c => c.Dancer)
+                .ThenInclude(d => d!.Parent)
+            .Include(c => c.DanceClass)
+            .OrderBy(c => c.ExpectedDeliveryDate)
+            .ToListAsync();
 
+        viewModel.TotalCostumeOrders = allOrders.Count;
+
+        viewModel.PaidOrOrderedCostumeCount = allOrders.Count(
+            c => c.PaymentStatus == "Paid"
+                 || c.OrderStatus != "Not Ordered"
+                 || c.IsBindingConfirmed);
+
+        viewModel.PendingCostumeCount =
+            viewModel.TotalCostumeOrders
+            - viewModel.PaidOrOrderedCostumeCount;
+
+        string normalized = (costumeFilter ?? "all").ToLowerInvariant();
+        viewModel.CostumeFilter = normalized;
+
+        if (normalized == "paid")
+        {
+            viewModel.CostumeOrders = allOrders
+                .Where(c => c.PaymentStatus == "Paid"
+                            || c.OrderStatus != "Not Ordered"
+                            || c.IsBindingConfirmed)
+                .ToList();
+        }
+        else if (normalized == "unpaid")
+        {
+            viewModel.CostumeOrders = allOrders
+                .Where(c => c.PaymentStatus != "Paid"
+                            && c.OrderStatus == "Not Ordered"
+                            && !c.IsBindingConfirmed)
+                .ToList();
+        }
+        else
+        {
+            viewModel.CostumeOrders = allOrders;
+        }
+        
         return View(viewModel);
     }
 

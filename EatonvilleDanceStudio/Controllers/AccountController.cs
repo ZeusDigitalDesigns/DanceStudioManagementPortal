@@ -1,11 +1,8 @@
-using System.Threading.Tasks;
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.ViewModels;
-using EatonvilleDanceStudio.Models; // Ensure ApplicationUser namespace is included
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Stripe;
 
 namespace EatonvilleDanceStudio.Controllers
 {
