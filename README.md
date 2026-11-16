@@ -66,10 +66,10 @@ Built on **ASP.NET Core MVC (.NET 10)** with **Entity Framework Core 10** and **
 - [x] **Epic 4:** Instructor Portal & Class Operations (Rosters, Attendance)
 - [x] **Epic 5:** Director Master Control (Global Management, Invoicing, Analytics)
 - [x] **Epic 6:** Family & Multi-Dancer Logic (Household Grouping, Automated Discount Engine)
-- [ ] **Epic 7:** Recital & Competition Logistics (Costume Tracking, Call Times, Video Vault)
+- [x] **Epic 7:** Recital & Competition Logistics (Costume Tracking, Call Times, Video Vault)
 - [x] **Epic 8:** Digital Waivers & Legal Compliance (E-Signatures, Medical Flags)
-- [ ] **Epic 9:** Fundraiser Credit Ledger (Balance Offsets & Account Crediting)
-- [ ] **Epic 10:** Automated Communications (Twilio SMS / SendGrid Background Services)
+- [x] **Epic 9:** Fundraiser Credit Ledger (Balance Offsets & Account Crediting)
+- [x] **Epic 10:** Automated Communications (Twilio SMS / SendGrid Background Services)
 
 ---
 
