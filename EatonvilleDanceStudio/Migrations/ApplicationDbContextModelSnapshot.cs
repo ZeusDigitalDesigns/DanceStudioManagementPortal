@@ -167,6 +167,10 @@ namespace EatonvilleDanceStudio.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("BrandColorHex")
+                        .HasMaxLength(7)
+                        .HasColumnType("nvarchar(7)");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -175,8 +179,14 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<bool>("IsFeaturedAnnouncement")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsStudioAttending")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -186,6 +196,9 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("RegistrationUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -418,6 +431,9 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<string>("MedicalNotes")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<decimal>("OutstandingBalance")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("ParentProfileId")
                         .HasColumnType("int");
 
@@ -485,6 +501,88 @@ namespace EatonvilleDanceStudio.Migrations
                     b.HasIndex("DancerId");
 
                     b.ToTable("Enrollments");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.FundraiserEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedByDirectorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<decimal>("Expenses")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("GrossRevenue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("NetProfit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SplitMode")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalDistributed")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FundraiserEvents");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.FundraiserLedgerTransaction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("CreditAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("DancerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FundraiserEventId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("NewBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PreviousBalance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RecordedByDirectorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DancerId");
+
+                    b.HasIndex("FundraiserEventId");
+
+                    b.ToTable("FundraiserLedgerTransactions");
                 });
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.InstructorTimeLog", b =>
@@ -1080,6 +1178,25 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Navigation("Dancer");
                 });
 
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.FundraiserLedgerTransaction", b =>
+                {
+                    b.HasOne("EatonvilleDanceStudio.Models.Dancer", "Dancer")
+                        .WithMany("FundraiserCredits")
+                        .HasForeignKey("DancerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EatonvilleDanceStudio.Models.FundraiserEvent", "FundraiserEvent")
+                        .WithMany("LedgerEntries")
+                        .HasForeignKey("FundraiserEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Dancer");
+
+                    b.Navigation("FundraiserEvent");
+                });
+
             modelBuilder.Entity("EatonvilleDanceStudio.Models.InstructorTimeLog", b =>
                 {
                     b.HasOne("EatonvilleDanceStudio.Data.ApplicationUser", "Instructor")
@@ -1249,6 +1366,13 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Navigation("CostumeOrders");
 
                     b.Navigation("Enrollments");
+
+                    b.Navigation("FundraiserCredits");
+                });
+
+            modelBuilder.Entity("EatonvilleDanceStudio.Models.FundraiserEvent", b =>
+                {
+                    b.Navigation("LedgerEntries");
                 });
 
             modelBuilder.Entity("EatonvilleDanceStudio.Models.ParentProfile", b =>
