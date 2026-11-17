@@ -1,6 +1,5 @@
-@await Component.InvokeAsync("WeatherWidget")
-@await Component.InvokeAsync("CompetitionBanners")
 @using System.Globalization
+@using EatonvilleDanceStudio.Models
 @model EatonvilleDanceStudio.ViewModels.ParentDashboardViewModel
 
 @{
@@ -10,9 +9,16 @@
 <div class="container mt-4">
 
     @*
+        Summary: Renders the live weather widget and featured
+        competition announcement banners inside the main container.
+    *@
+    @await Component.InvokeAsync("WeatherWidget")
+    @await Component.InvokeAsync("CompetitionBanners")
+
+    @*
         Summary: Displays success and error TempData banners right
-        above the Family Hub header after editing a dancer or
-        sending a message.
+        above the Family Hub header after editing a dancer, updating
+        costume statuses, or sending a message.
     *@
     @if (TempData["SuccessMessage"] != null)
     {
@@ -54,7 +60,7 @@
 
     <div class="row g-4">
         
-        <!-- Left Column: Heavy Data (Classes and Dancers) -->
+        <!-- Left Column: Heavy Data (Classes, Dancers, Costumes) -->
         <div class="col-lg-8">
 
             <!-- Account Contact Info -->
@@ -67,71 +73,115 @@
                         <!-- Primary Contact -->
                         <div class="col-md-6 border-end border-secondary">
                             <h6 class="text-neon mb-2">Primary Contact</h6>
-                            <p class="text-light mb-1"><strong>Name:</strong> @Model.Profile.FirstName @Model.Profile.LastName</p>
-                            <p class="text-light mb-0"><strong>Phone:</strong> @Model.Profile.PrimaryPhone</p>
+                            <p class="text-light mb-1">
+                                <strong>Name:</strong>
+                                @Model.Profile.FirstName
+                                @Model.Profile.LastName
+                            </p>
+                            <p class="text-light mb-0">
+                                <strong>Phone:</strong>
+                                @Model.Profile.PrimaryPhone
+                            </p>
                         </div>
 
                         <!-- Emergency Contact -->
                         <div class="col-md-6 ps-md-4 mt-3 mt-md-0">
-                            <h6 class="text-neon mb-2">Emergency Contact</h6>
-                            <p class="text-light mb-1"><strong>Name:</strong> @Model.Profile.EmergencyContactName</p>
-                            <p class="text-light mb-0"><strong>Phone:</strong> @Model.Profile.EmergencyContactPhone</p>
+                            <h6 class="text-neon mb-2">
+                                Emergency Contact
+                            </h6>
+                            <p class="text-light mb-1">
+                                <strong>Name:</strong>
+                                @Model.Profile.EmergencyContactName
+                            </p>
+                            <p class="text-light mb-0">
+                                <strong>Phone:</strong>
+                                @Model.Profile.EmergencyContactPhone
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- NEW INTEGRATED FINANCIAL LEDGER -->
+            <!-- Financial Ledger -->
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-neon bg-transparent">
                     <h4 class="text-neon mb-0">Financial Ledger</h4>
                 </div>
                 <div class="card-body">
-                    <!-- Balance and Pay Button -->
-                    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+                    <div class="d-flex justify-content-between
+                                align-items-center mb-4 pb-3
+                                border-bottom border-secondary">
                         <div>
-                            <p class="text-neon mb-1"><strong>Current Balance:</strong></p>
-                            <h2 class="text-danger mb-0">@Model.CurrentBalance.ToString("C", CultureInfo.InvariantCulture)</h2>
+                            <p class="text-neon mb-1">
+                                <strong>Current Balance:</strong>
+                            </p>
+                            <h2 class="text-danger mb-0">
+                                @Model.CurrentBalance.ToString(
+                                    "C",
+                                    CultureInfo.InvariantCulture)
+                            </h2>
                         </div>
                         @if (Model.CurrentBalance > 0)
                         {
-                            <form asp-controller="Payment" asp-action="Checkout" method="post">
-                                <button type="submit" class="btn btn-neon btn-lg">Pay Balance Securely</button>
+                            <form asp-controller="Payment"
+                                  asp-action="Checkout"
+                                  method="post">
+                                <button type="submit"
+                                        class="btn btn-neon btn-lg">
+                                    Pay Balance Securely
+                                </button>
                             </form>
                         }
                     </div>
 
                     <div class="row g-3">
-                        
                         <!-- Charges Table -->
-                        
                         <div class="col-md-6">
                             <h6 class="text-neon mb-2">Recent Charges</h6>
                             <div class="table-responsive">
-                                <table class="table table-dark table-sm table-hover mb-0 align-middle">
+                                <table class="table table-dark table-sm
+                                              table-hover mb-0
+                                              align-middle">
                                     <thead>
-                                    <tr class="border-secondary">
-                                        <th class="text-neon">Date</th>
-                                        <th class="text-neon">Description</th>
-                                        <th class="text-neon text-end">Amount</th>
-                                    </tr>
+                                        <tr class="border-secondary">
+                                            <th class="text-neon">Date</th>
+                                            <th class="text-neon">
+                                                Description
+                                            </th>
+                                            <th class="text-neon text-end">
+                                                Amount
+                                            </th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     @if (Model.RecentCharges.Any())
                                     {
-                                        foreach (var charge in Model.RecentCharges)
+                                        foreach (LedgerEntry charge
+                                            in Model.RecentCharges)
                                         {
                                             <tr class="border-secondary">
-                                                <td class="text-muted small">@charge.TransactionDate.ToShortDateString()</td>
+                                                <td class="text-muted small">
+                                                    @charge.TransactionDate
+                                                        .ToShortDateString()
+                                                </td>
                                                 <td>@charge.Description</td>
-                                                <td class="text-end">@charge.Amount.ToString("C", CultureInfo.InvariantCulture)</td>
+                                                <td class="text-end">
+                                                    @charge.Amount.ToString(
+                                                        "C",
+                                                        CultureInfo
+                                                            .InvariantCulture)
+                                                </td>
                                             </tr>
                                         }
                                     }
                                     else
                                     {
                                         <tr>
-                                            <td colspan="3" class="text-center text-muted py-2">No recent charges.</td>
+                                            <td colspan="3"
+                                                class="text-center
+                                                       text-muted py-2">
+                                                No recent charges.
+                                            </td>
                                         </tr>
                                     }
                                     </tbody>
@@ -140,35 +190,54 @@
                         </div>
 
                         <!-- Payments Table -->
-                        
                         <div class="col-md-6">
                             <h6 class="text-neon mb-2">Payment History</h6>
                             <div class="table-responsive">
-                                <table class="table table-dark table-sm table-hover mb-0 align-middle">
+                                <table class="table table-dark table-sm
+                                              table-hover mb-0
+                                              align-middle">
                                     <thead>
-                                    <tr class="border-secondary">
-                                        <th class="text-neon">Date</th>
-                                        <th class="text-neon">Description</th>
-                                        <th class="text-neon text-end">Amount</th>
-                                    </tr>
+                                        <tr class="border-secondary">
+                                            <th class="text-neon">Date</th>
+                                            <th class="text-neon">
+                                                Description
+                                            </th>
+                                            <th class="text-neon text-end">
+                                                Amount
+                                            </th>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                     @if (Model.RecentPayments.Any())
                                     {
-                                        foreach (var payment in Model.RecentPayments)
+                                        foreach (LedgerEntry payment
+                                            in Model.RecentPayments)
                                         {
                                             <tr class="border-secondary">
-                                                <td class="text-light small">@payment.TransactionDate.ToShortDateString()</td>
+                                                <td class="text-light small">
+                                                    @payment.TransactionDate
+                                                        .ToShortDateString()
+                                                </td>
                                                 <td>@payment.Description</td>
-                                                <!-- Formatting payments as positive numbers for the UI -->
-                                                <td class="text-end text-success">@Math.Abs(payment.Amount).ToString("C", CultureInfo.InvariantCulture)</td>
+                                                <td class="text-end
+                                                           text-success">
+                                                    @Math.Abs(payment.Amount)
+                                                        .ToString(
+                                                            "C",
+                                                            CultureInfo
+                                                                .InvariantCulture)
+                                                </td>
                                             </tr>
                                         }
                                     }
                                     else
                                     {
                                         <tr>
-                                            <td colspan="3" class="text-center text-light py-2">No recent payments.</td>
+                                            <td colspan="3"
+                                                class="text-center
+                                                       text-light py-2">
+                                                No recent payments.
+                                            </td>
                                         </tr>
                                     }
                                     </tbody>
@@ -180,53 +249,79 @@
             </div>
             
             <!-- Enrolled Classes Roster -->
-            
             <div class="card card-dark shadow-lg border-neon mb-4">
-                <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+                <div class="card-header border-secondary bg-transparent
+                            d-flex justify-content-between
+                            align-items-center">
                     <h4 class="text-neon mb-0">Current Enrollments</h4>
                     @if (Model.Profile.AccountStatus == "Approved")
                     {
-                        <a asp-controller="Class" asp-action="Index" class="btn btn-outline-neon btn-sm border-neon text-neon">Browse Classes</a>
+                        <a asp-controller="Class"
+                           asp-action="Index"
+                           class="btn btn-outline-neon btn-sm
+                                  border-neon text-neon">
+                            Browse Classes
+                        </a>
                     }
                     else
                     {
-                        <button class="btn btn-outline-secondary btn-sm text-light border-secondary" disabled title="Pending Director Approval">Browse Classes (Locked)</button>
+                        <button class="btn btn-outline-secondary btn-sm
+                                       text-light border-secondary"
+                                disabled
+                                title="Pending Director Approval">
+                            Browse Classes (Locked)
+                        </button>
                     }
                 </div>                
                 <div class="card-body p-0">
                     @if (!Model.EnrolledClasses.Any())
                     {
                         <div class="p-4 text-center">
-                            <p class="text-light mb-0">No dancers are currently enrolled in classes.</p>
+                            <p class="text-light mb-0">
+                                No dancers are currently enrolled in classes.
+                            </p>
                         </div>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-dark table-hover mb-0 align-middle">
+                            <table class="table table-dark table-hover
+                                          mb-0 align-middle">
                                 <thead>
-                                <tr class="border-secondary">
-                                    <th class="text-neon ps-4">Dancer</th>
-                                    <th class="text-neon">Class</th>
-                                    <th class="text-neon">Schedule</th>
-                                    <th class="text-neon pe-4">Status</th>
-                                </tr>
+                                    <tr class="border-secondary">
+                                        <th class="text-neon ps-4">Dancer</th>
+                                        <th class="text-neon">Class</th>
+                                        <th class="text-neon">Schedule</th>
+                                        <th class="text-neon pe-4">Status</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @foreach (var enrollment in Model.EnrolledClasses)
+                                @foreach (Enrollment enrollment
+                                    in Model.EnrolledClasses)
                                 {
                                     <tr class="border-secondary">
-                                        <td class="ps-4">@enrollment.Dancer?.FirstName</td>
+                                        <td class="ps-4">
+                                            @enrollment.Dancer?.FirstName
+                                        </td>
                                         <td>
                                             @enrollment.DanceClass?.ClassName
-                                            <a asp-controller="Parent" asp-action="Board" asp-route-id="@enrollment.DanceClass?.Id" 
-                                               class="badge bg-neon text-neon text-decoration-none ms-2">
+                                            <a asp-controller="Parent"
+                                               asp-action="Board"
+                                               asp-route-id="@enrollment.DanceClass?.Id"
+                                               class="badge bg-neon text-neon
+                                                      text-decoration-none
+                                                      ms-2">
                                                 Class Board
                                             </a>
                                         </td>
-                                        <td class="text-light small">@enrollment.DanceClass?.DayOfWeek @@@enrollment.DanceClass?.StartTime.ToString(@"hh\:mm")</td>
+                                        <td class="text-light small">
+                                            @enrollment.DanceClass?.DayOfWeek
+                                            @@@enrollment.DanceClass?.StartTime.ToString(@"hh\:mm")
+                                        </td>
                                         <td class="pe-4">
-                                            <span class="badge @(enrollment.Status == "Enrolled" ? "bg-success" : "bg-warning text-dark")">
+                                            <span class="badge @(enrollment.Status == "Enrolled"
+                                                                   ? "bg-success"
+                                                                   : "bg-warning text-dark")">
                                                 @enrollment.Status
                                             </span>
                                         </td>
@@ -240,40 +335,53 @@
             </div>
 
             <!-- Dancer Profiles -->
-            
-            <div class="card card-dark shadow-lg border-neon">
-                <div class="card-header border-secondary bg-transparent d-flex justify-content-between align-items-center">
+            <div class="card card-dark shadow-lg border-neon mb-4">
+                <div class="card-header border-secondary bg-transparent
+                            d-flex justify-content-between
+                            align-items-center">
                     <h4 class="text-neon mb-0">My Dancers</h4>
-                    <a asp-action="AddDancer" class="btn btn-neon btn-sm">Add Dancer</a>
+                    <a asp-action="AddDancer"
+                       class="btn btn-neon btn-sm">
+                        Add Dancer
+                    </a>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         @foreach (Dancer dancer in Model.Dancers)
                         {
                             <div class="col-md-6">
-                                <div class="card bg-transparent border-neon h-100">
-                                    <div class="card-body d-flex justify-content-between
-                        align-items-center">
+                                <div class="card bg-transparent
+                                            border-neon h-100">
+                                    <div class="card-body d-flex
+                                                justify-content-between
+                                                align-items-center">
                                         <div>
                                             <h5 class="mb-0">
                                                 <a asp-controller="Parent"
                                                    asp-action="EditDancer"
                                                    asp-route-id="@dancer.Id"
-                                                   class="text-neon text-decoration-none">
-                                                    @dancer.FirstName @dancer.LastName
+                                                   class="text-neon
+                                                          text-decoration-none">
+                                                    @dancer.FirstName
+                                                    @dancer.LastName
                                                 </a>
                                             </h5>
                                             <small class="text-light">
-                                                Level: @dancer.SkillLevel | Age: @dancer.Age
+                                                Level: @dancer.SkillLevel
+                                                | Age: @dancer.Age
                                             </small>
 
-                                            @if (!string.IsNullOrEmpty(dancer.MedicalNotes)
-                                                 || !string.IsNullOrEmpty(dancer.Allergies)
+                                            @if (!string.IsNullOrEmpty(
+                                                    dancer.MedicalNotes)
+                                                 || !string.IsNullOrEmpty(
+                                                     dancer.Allergies)
                                                  || dancer.RequiresEpiPen
                                                  || dancer.CarriesInhaler)
                                             {
                                                 <div class="mt-2">
-                                                    <span class="badge bg-danger rounded-0">
+                                                    <span class="badge
+                                                                 bg-danger
+                                                                 rounded-0">
                                                         Medical Alert
                                                     </span>
                                                 </div>
@@ -282,7 +390,8 @@
                                         <a asp-controller="Parent"
                                            asp-action="EditDancer"
                                            asp-route-id="@dancer.Id"
-                                           class="btn btn-outline-neon btn-sm">
+                                           class="btn btn-outline-neon
+                                                  btn-sm">
                                             Edit
                                         </a>
                                     </div>
@@ -293,31 +402,158 @@
                 </div>
             </div>
 
-        </div>
+            <!-- Costume Orders & Status Tracker (#80) -->
+            <div class="card card-dark shadow-lg border-neon mb-4">
+                <div class="card-header border-secondary bg-transparent
+                            d-flex justify-content-between
+                            align-items-center">
+                    <h4 class="text-neon mb-0">
+                        Costume Orders &amp; Status Tracker
+                    </h4>
+                    <span class="badge border-neon text-neon">
+                        @Model.CostumeOrders.Count Total Costume(s)
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    @if (!Model.CostumeOrders.Any())
+                    {
+                        <p class="text-muted mb-0">
+                            No costume orders have been assigned to your
+                            dancers yet.
+                        </p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover
+                                          align-middle mb-0">
+                                <thead>
+                                    <tr class="text-neon">
+                                        <th>Dancer</th>
+                                        <th>Dance Class</th>
+                                        <th>Costume</th>
+                                        <th>Payment</th>
+                                        <th>Current Status</th>
+                                        <th class="text-end">
+                                            Update Status
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (CostumeOrder order
+                                        in Model.CostumeOrders)
+                                    {
+                                        string badgeClass =
+                                            order.OrderStatus == "Received"
+                                                ? "bg-success text-white"
+                                                : order.OrderStatus
+                                                  == "Ordered"
+                                                    ? "bg-info text-dark"
+                                                    : "bg-warning text-dark";
+
+                                        <tr>
+                                            <td class="fw-bold text-light">
+                                                @order.Dancer?.FirstName
+                                                @order.Dancer?.LastName
+                                            </td>
+                                            <td>
+                                                @(order.DanceClass?.ClassName
+                                                    ?? "General")
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold">
+                                                    @order.CostumeName
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge border-neon
+                                                             text-light">
+                                                    @order.PaymentStatus
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge
+                                                             @badgeClass">
+                                                    @order.OrderStatus
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <form asp-action="UpdateCostumeStatus"
+                                                      method="post"
+                                                      class="d-inline-flex
+                                                             align-items-center
+                                                             gap-2">
+                                                    <input type="hidden"
+                                                           name="orderId"
+                                                           value="@order.Id" />
+
+                                                    <select name="orderStatus"
+                                                            class="form-select
+                                                                   form-select-sm
+                                                                   form-control-dark"
+                                                            style="width: 145px;">
+                                                        <option value="Not Ordered"
+                                                                selected="@(order.OrderStatus == "Not Ordered")">
+                                                            Not Ordered
+                                                        </option>
+                                                        <option value="Ordered"
+                                                                selected="@(order.OrderStatus == "Ordered")">
+                                                            Ordered
+                                                        </option>
+                                                        <option value="Received"
+                                                                selected="@(order.OrderStatus == "Received")">
+                                                            Received
+                                                        </option>
+                                                    </select>
+
+                                                    <button type="submit"
+                                                            class="btn btn-neon
+                                                                   btn-sm">
+                                                        Save
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div> <!-- END Left Column (col-lg-8) -->
 
         <!-- Right Column: Informational Feeds -->
-        
         <div class="col-lg-4">
         
             <!-- Quick Links (Waivers & Medical Notes) -->
-            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Quick Actions</h5>
                 </div>
                 <div class="list-group list-group-flush rounded-0">
-                    <a asp-controller="Parent" asp-action="MedicalRoster" 
-                       class="list-group-item list-group-item-action bg-transparent text-light border-secondary">
-                        <span class="text-neon me-2">📝</span> Update Medical/Allergy Notes
+                    <a asp-controller="Parent"
+                       asp-action="MedicalRoster"
+                       class="list-group-item list-group-item-action
+                              bg-transparent text-light
+                              border-secondary">
+                        <span class="text-neon me-2">📝</span>
+                        Update Medical/Allergy Notes
                     </a>
-                    <a asp-controller="Parent" asp-action="SignWaiver" class="list-group-item list-group-item-action bg-transparent text-light border-secondary border-bottom-0">
-                        <span class="text-neon me-2">✍️</span> Sign Digital Waivers
+                    <a asp-controller="Parent"
+                       asp-action="SignWaiver"
+                       class="list-group-item list-group-item-action
+                              bg-transparent text-light
+                              border-secondary border-bottom-0">
+                        <span class="text-neon me-2">✍️</span>
+                        Sign Digital Waivers
                     </a>
                 </div>
             </div>
 
             <!-- Secure Messages & Blasts -->
-            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Studio Announcements</h5>
@@ -325,76 +561,115 @@
                 <div class="list-group list-group-flush">
                     @if (Model.Messages.Any())
                     {
-                        foreach (var message in Model.Messages)
+                        foreach (StudioMessage message in Model.Messages)
                         {
-                            <div class="list-group-item bg-transparent text-light border-secondary">
-                                <div class="d-flex w-100 justify-content-between mb-1">
-                                    <h6 class="mb-0 text-neon fw-bold">@message.Subject</h6>
-                                    <small class="text-muted">@message.SentAt.ToString("MMM dd", CultureInfo.InvariantCulture)</small>
+                            <div class="list-group-item bg-transparent
+                                        text-light border-secondary">
+                                <div class="d-flex w-100
+                                            justify-content-between mb-1">
+                                    <h6 class="mb-0 text-neon fw-bold">
+                                        @message.Subject
+                                    </h6>
+                                    <small class="text-muted">
+                                        @message.SentAt.ToString(
+                                            "MMM dd",
+                                            CultureInfo.InvariantCulture)
+                                    </small>
                                 </div>
                                 <p class="mb-2 small text-secondary">
-                                    @if(message.Sender != null)
+                                    @if (message.Sender != null)
                                     {
                                         <span class="text-light">
-                                            From: @message.Sender.FirstName @message.Sender.LastName
+                                            From: @message.Sender.FirstName
+                                            @message.Sender.LastName
                                         </span><br />
                                     }
                                     @message.Body
                                 </p>
                                 
-                                <!-- Badges and Reply Button -->
-                                
-                                <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <span class="badge @(message.ReceiverId == null ? "bg-info text-dark" : "bg-neon text-dark") rounded-0">
-                                        @(message.ReceiverId == null ? "Studio Blast" : "Direct Message")
+                                <div class="d-flex justify-content-between
+                                            align-items-center mt-3">
+                                    <span class="badge @(message.ReceiverId == null
+                                                           ? "bg-info text-dark"
+                                                           : "bg-neon text-dark") rounded-0">
+                                        @(message.ReceiverId == null
+                                            ? "Studio Blast"
+                                            : "Direct Message")
                                     </span>
                                     
-                                    @if(true)
-                                    {
-                                        <!-- Triggers the Modal below -->
-                                        
-                                        <button type="button" class="btn btn-sm btn-outline-neon rounded-0" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#replyModal-@message.Id">
-                                            Reply
-                                        </button>
-                                    }
+                                    <button type="button"
+                                            class="btn btn-sm
+                                                   btn-outline-neon
+                                                   rounded-0"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#replyModal-@message.Id">
+                                        Reply
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Individual Reply Modal for this message -->
-                            
-                            <div class="modal fade" id="replyModal-@message.Id" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content bg-dark border-neon rounded-0">
-                                        <div class="modal-header border-secondary">
-                                            <h5 class="modal-title text-neon">
+                            <!-- Individual Reply Modal -->
+                            <div class="modal fade"
+                                 id="replyModal-@message.Id"
+                                 tabindex="-1"
+                                 aria-hidden="true">
+                                <div class="modal-dialog
+                                            modal-dialog-centered">
+                                    <div class="modal-content bg-dark
+                                                border-neon rounded-0">
+                                        <div class="modal-header
+                                                    border-secondary">
+                                            <h5 class="modal-title
+                                                       text-neon">
                                                 Reply to @(message.Sender?.FirstName ?? "Studio")
                                             </h5>
-                                            <button type="button" class="btn-close btn-close-white" 
-                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <button type="button"
+                                                    class="btn-close
+                                                           btn-close-white"
+                                                    data-bs-dismiss="modal"
+                                                    aria-label="Close">
+                                            </button>
                                         </div>
-                                        <form asp-action="SendMessage" method="post">
+                                        <form asp-action="SendMessage"
+                                              method="post">
                                             <div class="modal-body">
-                                                <!-- Hidden fields pass the ID and Subject back to the controller -->
-                                                <input type="hidden" name="receiverId" value="@message.SenderId" />
-                                                <input type="hidden" name="subject" value="@message.Subject" />
+                                                <input type="hidden"
+                                                       name="receiverId"
+                                                       value="@message.SenderId" />
+                                                <input type="hidden"
+                                                       name="subject"
+                                                       value="@message.Subject" />
                                                 
                                                 <div class="mb-3">
-                                                    <label class="form-label text-light">Message</label>
-                                                    <textarea name="body" 
-                                                              class="form-control bg-black text-light border-secondary rounded-0" 
-                                                              rows="4" required 
+                                                    <label class="form-label
+                                                                  text-light">
+                                                        Message
+                                                    </label>
+                                                    <textarea name="body"
+                                                              class="form-control
+                                                                     bg-black
+                                                                     text-light
+                                                                     border-secondary
+                                                                     rounded-0"
+                                                              rows="4"
+                                                              required
                                                               placeholder="Type your reply here..."></textarea>
                                                 </div>
                                                 <div class="text-muted small">
                                                     Replying to: "@message.Subject"
                                                 </div>
                                             </div>
-                                            <div class="modal-footer border-secondary">
-                                                <button type="button" class="btn btn-outline-secondary rounded-0" 
-                                                        data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-neon rounded-0">
+                                            <div class="modal-footer
+                                                        border-secondary">
+                                                <button type="button"
+                                                        class="btn btn-outline-secondary
+                                                               rounded-0"
+                                                        data-bs-dismiss="modal">
+                                                    Cancel
+                                                </button>
+                                                <button type="submit"
+                                                        class="btn btn-neon
+                                                               rounded-0">
                                                     Send Reply
                                                 </button>
                                             </div>
@@ -406,7 +681,9 @@
                     }
                     else
                     {
-                        <div class="list-group-item bg-transparent text-muted border-secondary text-center py-3">
+                        <div class="list-group-item bg-transparent
+                                    text-muted border-secondary
+                                    text-center py-3">
                             No recent messages or announcements.
                         </div>
                     }
@@ -414,15 +691,15 @@
             </div>
 
             <!-- Upcoming Events -->
-            
             <div class="card card-dark shadow-lg border-neon mb-4">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Upcoming Events</h5>
                 </div>
                 <ul class="list-group list-group-flush">
-                    @foreach (var ev in Model.UpcomingEvents)
+                    @foreach (string ev in Model.UpcomingEvents)
                     {
-                        <li class="list-group-item bg-transparent text-light border-secondary">
+                        <li class="list-group-item bg-transparent
+                                   text-light border-secondary">
                             <span class="text-neon me-2">🗓️</span> @ev
                         </li>
                     }
@@ -430,21 +707,24 @@
             </div>
 
             <!-- Competition History -->
-            
             <div class="card card-dark shadow-lg border-neon">
                 <div class="card-header border-secondary bg-transparent">
                     <h5 class="text-neon mb-0">Trophy Case</h5>
                 </div>
                 <ul class="list-group list-group-flush">
-                    @foreach (var placement in Model.CompetitionPlacements)
+                    @foreach (string placement
+                        in Model.CompetitionPlacements)
                     {
-                        <li class="list-group-item bg-transparent text-light border-secondary">
-                            <span class="text-warning me-2">🏆</span> @placement
+                        <li class="list-group-item bg-transparent
+                                   text-light border-secondary">
+                            <span class="text-warning me-2">🏆</span>
+                            @placement
                         </li>
                     }
                 </ul>
             </div>
 
-        </div>
+        </div> <!-- END Right Column (col-lg-4) -->
+
     </div>
 </div>

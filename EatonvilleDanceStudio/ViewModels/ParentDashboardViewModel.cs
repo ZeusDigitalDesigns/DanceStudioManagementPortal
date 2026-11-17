@@ -20,4 +20,10 @@ public class ParentDashboardViewModel
     // Gemini Supplied Code
     public List<LedgerEntry> RecentCharges { get; set; } = new();
     public List<LedgerEntry> RecentPayments { get; set; } = new();
-}
+    
+    public List<CostumeOrder> CostumeOrders { get; set; } = new List<CostumeOrder>();
+    
+    public List<CostumeOrder> PendingCostumeOrders { get; set; } = new List<CostumeOrder>();
+
+    public List<CostumeOrder> CompletedCostumeOrders { get; set; } = new List<CostumeOrder>();
+}   
