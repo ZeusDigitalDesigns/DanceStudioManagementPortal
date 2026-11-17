@@ -1,0 +1,178 @@
+@*
+    Summary: Allows Directors and Instructors to edit competition
+    details, registration URLs, and dynamic banner branding (#55).
+*@
+@model EatonvilleDanceStudio.Models.Competition
+
+@{
+    ViewData["Title"] = "Edit Competition";
+}
+
+<div class="container mt-4">
+    <div class="card card-neon p-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="text-neon mb-0">Edit @Model.Name</h2>
+
+            @if (User.IsInRole("Director"))
+            {
+                <form asp-action="Delete"
+                      asp-route-id="@Model.Id"
+                      method="post" 
+                      enctype="multipart/form-data">
+                    <button type="submit"
+                            class="btn btn-outline-danger btn-sm">
+                        Delete Competition
+                    </button>
+                </form>
+            }
+        </div>
+        <hr class="border-neon" />
+
+        <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All"
+                 class="text-danger mb-3"></div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label asp-for="Name"
+                           class="form-label text-neon"></label>
+                    <input asp-for="Name"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="EventFormat"
+                           class="form-label text-neon"></label>
+                    <select asp-for="EventFormat"
+                            class="form-select form-control-dark">
+                        <option value="Competition">Competition</option>
+                        <option value="Comp/Convention">
+                            Comp/Convention
+                        </option>
+                        <option value="Convention">Convention</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="VenueName"
+                           class="form-label text-neon"></label>
+                    <input asp-for="VenueName"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="VenueAddress"
+                           class="form-label text-neon"></label>
+                    <input asp-for="VenueAddress"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="StartDate"
+                           class="form-label text-neon"></label>
+                    <input asp-for="StartDate"
+                           type="date"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="EndDate"
+                           class="form-label text-neon"></label>
+                    <input asp-for="EndDate"
+                           type="date"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="RegistrationUrl"
+                           class="form-label text-neon"></label>
+                    <input asp-for="RegistrationUrl"
+                           type="url"
+                           class="form-control form-control-dark"
+                           placeholder="https://..." />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Notes"
+                           class="form-label text-neon"></label>
+                    <input asp-for="Notes"
+                           class="form-control form-control-dark" />
+                </div>
+            </div>
+
+            <div class="row align-items-end">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="BrandColorHex"
+                           class="form-label text-neon"></label>
+                    <input asp-for="BrandColorHex"
+                           type="color"
+                           class="form-control form-control-color
+                                  form-control-dark w-100" />
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label class="form-label text-neon">
+                        Upload Banner / Logo Image
+                    </label>
+                    <input type="file"
+                           name="logoFile"
+                           accept="image/*"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="LogoUrl"
+                           class="form-label text-neon">
+                        Or Image URL / Path
+                    </label>
+                    <input asp-for="LogoUrl"
+                           class="form-control form-control-dark"
+                           placeholder="/images/classes/dance.JPG" />
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.LogoUrl))
+            {
+                <div class="mb-3">
+                    <span class="text-muted small d-block mb-1">
+                        Current Saved Image (@Model.LogoUrl):
+                    </span>
+                    <img src="@Model.LogoUrl"
+                         alt="Current Banner"
+                         class="rounded border border-neon p-1"
+                         style="max-height: 80px;" />
+                </div>
+            }
+            <div class="d-flex gap-4 mb-4">
+                <div class="form-check">
+                    <input asp-for="IsStudioAttending"
+                           class="form-check-input" />
+                    <label asp-for="IsStudioAttending"
+                           class="form-check-label text-light"></label>
+                </div>
+
+                <div class="form-check">
+                    <input asp-for="IsFeaturedAnnouncement"
+                           class="form-check-input" />
+                    <label asp-for="IsFeaturedAnnouncement"
+                           class="form-check-label text-light"></label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-neon">
+                Update Competition
+            </button>
+            <a asp-action="Details"
+               asp-route-id="@Model.Id"
+               class="btn btn-outline-neon ms-2">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>

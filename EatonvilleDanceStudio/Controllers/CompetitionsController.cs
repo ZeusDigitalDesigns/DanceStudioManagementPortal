@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +23,7 @@ namespace EatonvilleDanceStudio.Controllers
     /// restricted to users in director or instructor roles.
     /// </remarks>
     [Authorize]
-    public class CompetitionsController(ApplicationDbContext context) : Controller
+    public class CompetitionsController(ApplicationDbContext context, IWebHostEnvironment webHostEnvironment) : Controller
     {
         // GET: /Competitions?attendingOnly=true
         /// <summary>
@@ -90,18 +94,32 @@ namespace EatonvilleDanceStudio.Controllers
 
         // POST: /Competitions/Create
         /// <summary>
-        /// Creates a new competition when the submitted model is valid, saves it, and redirects to its details page.
+        /// Creates a new competition and saves an uploaded banner or
+        /// logo image to wwwroot/images/competitions (#55).
         /// </summary>
-        /// <param name="model">The competition data submitted for creation.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains the original view when validation fails, or a redirect to the created competition details page when creation succeeds.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Director,Instructor")]
-        public async Task<IActionResult> Create(Competition model)
+        public async Task<IActionResult> Create(
+            Competition model,
+            IFormFile? logoFile)
         {
+            ModelState.Remove(nameof(model.Entries));
+
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            if (logoFile != null && logoFile.Length > 0)
+            {
+                model.LogoUrl =
+                    await SaveCompetitionImageAsync(logoFile);
+            }
+
+            if (string.IsNullOrWhiteSpace(model.BrandColorHex))
+            {
+                model.BrandColorHex = "#ff10f0";
             }
 
             context.Competitions.Add(model);
@@ -110,6 +128,77 @@ namespace EatonvilleDanceStudio.Controllers
             return RedirectToAction(
                 nameof(Details),
                 new { id = model.Id });
+        }
+
+        // POST: /Competitions/Edit/5
+        /// <summary>
+        /// Updates an existing competition and replaces or keeps its
+        /// uploaded banner/logo image (#55).
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Director,Instructor")]
+        public async Task<IActionResult> Edit(
+            int id,
+            Competition model,
+            IFormFile? logoFile)
+        {
+            if (id != model.Id)
+            {
+                return NotFound();
+            }
+
+            ModelState.Remove(nameof(model.Entries));
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            Competition? existing = await context.Competitions
+                .FindAsync(id);
+
+            if (existing == null)
+            {
+                return NotFound();
+            }
+
+            existing.Name = model.Name;
+            existing.EventFormat = model.EventFormat;
+            existing.VenueName = model.VenueName;
+            existing.VenueAddress = model.VenueAddress;
+            existing.StartDate = model.StartDate;
+            existing.EndDate = model.EndDate;
+            existing.IsStudioAttending = model.IsStudioAttending;
+            existing.Notes = model.Notes;
+            existing.RegistrationUrl = model.RegistrationUrl;
+            existing.BrandColorHex =
+                string.IsNullOrWhiteSpace(model.BrandColorHex)
+                    ? "#ff10f0"
+                    : model.BrandColorHex;
+            existing.IsFeaturedAnnouncement =
+                model.IsFeaturedAnnouncement;
+
+            // If a new file was uploaded, save it; otherwise keep
+            // the existing image or manual URL path
+            if (logoFile != null && logoFile.Length > 0)
+            {
+                existing.LogoUrl =
+                    await SaveCompetitionImageAsync(logoFile);
+            }
+            else if (!string.IsNullOrWhiteSpace(model.LogoUrl))
+            {
+                existing.LogoUrl = model.LogoUrl;
+            }
+
+            await context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] =
+                $"{existing.Name} updated successfully.";
+
+            return RedirectToAction(
+                nameof(Details),
+                new { id = existing.Id });
         }
 
         // GET: /Competitions/AddEntry?competitionId=5
@@ -197,6 +286,96 @@ namespace EatonvilleDanceStudio.Controllers
                 new { attendingOnly });
         }
 
+        /// <summary>
+        /// Displays the edit form for the specified competition, assigning a default brand color when none is set.
+        /// </summary>
+        /// <param name="id">The identifier of the competition to edit.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains the edit view for the competition, or a not found result if no matching competition exists.</returns>
+        [HttpGet]
+        [Authorize(Roles = "Director,Instructor")]
+        public async Task<IActionResult> Edit(int id)
+        {
+            Competition? competition = await context.Competitions.FindAsync(id);
+
+            if (competition == null)
+            {
+                return NotFound();
+            }
+
+            if (string.IsNullOrEmpty(competition.BrandColorHex))
+            {
+                competition.BrandColorHex = "#ff10f0";
+            }
+            return View(competition);
+        }
+        
+        
+
+        // POST: /Competitions/ToggleFeatured/5
+        /// <summary>
+        /// Quickly toggles whether a competition is displayed in the
+        /// dynamic announcement banner across dashboards.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Director,Instructor")]
+        public async Task<IActionResult> ToggleFeatured(
+            int id,
+            bool attendingOnly)
+        {
+            Competition? competition = await context.Competitions
+                .FindAsync(id);
+
+            if (competition != null)
+            {
+                competition.IsFeaturedAnnouncement =
+                    !competition.IsFeaturedAnnouncement;
+                await context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(
+                nameof(Index),
+                new { attendingOnly });
+        }
+
+        // POST: /Competitions/Delete/5
+        /// <summary>
+        /// Deletes the specified competition and any associated competition entries, then redirects to the competitions list.
+        /// </summary>
+        /// <param name="id">The identifier of the competition to delete.</param>
+        /// <returns>A task that represents the asynchronous operation. The task result contains a redirect to the competitions index action.</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Director")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            Competition? competition = await context.Competitions
+                .Include(c => c.Entries)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (competition != null)
+            {
+                if (competition.Entries.Any())
+                {
+                    context.CompetitionEntries
+                        .RemoveRange(competition.Entries);
+                }
+
+                context.Competitions.Remove(competition);
+                await context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] =
+                    $"{competition.Name} removed.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        /// <summary>
+        /// Populates the dance classes dropdown list with classes ordered by name and applies the specified selected class when provided.
+        /// </summary>
+        /// <param name="selectedClassId">The identifier of the dance class to mark as selected, or null if no class should be selected.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         private async Task PopulateClassesDropdownAsync(
             int? selectedClassId)
         {
@@ -209,6 +388,44 @@ namespace EatonvilleDanceStudio.Controllers
                 "Id",
                 "ClassName",
                 selectedClassId);
+        }
+        
+        /// <summary>
+        /// Saves an uploaded competition banner or logo image to
+        /// wwwroot/images/competitions and returns its relative URL.
+        /// </summary>
+        private async Task<string?> SaveCompetitionImageAsync(
+            IFormFile? file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return null;
+            }
+
+            string uploadsFolder = Path.Combine(
+                webHostEnvironment.WebRootPath,
+                "images",
+                "competitions");
+
+            Directory.CreateDirectory(uploadsFolder);
+
+            string uniqueFileName =
+                Guid.NewGuid().ToString()
+                + "_"
+                + Path.GetFileName(file.FileName);
+
+            string filePath = Path.Combine(
+                uploadsFolder,
+                uniqueFileName);
+
+            using (FileStream fileStream = new FileStream(
+                       filePath,
+                       FileMode.Create))
+            {
+                await file.CopyToAsync(fileStream);
+            }
+
+            return "/images/competitions/" + uniqueFileName;
         }
     }
 }

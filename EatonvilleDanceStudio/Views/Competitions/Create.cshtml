@@ -1,6 +1,7 @@
 @*
     Summary: Form for Directors and Instructors to add a new
-    competition or convention event to the studio calendar.
+    competition or convention event, including registration links
+    and dynamic announcement banner branding (#55).
 *@
 @model EatonvilleDanceStudio.Models.Competition
 
@@ -13,7 +14,7 @@
         <h2 class="text-neon mb-3">Add Competition / Convention</h2>
         <hr class="border-neon" />
 
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="All"
                  class="text-danger mb-3"></div>
 
@@ -75,19 +76,70 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label asp-for="Notes"
-                       class="form-label text-neon"></label>
-                <input asp-for="Notes"
-                       class="form-control form-control-dark"
-                       placeholder="e.g., Not leveled, Scholarships" />
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="RegistrationUrl"
+                           class="form-label text-neon"></label>
+                    <input asp-for="RegistrationUrl"
+                           type="url"
+                           class="form-control form-control-dark"
+                           placeholder="https://..." />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Notes"
+                           class="form-label text-neon"></label>
+                    <input asp-for="Notes"
+                           class="form-control form-control-dark"
+                           placeholder="e.g., Not leveled, Scholarships" />
+                </div>
             </div>
 
-            <div class="form-check mb-4">
-                <input asp-for="IsStudioAttending"
-                       class="form-check-input" />
-                <label asp-for="IsStudioAttending"
-                       class="form-check-label text-light"></label>
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <label asp-for="BrandColorHex"
+                           class="form-label text-neon"></label>
+                    <input asp-for="BrandColorHex"
+                           type="color"
+                           class="form-control form-control-color
+                                  form-control-dark w-100" />
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label class="form-label text-neon">
+                        Upload Banner / Logo Image
+                    </label>
+                    <input type="file"
+                           name="logoFile"
+                           accept="image/*"
+                           class="form-control form-control-dark" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label asp-for="LogoUrl"
+                           class="form-label text-neon">
+                        Or Image URL / Path
+                    </label>
+                    <input asp-for="LogoUrl"
+                           class="form-control form-control-dark"
+                           placeholder="/images/classes/dance.jpg" />
+                </div>
+            </div>
+
+            <div class="d-flex gap-4 mb-4">
+                <div class="form-check">
+                    <input asp-for="IsStudioAttending"
+                           class="form-check-input" />
+                    <label asp-for="IsStudioAttending"
+                           class="form-check-label text-light"></label>
+                </div>
+
+                <div class="form-check">
+                    <input asp-for="IsFeaturedAnnouncement"
+                           class="form-check-input" />
+                    <label asp-for="IsFeaturedAnnouncement"
+                           class="form-check-label text-light"></label>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-neon">

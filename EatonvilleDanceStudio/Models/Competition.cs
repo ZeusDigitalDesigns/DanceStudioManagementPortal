@@ -47,6 +47,20 @@ namespace EatonvilleDanceStudio.Models
 
         [StringLength(300)]
         public string? Notes { get; set; }
+        
+        [Url]
+        [Display(Name = "Registration URL")]
+        public string? RegistrationUrl { get; set; }
+        
+        [StringLength(7)]
+        [Display(Name = "Brand Color Hex")]
+        public string? BrandColorHex { get; set; }
+
+        [Display(Name = "Logo URL")]
+        public string? LogoUrl { get; set; }
+        
+        [Display(Name = "Featured in Announcement Banner")]
+        public bool IsFeaturedAnnouncement { get; set; }
 
         public ICollection<CompetitionEntry> Entries { get; set; }
             = new List<CompetitionEntry>();
