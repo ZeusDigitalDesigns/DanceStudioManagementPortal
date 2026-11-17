@@ -179,6 +179,9 @@ namespace EatonvilleDanceStudio.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<DateTime?>("FeeDueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsFeaturedAnnouncement")
                         .HasColumnType("bit");
 
@@ -196,6 +199,12 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<string>("Notes")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("RegistrationDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("RegistrationFee")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RegistrationUrl")
                         .HasColumnType("nvarchar(max)");

@@ -61,6 +61,19 @@ namespace EatonvilleDanceStudio.Models
         
         [Display(Name = "Featured in Announcement Banner")]
         public bool IsFeaturedAnnouncement { get; set; }
+        
+        [Range(0, 10000)]
+        [DataType(DataType.Currency)]
+        [Display(Name = "Competition Fee ($)")]
+        public decimal RegistrationFee { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Fee Due Date (Default: 2 Wks Prior)")]
+        public DateTime? FeeDueDate { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Registration Deadline")]
+        public DateTime? RegistrationDeadline { get; set; }
 
         public ICollection<CompetitionEntry> Entries { get; set; }
             = new List<CompetitionEntry>();

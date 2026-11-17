@@ -1,7 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EatonvilleDanceStudio.Data;
 using EatonvilleDanceStudio.Models;
-using EatonvilleDanceStudio.Settings;
 using EatonvilleDanceStudio.Services;
+using EatonvilleDanceStudio.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,14 +16,9 @@ using Stripe.Checkout;
 namespace EatonvilleDanceStudio.Controllers;
 
 /// <summary>
-/// Handles operations related to processing payments within the application.
+/// Handles operations related to processing tuition and competition
+/// fee payments via Stripe Checkout.
 /// </summary>
-/// <remarks>
-/// The PaymentController is responsible for managing payment-related actions,
-/// including integration with payment providers and ensuring secure transaction processing.
-/// This controller interacts with the database for payment-related data and utilizes user
-/// management functionality for processing payments associated with authenticated users.
-/// </remarks>
 public class PaymentController(
     ApplicationDbContext context,
     IOptions<StripeSettings> stripeSettings,
@@ -28,34 +27,81 @@ public class PaymentController(
     INotificationService notificationService)
     : Controller
 {
-    private readonly StripeSettings _stripeSettings = stripeSettings.Value;
+    private readonly StripeSettings _stripeSettings =
+        stripeSettings.Value;
 
-    // POST
-
+    // POST: /Payment/Checkout
     /// <summary>
-    /// Initiates a Stripe checkout session for processing a payment.
+    /// Initiates a Stripe checkout session for either a specific
+    /// competition registration fee or the parent's current balance.
     /// </summary>
-    /// <returns>
-    /// A redirect to Stripe's hosted checkout page for secure payment processing.
-    /// Returns a 303 status code with the location header set to the Stripe URL.
-    /// </returns>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Checkout() 
+    public async Task<IActionResult> Checkout(
+        int? competitionId = null,
+        decimal? amount = null,
+        string? description = null)
     {
-        // Get the current logged in parent
-        var userId = userManager.GetUserId(User);
-        if (userId == null) return Unauthorized();
-        
-        // TEMPORARY: Hardcode the server-side amount for now. 
-        // We will replace this with a real database ledger lookup in Epic 3, Issue #20.
+        string? userId = userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
         long amountInCents = 5000;
-        
-        // Get the base URL securely from settings
-        var domain = _stripeSettings.Domain;
-        
-        // Build Stripe checkout session
-        var options = new SessionCreateOptions
+        string itemName = "Monthly Tuition";
+        string itemDescription =
+            "Secure Tuition Payment for Eatonville Dance Studio";
+        string paymentCategory = "Tuition";
+
+        // 1. Check if this payment came from a Competition Banner slide
+        if (competitionId.HasValue)
+        {
+            Competition? comp = await context.Competitions
+                .FindAsync(competitionId.Value);
+
+            if (comp != null)
+            {
+                decimal feeToCharge = comp.RegistrationFee > 0
+                    ? comp.RegistrationFee
+                    : (amount.HasValue && amount.Value > 0
+                        ? amount.Value
+                        : 50.00m);
+
+                amountInCents = (long)Math.Round(feeToCharge * 100m);
+                itemName = $"{comp.Name} - Competition Fee";
+                itemDescription =
+                    $"Competition registration & dues for {comp.Name}";
+                paymentCategory = "Competition";
+            }
+        }
+        else
+        {
+            // 2. Otherwise calculate the parent's real ledger balance
+            decimal currentBalance = await context.LedgerEntries
+                .Where(l => l.ParentId == userId)
+                .SumAsync(l => l.Amount);
+
+            if (currentBalance > 0)
+            {
+                amountInCents =
+                    (long)Math.Round(currentBalance * 100m);
+            }
+            else if (amount.HasValue && amount.Value > 0)
+            {
+                amountInCents =
+                    (long)Math.Round(amount.Value * 100m);
+            }
+
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                itemName = description;
+            }
+        }
+
+        string domain = _stripeSettings.Domain;
+
+        SessionCreateOptions options = new SessionCreateOptions
         {
             AllowedPaymentMethodTypes = new List<string> { "card" },
             LineItems = new List<SessionLineItemOptions>
@@ -64,14 +110,14 @@ public class PaymentController(
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
-                        // Stripe expects the amount in pennies
                         UnitAmount = amountInCents,
                         Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = "Monthly Tuition",
-                            Description = "Secure Tuition Payment for Eatonville Dance Studio"
-                        },
+                        ProductData =
+                            new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = itemName,
+                                Description = itemDescription
+                            },
                     },
                     Quantity = 1,
                 },
@@ -79,46 +125,44 @@ public class PaymentController(
             Mode = "payment",
             Metadata = new Dictionary<string, string>
             {
-                { "UserId", userId }
+                { "UserId", userId },
+                { "ItemName", itemName },
+                { "Category", paymentCategory },
+                {
+                    "CompetitionId",
+                    competitionId?.ToString() ?? ""
+                }
             },
-            // Where Stripe sends user after successful payment
-            SuccessUrl = domain + "/Payment/Success?session_id={CHECKOUT_SESSION_ID}",
-            // Where Stripe sends user after canceled payment
+            SuccessUrl =
+                domain
+                + "/Payment/Success?session_id={CHECKOUT_SESSION_ID}",
             CancelUrl = domain + "/Payment/Cancel",
         };
-        
-        // Create the request options with the Idempotency Key to prevent duplicate charges
-        var requestOptions = new RequestOptions
+
+        // Unique IdempotencyKey per checkout click so parents can pay
+        // multiple competition fees in the same month
+        RequestOptions requestOptions = new RequestOptions
         {
-            IdempotencyKey = $"tuition-{userId}-{DateTime.UtcNow:yyyy-MM}"
+            IdempotencyKey =
+                $"pay-{userId}-{Guid.NewGuid()}"
         };
-        
-        Session session = await paymentService.CreateSessionAsync(options, requestOptions);        
-        
-        // Redirect the user to Stripe's secure hosted checkout page
-        Response.Headers.Add("Location", session.Url);
+
+        Session session = await paymentService.CreateSessionAsync(
+            options,
+            requestOptions);
+
+        Response.Headers.Append("Location", session.Url);
         return new StatusCodeResult(303);
     }
-    
-    // GET: /Payment/Success  **Gemini Supplied Code**
 
+    // GET: /Payment/Success
     /// <summary>
-    /// Handles the completion of a payment process by validating the session ID and retrieving the payment status from Stripe.
-    /// Displays appropriate success or error messages to the user and redirects to the parent dashboard.
+    /// Validates the completed Stripe session, records the ledger
+    /// entry (and matching competition fee charge if applicable),
+    /// and sends a confirmation receipt.
     /// </summary>
-    /// <param name="session_id">
-    /// The Stripe session ID generated during the checkout process.
-    /// Used to validate and retrieve the payment status from Stripe.
-    /// </param>
-    /// <returns>
-    /// An action result that redirects to the parent dashboard.
-    /// If the payment is successful, a success message is displayed.
-    /// If the payment validation fails, an error message is displayed.
-    /// </returns>
-    
     public async Task<IActionResult> Success(string session_id)
     {
-        // 1. Block immediate manual navigation without a session token
         if (string.IsNullOrEmpty(session_id))
         {
             TempData["ErrorMessage"] = "Invalid payment session.";
@@ -127,46 +171,83 @@ public class PaymentController(
 
         try
         {
-            // 2. Fetch the authoritative session directly from Stripe's servers
-            Session session = await paymentService.GetSessionAsync(session_id);
+            Session session =
+                await paymentService.GetSessionAsync(session_id);
 
-            // 3. Verify the actual payment status
             if (session.PaymentStatus == "paid")
             {
-                // 4. Retrieve the parent's User ID from the metadata we embedded during Checkout
-                if (session.Metadata.TryGetValue("UserId", out string parentId))
+                if (session.Metadata.TryGetValue(
+                    "UserId",
+                    out string? parentId)
+                    && !string.IsNullOrEmpty(parentId))
                 {
-                    // 5. Anti-Refresh Check: Make sure we haven't already credited this exact Stripe session
-                    // (Requires: using Microsoft.EntityFrameworkCore;)
                     bool alreadyRecorded = await context.LedgerEntries
-                        .AnyAsync(l => l.Description.Contains(session.Id));
+                        .AnyAsync(l =>
+                            l.Description.Contains(session.Id));
 
                     if (!alreadyRecorded)
                     {
-                        // 6. Convert Stripe's amount (cents) to dollars and make it negative for a ledger credit
-                        decimal paymentAmount = (session.AmountTotal ?? 0) / 100m;
-                        decimal creditAmount = -Math.Abs(paymentAmount); 
+                        decimal paymentAmount =
+                            (session.AmountTotal ?? 0) / 100m;
+                        decimal creditAmount =
+                            -Math.Abs(paymentAmount);
 
-                        // 7. Create the new ledger entry
-                        var paymentEntry = new LedgerEntry
+                        string itemName =
+                            session.Metadata.TryGetValue(
+                                "ItemName",
+                                out string? metaItem)
+                            && !string.IsNullOrWhiteSpace(metaItem)
+                                ? metaItem
+                                : "Stripe Payment";
+
+                        string category =
+                            session.Metadata.TryGetValue(
+                                "Category",
+                                out string? metaCategory)
+                            && !string.IsNullOrWhiteSpace(metaCategory)
+                                ? metaCategory
+                                : "Payment";
+
+                        // If paying a Competition Fee directly from
+                        // the banner, record the fee charge on the
+                        // ledger too so the parent's tuition balance
+                        // stays accurate
+                        if (category == "Competition")
+                        {
+                            LedgerEntry compCharge = new LedgerEntry
+                            {
+                                ParentId = parentId,
+                                TransactionDate = DateTime.UtcNow,
+                                Description = itemName,
+                                Amount = Math.Abs(paymentAmount),
+                                Category = "Competition"
+                            };
+                            context.LedgerEntries.Add(compCharge);
+                        }
+
+                        LedgerEntry paymentEntry = new LedgerEntry
                         {
                             ParentId = parentId,
                             TransactionDate = DateTime.UtcNow,
-                            Description = $"Stripe Payment (Ref: {session.Id})", 
+                            Description =
+                                $"{itemName} (Ref: {session.Id})",
                             Amount = creditAmount,
                             Category = "Payment"
                         };
 
                         context.LedgerEntries.Add(paymentEntry);
                         await context.SaveChangesAsync();
-                        
-                        ParentProfile? parentProfile = await context.ParentProfiles
-                            .Include(p=>p.User)
-                            .FirstOrDefaultAsync(p => p.UserId == parentId);
+
+                        ParentProfile? parentProfile =
+                            await context.ParentProfiles
+                                .Include(p => p.User)
+                                .FirstOrDefaultAsync(
+                                    p => p.UserId == parentId);
 
                         if (parentProfile != null)
                         {
-                            string email = parentProfile.User?.Email ?? "";
+                            string email =
+                                parentProfile.User?.Email ?? "";
                             await notificationService
                                 .SendPaymentConfirmationAsync(
                                     email,
@@ -177,35 +258,35 @@ public class PaymentController(
                     }
                 }
 
-                TempData["SuccessMessage"] = "Payment successful! Your account has been credited.";
+                TempData["SuccessMessage"] =
+                    "Payment successful! Your account has been " +
+                    "credited.";
             }
             else
             {
-                // Catch sessions that are pending, failed, or unpaid
-                TempData["ErrorMessage"] = "Payment was not completed successfully. Please try again.";
+                TempData["ErrorMessage"] =
+                    "Payment was not completed successfully. " +
+                    "Please try again.";
             }
         }
         catch (StripeException)
         {
-            // Catch fake or tampered session IDs that Stripe rejects
-            TempData["ErrorMessage"] = "Error verifying payment with Stripe.";
+            TempData["ErrorMessage"] =
+                "Error verifying payment with Stripe.";
         }
 
         return RedirectToAction("Dashboard", "Parent");
     }
-    
-    // GET
 
+    // GET: /Payment/Cancel
     /// <summary>
-    /// Handles the cancellation of a payment process and informs the user that no charge was made.
+    /// Handles a canceled Stripe checkout session and redirects back
+    /// to the Parent Dashboard.
     /// </summary>
-    /// <returns>
-    /// A redirection to the "Dashboard" action in the "Parent" controller.
-    /// Returns a view where the user can see a cancellation notification.
-    /// </returns>
     public IActionResult Cancel()
     {
-        TempData["ErrorMessage"] = "Payment Cancelled. Your card was not charged. Please try again.";
+        TempData["ErrorMessage"] =
+            "Payment Cancelled. Your card was not charged.";
         return RedirectToAction("Dashboard", "Parent");
     }
 }

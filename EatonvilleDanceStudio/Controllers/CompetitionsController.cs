@@ -85,6 +85,7 @@ namespace EatonvilleDanceStudio.Controllers
         [Authorize(Roles = "Director,Instructor")]
         public IActionResult Create()
         {
+            
             Competition model = new Competition
             {
                 IsStudioAttending = true
@@ -121,7 +122,12 @@ namespace EatonvilleDanceStudio.Controllers
             {
                 model.BrandColorHex = "#ff10f0";
             }
-
+            
+            if (!model.FeeDueDate.HasValue)
+            {
+                model.FeeDueDate = model.StartDate.AddDays(-14);
+            }
+            
             context.Competitions.Add(model);
             await context.SaveChangesAsync();
 
@@ -178,6 +184,8 @@ namespace EatonvilleDanceStudio.Controllers
                     : model.BrandColorHex;
             existing.IsFeaturedAnnouncement =
                 model.IsFeaturedAnnouncement;
+            existing.RegistrationFee = model.RegistrationFee;
+            existing.FeeDueDate = model.FeeDueDate ?? model.StartDate.AddDays(-14);
 
             // If a new file was uploaded, save it; otherwise keep
             // the existing image or manual URL path
