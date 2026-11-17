@@ -1,8 +1,9 @@
 @*
     Summary: Renders a full-width graphic banner slideshow with
-    the uploaded image taking up the majority of the card and
-    date/location details anchored in a bottom bar (#55).
+    competition fee due dates (2 weeks prior) and a direct payment
+    button in the bottom bar.
 *@
+@using System.Globalization
 @using EatonvilleDanceStudio.Models
 @model List<Competition>
 
@@ -55,6 +56,18 @@
                         ? "Location TBD"
                         : banner.VenueName;
 
+                DateTime effectiveDueDate =
+                    banner.FeeDueDate ?? banner.StartDate.AddDays(-14);
+
+                string dueDateText =
+                    effectiveDueDate.ToString("MMM d, yyyy");
+
+                string feeText = banner.RegistrationFee > 0
+                    ? banner.RegistrationFee.ToString(
+                        "C",
+                        CultureInfo.InvariantCulture)
+                    : "";
+
                 <div class="carousel-item @(i == 0 ? "active" : "")">
                     <div class="card card-dark overflow-hidden"
                          style="border: 2px solid @brandHex !important;
@@ -64,27 +77,37 @@
                         @if (!string.IsNullOrWhiteSpace(
                             banner.LogoUrl))
                         {
-                            <div class="position-relative w-100"
-                                 style="height: 260px;
-                                        background-color: #08080a;">
+                            <div class="position-relative w-100 overflow-hidden
+            d-flex justify-content-center align-items-center p-3"
+                                 style="height: 220px; background-color: #08080a;">
+
+                                @* Blurred full-width background fill *@
+                                <img src="@Url.Content(banner.LogoUrl)"
+                                     aria-hidden="true"
+                                     class="position-absolute top-0 start-0 w-100 h-100"
+                                     style="object-fit: cover;
+                                     filter: blur(18px) brightness(0.35);
+                                     transform: scale(1.1);" />
+
+                                @* Crisp proportional foreground graphic *@
                                 <img src="@Url.Content(banner.LogoUrl)"
                                      alt="@banner.Name Banner"
-                                     class="w-100 h-100"
-                                     style="object-fit: cover;
-                                            object-position: center;" />
+                                     class="position-relative rounded shadow"
+                                     style="max-height: 185px;
+                                     max-width: 90%;
+                                     object-fit: cover;
+                                     z-index: 1;" />
 
                                 <span class="badge text-dark fw-bold
                                              position-absolute top-0
                                              start-0 m-3 shadow"
-                                      style="background-color:
-                                             @brandHex;">
+                                      style="background-color: @brandHex; z-index: 2;">
                                     UPCOMING @upperFormat
                                 </span>
                             </div>
                         }
                         else
                         {
-                            @* Fallback header if no image is set *@
                             <div class="p-4 text-center"
                                  style="background-color: #0d0d11;">
                                 <span class="badge text-dark fw-bold
@@ -100,7 +123,7 @@
                             </div>
                         }
 
-                        @* BOTTOM BAR: Date, Location & Actions *@
+                        @* BOTTOM BAR: Date, Location, Fees & Actions *@
                         <div class="card-footer bg-black
                                     d-flex flex-column flex-md-row
                                     justify-content-between
@@ -126,17 +149,52 @@
                                     @venueText
                                 </span>
 
-                                @if (!string.IsNullOrWhiteSpace(
-                                    banner.Notes))
-                                {
-                                    <span class="text-muted small">
-                                        (@banner.Notes)
-                                    </span>
-                                }
+                                <span class="badge border border-warning
+                                             text-warning small">
+                                    @if (banner.RegistrationFee > 0)
+                                    {
+                                        <text>
+                                            Fee: @feeText (Due @dueDateText)
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <text>
+                                            Fees Due: @dueDateText
+                                        </text>
+                                    }
+                                </span>
                             </div>
 
                             <div class="d-flex flex-wrap
                                         align-items-center gap-2">
+                                @if (User.Identity != null
+                                     && User.Identity.IsAuthenticated)
+                                {
+                                    <form asp-controller="Payment"
+                                          asp-action="Checkout"
+                                          method="post"
+                                          class="d-inline">
+                                        <input type="hidden"
+                                               name="competitionId"
+                                               value="@banner.Id" />
+                                        <input type="hidden"
+                                               name="amount"
+                                               value="@banner.RegistrationFee" />
+                                        <input type="hidden"
+                                               name="description"
+                                               value="@banner.Name Comp Fee" />
+                                        <button type="submit"
+                                                class="btn btn-sm fw-bold
+                                                       btn-success">
+                                            Pay Comp Fee
+                                            @(banner.RegistrationFee > 0
+                                                ? $"({feeText})"
+                                                : "")
+                                        </button>
+                                    </form>
+                                }
+
                                 <a asp-controller="Competitions"
                                    asp-action="Details"
                                    asp-route-id="@banner.Id"
