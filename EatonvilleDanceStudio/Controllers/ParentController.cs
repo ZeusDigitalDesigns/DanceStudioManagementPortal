@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 namespace EatonvilleDanceStudio.Controllers;
 
@@ -82,6 +83,14 @@ public class ParentController(ApplicationDbContext context, UserManager<Applicat
             .Take(5) 
             .ToListAsync();
         
+        List<CostumeOrder> costumeOrders = await context.CostumeOrders 
+            .Include(c => c.Dancer)
+            .Include(c => c.DanceClass)
+            .Where(c => dancerIds.Contains(c.DancerId))
+            .OrderBy(c => c.Dancer!.FirstName)
+            .ThenBy(c => c.DanceClass!.ClassName)
+            .ToListAsync();
+        
         // Build the ViewModel (Only declared once)
         ParentDashboardViewModel viewModel = new ParentDashboardViewModel
         {
@@ -91,7 +100,8 @@ public class ParentController(ApplicationDbContext context, UserManager<Applicat
             CurrentBalance = calculatedBalance,
             RecentCharges = recentCharges,
             RecentPayments = recentPayments,
-            Messages = messages // Includes direct messages and studio blasts
+            Messages = messages,
+            CostumeOrders = costumeOrders,
         };
 
         return View(viewModel);
@@ -518,6 +528,56 @@ public class ParentController(ApplicationDbContext context, UserManager<Applicat
         TempData["SuccessMessage"] =
             $"{dancerName} has been removed from your family profile.";
 
+        return RedirectToAction(nameof(Dashboard));
+    }
+    
+    //POST: /Parent/UpdateCostumeStatus
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCostumeStatus(int orderId, string orderStatus)
+    {
+        string? userId = userManager.GetUserId(User);
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        ParentProfile? profile = await context.ParentProfiles
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        if (profile == null)
+        {
+            return NotFound("Parent profile not found.");
+        }
+
+        CostumeOrder? order = await context.CostumeOrders
+            .Include(c => c.Dancer)
+            .Include(c => c.DanceClass)
+            .FirstOrDefaultAsync(c => c.Id == orderId && c.Dancer != null && c.Dancer.ParentProfileId == profile.Id);
+
+        if (order == null)
+        {
+            TempData["ErrorMessage"] = "Costume order not found.";
+            return RedirectToAction(nameof(Dashboard));
+        }
+
+        order.OrderStatus = orderStatus;
+
+        if (orderStatus == "Ordered" || orderStatus == "Recieved")
+        {
+            order.IsBindingConfirmed = true;
+            order.ConfirmedAt ??= DateTime.Now;
+        }
+        else
+        {
+            order.IsBindingConfirmed = false;
+        }
+
+        await context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"Updated {order.Dancer?.FirstName}'s " +
+                                     $"{order.CostumeName} status to '{orderStatus}'.";
+        
         return RedirectToAction(nameof(Dashboard));
     }
     
