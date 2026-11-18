@@ -1,0 +1,125 @@
+@model IEnumerable<EatonvilleDanceStudio.Models.FundraiserEvent>
+
+@{
+    ViewData["Title"] = "Manage Fundraisers & Community Events";
+}
+
+<!-- Director dashboard for managing public fundraiser cards
+     and tracking event revenue, expenses, and net profit. -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-white mb-1">
+            Fundraisers &amp; Community Events
+        </h2>
+        <p class="text-light opacity-75 mb-0">
+            Active events automatically appear on the public home page
+            for parents, grandparents, and visitors.
+        </p>
+    </div>
+    <a asp-action="Create" class="btn btn-eds-neon">
+        + New Fundraiser / Event
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-4"
+         role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"></button>
+    </div>
+}
+
+<div class="eds-community-board">
+    @if (!Model.Any())
+    {
+        <p class="text-light opacity-75 mb-0">
+            No fundraisers posted yet. Click "+ New Fundraiser / Event"
+            to add your first card to the home page!
+        </p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr style="border-bottom: 2px solid #ff10f0;">
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Badge</th>
+                        <th>Time &amp; Location</th>
+                        <th>Finances (Net)</th>
+                        <th>Visible</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (EatonvilleDanceStudio.Models.FundraiserEvent item
+                        in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold" style="color: #ff10f0;">
+                                @item.EventDate.ToString("MMM dd, yyyy")
+                            </td>
+                            <td class="fw-semibold text-white">
+                                @item.EventName
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      style="background-color: #ff10f0;">
+                                    @item.CategoryBadge
+                                </span>
+                            </td>
+                            <td class="small text-light">
+                                @item.TimeAndLocation
+                            </td>
+                            <td>
+                                <div class="fw-bold text-success">
+                                    @item.NetProfit.ToString("C")
+                                </div>
+                                <div class="small text-light opacity-75">
+                                    Rev: @item.GrossRevenue.ToString("C") |
+                                    Exp: @item.Expenses.ToString("C")
+                                </div>
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success">Public</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        Hidden
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit"
+                                   asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-eds-neon me-2">
+                                    Edit
+                                </a>
+                                <form asp-action="Delete"
+                                      asp-route-id="@item.Id"
+                                      method="post"
+                                      class="d-inline"
+                                      onsubmit="return confirm(
+                                          'Delete this event?');">
+                                    <button type="submit"
+                                            class="btn btn-sm
+                                                   btn-outline-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
