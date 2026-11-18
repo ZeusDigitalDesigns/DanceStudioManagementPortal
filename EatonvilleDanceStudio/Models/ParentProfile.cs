@@ -55,5 +55,6 @@ public class ParentProfile
     public ICollection<Dancer> Dancers { get; set; } = new List<Dancer>();
     
     // Legal & Compliance
-    public ICollection<LegalWaiver> LegalWaivers { get; set; }
+    public ICollection<LegalWaiver> LegalWaivers { get; set; } = new List<LegalWaiver>();
+    
 }

@@ -14,7 +14,6 @@ namespace EatonvilleDanceStudio.Controllers;
 /// This includes retrieving and managing parent profiles, associated dancers, and their enrollments.
 /// </summary>
 
-// [Issue #67] Locked this down specifically to the Parent role
 [Authorize(Roles = "Parent")] 
 public class ParentController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     : Controller
@@ -563,7 +562,7 @@ public class ParentController(ApplicationDbContext context, UserManager<Applicat
 
         order.OrderStatus = orderStatus;
 
-        if (orderStatus == "Ordered" || orderStatus == "Recieved")
+        if (orderStatus == "Ordered" || orderStatus == "Received")
         {
             order.IsBindingConfirmed = true;
             order.ConfirmedAt ??= DateTime.Now;

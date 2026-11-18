@@ -31,4 +31,5 @@ public class LegalWaiver
     
     [StringLength(50)]
     public string? IPAddress { get; set; }
+    
 }
