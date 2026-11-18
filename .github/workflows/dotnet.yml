@@ -25,4 +25,4 @@ jobs:
     - name: Build
       run: dotnet build EatonvilleDanceStudio/EatonvilleDanceStudio.csproj --no-restore
     - name: Test
-      run: dotnet test EatonvilleDanceStudio.Tests/EatonvilleDanceStudio.Tests.csproj --no-build --verbosity normal
+      run: dotnet test EatonvilleDanceStudio.Tests/EatonvilleDanceStudio.Tests.csproj --verbosity normal
