@@ -786,3 +786,80 @@ html[data-theme="light"] .form-select.form-control-dark {
     transform: scale(1.04);
     filter: drop-shadow(0 0 12px rgba(255, 16, 240, 0.55));
 }
+
+.btn-eds-neon {
+    color: #ff10f0;
+    border: 2px solid #ff10f0;
+    background-color: transparent;
+    border-radius: 8px;
+    padding: 0.55rem 1.25rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease-in-out;
+}
+
+.btn-eds-neon:hover,
+.btn-eds-neon:focus {
+    background-color: #ff10f0;
+    color: #ffffff;
+    box-shadow: 0 0 18px rgba(255, 16, 240, 0.65);
+    transform:translateY(-2px);
+}
+
+/* ==========================================================================
+                                Light Theme 
+            & Flat Admin/Instructor overrides for Landing Page
+        Spotlight Cards, Hero Carousel, and Community Fundraiser Board.
+   ========================================================================== */
+
+/* Keep Hero Carousel text white in Light Mode since it sits over dark photos */
+html[data-theme="light"] .eds-hero-overlay .text-light,
+html[data-theme="light"] .eds-hero-overlay .eds-hero-title {
+    color: #ffffff !important;
+}
+
+/* Switch Spotlight Cards & Community Board to crisp white in Light Mode */
+html[data-theme="light"] .eds-spotlight-card,
+html[data-theme="light"] .eds-community-board {
+    background: #ffffff !important;
+    border-color: #b800a8 !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme="light"] .eds-event-item {
+    background: #f8f9fb !important;
+    border-color: rgba(184, 0, 168, 0.35) !important;
+}
+
+html[data-theme="light"] .eds-date-pill {
+    background: rgba(184, 0, 168, 0.1) !important;
+    border-color: #b800a8 !important;
+}
+
+html[data-theme="light"] .eds-date-month {
+    color: #b800a8 !important;
+}
+
+html[data-theme="light"] .eds-date-day {
+    color: #1a1a24 !important;
+}
+
+html[data-theme="light"] .btn-eds-neon {
+    color: #b800a8;
+    border-color: #b800a8;
+}
+
+html[data-theme="light"] .btn-eds-neon:hover,
+html[data-theme="light"] .btn-eds-neon:focus {
+    background-color: #b800a8;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+/* Respect flat no-glow theme for Director & Instructor views */
+body.theme-admin .eds-community-board,
+body.theme-instructor .eds-community-board,
+body.theme-admin .btn-eds-neon:hover,
+body.theme-instructor .btn-eds-neon:hover {
+    box-shadow: none !important;
+}

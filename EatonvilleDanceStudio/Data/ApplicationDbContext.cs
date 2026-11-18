@@ -3,11 +3,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EatonvilleDanceStudio.Models;
-using EatonvilleDanceStudio.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Dancer = EatonvilleDanceStudio.Models.Dancer;
 
 namespace EatonvilleDanceStudio.Data;
 
@@ -74,6 +72,7 @@ public class ApplicationDbContext(
     public DbSet<Competition> Competitions { get; set; }
 
     public DbSet<CompetitionEntry> CompetitionEntries { get; set; }
+    
 
     /// <summary>
     /// Intercepts synchronous database saves to prevent modifying or

@@ -1,0 +1,132 @@
+@using EatonvilleDanceStudio.Models
+@model EatonvilleDanceStudio.Models.FundraiserEvent
+
+@{
+    ViewData["Title"] = "Edit Fundraiser Event";
+}
+
+<!-- Summary: Form for editing a public fundraiser card and logging
+     post-event revenue, expenses, and profit-split mode. -->
+<div class="eds-community-board mx-auto" style="max-width: 680px;">
+    <h3 class="fw-bold mb-4" style="color: #ff10f0;">
+        Edit Community Fundraiser or Event
+    </h3>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="CreatedByDirectorId" />
+
+        <div class="mb-3">
+            <label asp-for="EventName"
+                   class="form-label text-white fw-bold"></label>
+            <input asp-for="EventName"
+                   class="form-control bg-dark text-white" />
+            <span asp-validation-for="EventName"
+                  class="text-danger small"></span>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label asp-for="EventDate"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="EventDate"
+                       type="date"
+                       class="form-control bg-dark text-white" />
+                <span asp-validation-for="EventDate"
+                      class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="CategoryBadge"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="CategoryBadge"
+                       class="form-control bg-dark text-white" />
+                <span asp-validation-for="CategoryBadge"
+                      class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="TimeAndLocation"
+                   class="form-label text-white fw-bold"></label>
+            <input asp-for="TimeAndLocation"
+                   class="form-control bg-dark text-white" />
+            <span asp-validation-for="TimeAndLocation"
+                  class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description"
+                   class="form-label text-white fw-bold"></label>
+            <textarea asp-for="Description"
+                      rows="3"
+                      class="form-control bg-dark text-white"></textarea>
+            <span asp-validation-for="Description"
+                  class="text-danger small"></span>
+        </div>
+
+        <div class="form-check form-switch mb-4">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive"
+                   class="form-check-label text-white"></label>
+        </div>
+
+        <!-- Summary: Director-only financial accounting fields -->
+        <hr style="border-color: rgba(255, 16, 240, 0.4);" class="my-4" />
+        <div class="d-flex flex-wrap justify-content-between
+                    align-items-center mb-3">
+            <h5 class="fw-bold mb-0" style="color: #ff10f0;">
+                Director Financial Tracking
+            </h5>
+            <span class="badge bg-dark border border-success text-success">
+                Current Net Profit: @Model.NetProfit.ToString("C") |
+                Distributed: @Model.TotalDistributed.ToString("C")
+            </span>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label asp-for="GrossRevenue"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="GrossRevenue"
+                       type="number"
+                       step="0.01"
+                       min="0"
+                       class="form-control bg-dark text-white" />
+                <span asp-validation-for="GrossRevenue"
+                      class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="Expenses"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="Expenses"
+                       type="number"
+                       step="0.01"
+                       min="0"
+                       class="form-control bg-dark text-white" />
+                <span asp-validation-for="Expenses"
+                      class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="SplitMode"
+                       class="form-label text-white fw-bold"></label>
+                <select asp-for="SplitMode"
+                        asp-items="Html.GetEnumSelectList<AllocationMode>()"
+                        class="form-select bg-dark text-white">
+                </select>
+                <span asp-validation-for="SplitMode"
+                      class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-eds-neon">
+                Update Event
+            </button>
+            <a asp-action="Index" class="btn btn-outline-light">Cancel</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

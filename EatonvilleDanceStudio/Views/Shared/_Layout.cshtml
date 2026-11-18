@@ -66,14 +66,22 @@
                             justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-neon fw-bold" 
-                               asp-area="" asp-controller="Home" 
+                            <a class="nav-link text-neon fw-bold"
+                               asp-area=""
+                               asp-controller="Home"
                                asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-neon fw-bold" 
-                               asp-area="" asp-controller="Class" 
+                            <a class="nav-link text-neon fw-bold"
+                               asp-area=""
+                               asp-controller="Class"
                                asp-action="Index">Classes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-neon fw-bold"
+                               asp-area=""
+                               asp-controller="Competitions"
+                               asp-action="Index">Competitions</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link"
@@ -83,49 +91,58 @@
                                 Video Vault
                             </a>
                         </li>
-                        
-                        <!-- Dynamic Dashboard Routing -->
+
+                        <!-- Dynamic Dashboard & Director Routing -->
                         @if (SignInManager.IsSignedIn(User))
                         {
                             if (User.IsInRole("Director"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-neon fw-bold" 
-                                       asp-controller="Director" 
-                                       asp-action="ManageUsers">Dashboard</a>
+                                    <a class="nav-link text-neon fw-bold"
+                                       asp-controller="Director"
+                                       asp-action="ManageUsers">
+                                        Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-neon fw-bold"
+                                       asp-area=""
+                                       asp-controller="Fundraisers"
+                                       asp-action="Index">
+                                        Fundraisers
+                                    </a>
                                 </li>
                             }
                             else if (User.IsInRole("Instructor"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-neon fw-bold" 
-                                       asp-controller="Instructor" 
-                                       asp-action="Dashboard">Dashboard</a>
+                                    <a class="nav-link text-neon fw-bold"
+                                       asp-controller="Instructor"
+                                       asp-action="Dashboard">
+                                        Dashboard
+                                    </a>
                                 </li>
                             }
                             else if (User.IsInRole("Parent"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-neon fw-bold" 
-                                       asp-controller="Parent" 
-                                       asp-action="Dashboard">Dashboard</a>
+                                    <a class="nav-link text-neon fw-bold"
+                                       asp-controller="Parent"
+                                       asp-action="Dashboard">
+                                        Dashboard
+                                    </a>
                                 </li>
                             }
                             else if (User.IsInRole("Dancer"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-neon fw-bold" 
-                                       asp-controller="Dancer" 
-                                       asp-action="Dashboard">Dashboard</a>
+                                    <a class="nav-link text-neon fw-bold"
+                                       asp-controller="Dancer"
+                                       asp-action="Dashboard">
+                                        Dashboard
+                                    </a>
                                 </li>
                             }
-
-                            <li class="nav-item">
-                                <a class="nav-link text-neon fw-bold"
-                                   asp-area=""
-                                   asp-controller="Competitions"
-                                   asp-action="Index">Competitions</a>
-                            </li>
                         }
                     </ul>
                     <div class="d-flex align-items-center me-2">

@@ -520,12 +520,22 @@ namespace EatonvilleDanceStudio.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CategoryBadge")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedByDirectorId")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("datetime2");
@@ -541,11 +551,19 @@ namespace EatonvilleDanceStudio.Migrations
                     b.Property<decimal>("GrossRevenue")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<decimal>("NetProfit")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SplitMode")
                         .HasColumnType("int");
+
+                    b.Property<string>("TimeAndLocation")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<decimal>("TotalDistributed")
                         .HasColumnType("decimal(18,2)");

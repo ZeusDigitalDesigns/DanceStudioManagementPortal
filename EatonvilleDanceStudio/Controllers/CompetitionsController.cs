@@ -32,6 +32,7 @@ namespace EatonvilleDanceStudio.Controllers
         /// <param name="attendingOnly">A value indicating whether to show only competitions the studio is attending.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the view result with the filtered list of competitions.</returns>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Index(
             bool attendingOnly = true)
         {
@@ -56,6 +57,7 @@ namespace EatonvilleDanceStudio.Controllers
         /// <param name="id">The identifier of the competition to display.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the view result for the competition, or a not found result if no matching competition exists.</returns>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
             Competition? competition = await context.Competitions
@@ -186,6 +188,7 @@ namespace EatonvilleDanceStudio.Controllers
                 model.IsFeaturedAnnouncement;
             existing.RegistrationFee = model.RegistrationFee;
             existing.FeeDueDate = model.FeeDueDate ?? model.StartDate.AddDays(-14);
+            existing.RegistrationDeadline = model.RegistrationDeadline;
 
             // If a new file was uploaded, save it; otherwise keep
             // the existing image or manual URL path
