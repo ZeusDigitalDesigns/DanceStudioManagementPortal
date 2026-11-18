@@ -40,6 +40,11 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/EatonvilleDanceStudio.styles.css" 
           asp-append-version="true" />
+    <script>
+        (function(){ const savedTheme = localStorage.getItem("studio-theme") || "dark"; 
+            document.documentElement.setAttribute("data-theme", savedTheme); 
+            document.documentElement.setAttribute("data-bs-theme", savedTheme);})();
+    </script>
 </head>
 <!-- The calculated theme class controls the CSS layout -->
 <body class="@roleThemeClass text-neon" style="background-color: #050505;">    <header>
@@ -123,6 +128,20 @@
                             </li>
                         }
                     </ul>
+                    <div class="d-flex align-items-center me-2">
+                        <button id="themeToggleBtn"
+                                type="button"
+                                class="btn btn-outline-neon btn-sm
+                                       d-flex align-items-center gap-1"
+                                title="Toggle Light / Dark Theme"
+                                aria-label="Toggle Light or Dark Theme">
+                            <span id="themeToggleIcon">☀️</span>
+                            <span id="themeToggleText"
+                                  class="d-none d-sm-inline">
+                                Light
+                            </span>
+                        </button>
+                    </div>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
@@ -145,6 +164,56 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const toggleBtn =
+                    document.getElementById("themeToggleBtn");
+                const toggleIcon =
+                    document.getElementById("themeToggleIcon");
+                const toggleText =
+                    document.getElementById("themeToggleText");
+
+                function updateButtonUI(theme) {
+                    if (!toggleIcon || !toggleText) {
+                        return;
+                    }
+                    if (theme === "light") {
+                        toggleIcon.textContent = "🌙";
+                        toggleText.textContent = "Dark";
+                    } else {
+                        toggleIcon.textContent = "☀️";
+                        toggleText.textContent = "Light";
+                    }
+                }
+
+                const currentTheme =
+                    document.documentElement.getAttribute("data-theme")
+                    || "dark";
+                updateButtonUI(currentTheme);
+
+                if (toggleBtn) {
+                    toggleBtn.addEventListener("click", function () {
+                        const activeTheme =
+                            document.documentElement.getAttribute(
+                                "data-theme"
+                            ) || "dark";
+                        const nextTheme =
+                            activeTheme === "dark" ? "light" : "dark";
+
+                        document.documentElement.setAttribute(
+                            "data-theme",
+                            nextTheme
+                        );
+                        document.documentElement.setAttribute(
+                            "data-bs-theme",
+                            nextTheme
+                        );
+                        localStorage.setItem("studio-theme", nextTheme);
+                        updateButtonUI(nextTheme);
+                    });
+                }
+            });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
