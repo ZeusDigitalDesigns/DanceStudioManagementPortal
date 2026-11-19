@@ -1,0 +1,69 @@
+@model IEnumerable<EatonvilleDanceStudio.Models.PrivateLessonBlock>
+@{
+    ViewData["Title"] = "Private Lessons";
+}
+
+<!-- Summary: Public overview of 1-on-1 coaching and open lesson blocks -->
+<div class="eds-community-board mb-4">
+    <span class="badge rounded-pill mb-2"
+          style="background-color: #ff10f0; color: #fff;">
+        1-ON-1 COACHING • SOLO PREP &amp; TECHNIQUE
+    </span>
+    <h2 class="fw-bold text-white mb-2">Private Lessons</h2>
+    <p class="text-light opacity-75 mb-0">
+        Focused individual coaching for competition routines, audition prep,
+        and skill building with Eatonville Dance Studio instructors.
+    </p>
+</div>
+
+<div class="eds-community-board">
+    <h4 class="fw-bold mb-3" style="color: #ff10f0;">
+        Open Availability Blocks
+    </h4>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-3">
+            @foreach (PrivateLessonBlock block in Model)
+            {
+                string instructorLabel =
+                    block.Instructor?.UserName ?? "Studio Instructor";
+                DateTime startClock = DateTime.Today.Add(block.StartTime);
+                DateTime endClock = DateTime.Today.Add(block.EndTime);
+
+                <div class="col-md-6">
+                    <div class="eds-event-item">
+                        <div class="eds-date-pill">
+                            <span class="eds-date-month">
+                                @block.Date.ToString("MMM").ToUpper()
+                            </span>
+                            <span class="eds-date-day">
+                                @block.Date.ToString("dd")
+                            </span>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between
+                                        align-items-start mb-1">
+                                <h5 class="fw-bold text-white mb-0">
+                                    @startClock.ToString("h:mm tt") -
+                                    @endClock.ToString("h:mm tt")
+                                </h5>
+                                <span class="badge bg-success">Open</span>
+                            </div>
+                            <p class="text-light opacity-75 small mb-0">
+                                Instructor: @instructorLabel
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-light opacity-75 mb-0">
+            No open private lesson blocks are posted right now. Check back
+            soon or reach out to the studio to request a custom slot.
+        </p>
+    }
+</div>
