@@ -1,0 +1,102 @@
+@model EatonvilleDanceStudio.Models.StudioRentalInquiryViewModel
+@{
+    ViewData["Title"] = "Studio Rentals";
+}
+
+<!-- Summary: Public studio room specifications, rates, and inquiry form -->
+<div class="eds-community-board mb-4">
+    <span class="badge rounded-pill mb-2"
+          style="background-color: #ff10f0; color: #fff;">
+        SPRUNG FLOORS • REHEARSALS &amp; EVENTS
+    </span>
+    <h2 class="fw-bold text-white mb-2">Studio Room Rentals</h2>
+    <p class="text-light opacity-75 mb-3">
+        @Model.RoomSpecsSummary. Ideal for independent rehearsals,
+        workshops, and small studio gatherings.
+    </p>
+    <span class="badge bg-dark border border-neon text-neon fs-6">
+        Standard Rate: @Model.HourlyRate.ToString("C") / hour
+    </span>
+</div>
+
+<div class="eds-community-board">
+    <h4 class="fw-bold mb-3" style="color: #ff10f0;">
+        Request Room Availability
+    </h4>
+
+    @if (TempData["RentalSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4"
+             role="alert">
+            @TempData["RentalSuccess"]
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Index" method="post">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label asp-for="RenterName"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="RenterName"
+                       class="form-control bg-dark text-white"
+                       placeholder="Your full name" />
+                <span asp-validation-for="RenterName"
+                      class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="RenterEmail"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="RenterEmail"
+                       class="form-control bg-dark text-white"
+                       placeholder="you@example.com" />
+                <span asp-validation-for="RenterEmail"
+                      class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label asp-for="PreferredDate"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="PreferredDate"
+                       type="date"
+                       class="form-control bg-dark text-white" />
+                <span asp-validation-for="PreferredDate"
+                      class="text-danger small"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="RequestedHours"
+                       class="form-label text-white fw-bold"></label>
+                <input asp-for="RequestedHours"
+                       class="form-control bg-dark text-white"
+                       placeholder="e.g., Saturday 1:00 PM - 4:00 PM" />
+                <span asp-validation-for="RequestedHours"
+                      class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="EventDetails"
+                   class="form-label text-white fw-bold"></label>
+            <textarea asp-for="EventDetails"
+                      rows="3"
+                      class="form-control bg-dark text-white"
+                      placeholder="Tell us about your rehearsal or event...">
+            </textarea>
+            <span asp-validation-for="EventDetails"
+                  class="text-danger small"></span>
+        </div>
+
+        <button type="submit" class="btn btn-eds-neon">
+            Submit Availability Request
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
