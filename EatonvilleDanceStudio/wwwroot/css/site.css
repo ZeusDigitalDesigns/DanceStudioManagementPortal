@@ -905,6 +905,41 @@ body.theme-instructor .eds-gallery-carousel {
     box-shadow: none !important;
 }
 
+@keyframes edsKenBurnsZoom {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.18);
+    }
+}
+
+.carousel-item.active.eds-gallery-slide img {
+    animation: edsKenBurnsZoom 9s ease-in-out infinite alternate;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+.carousel-item.active.eds-gallery-slide img.eds-img-pos-upper {
+    transform-origin: 100% 35%;
+}
+
+.carousel-item.active.eds-gallery-slide img.eds-img-pos-lower {
+    transform-origin: 30% 74%;
+}
+
+/* Keep zoomed images clipped cleanly inside the rounded carousel */
+.eds-gallery-slide {
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .carousel-item.active.eds-gallery-slide img {
+        animation: none;
+        transform: none;
+    }
+}
+
 .eds-img-pos-upper {
     /* first number is left or right left is 0%
      second number is up and down top is 0%*/
