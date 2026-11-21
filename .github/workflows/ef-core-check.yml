@@ -35,7 +35,7 @@ jobs:
 
       - name: Generate idempotent SQL script
         run: |
-          dotnet ef migrations script --idempotent --no-connect \
+          dotnet ef migrations script --idempotent \
             --project EatonvilleDanceStudio/EatonvilleDanceStudio.csproj \
             --context ApplicationDbContext \
             --output ef-migration-check.sql
