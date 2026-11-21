@@ -14,28 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
+        run: >
+          dotnet restore
+          EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
 
       - name: Install EF Core CLI
         run: dotnet tool install --global dotnet-ef
 
       - name: Check for pending model changes
-        run: >
-          dotnet ef migrations has-pending-model-changes
-          --project EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
-          --context ApplicationDbContext
+        run: |
+          dotnet ef migrations has-pending-model-changes \
+            --project EatonvilleDanceStudio/EatonvilleDanceStudio.csproj \
+            --context ApplicationDbContext
 
-      - name:  Generate idempotent SQL script
-        run: >
-          dotnet ef migrations script --idempotent --no-connect
-          --project EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
-          --context ApplicationDbContext
-          --output ef-migration-check.sql
-    
+      - name: Generate idempotent SQL script
+        run: |
+          dotnet ef migrations script --idempotent --no-connect \
+            --project EatonvilleDanceStudio/EatonvilleDanceStudio.csproj \
+            --context ApplicationDbContext \
+            --output ef-migration-check.sql
