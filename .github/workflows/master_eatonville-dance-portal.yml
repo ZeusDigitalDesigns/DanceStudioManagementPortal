@@ -1,3 +1,6 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy ASP.Net Core app to Azure Web App - eatonville-dance-portal
 
 on:
@@ -18,31 +21,19 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: >
-          dotnet build
-          EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
-          --configuration Release
+        run: dotnet build --configuration Release
 
       - name: dotnet publish
-        run: >
-          dotnet publish
-          EatonvilleDanceStudio/EatonvilleDanceStudio.csproj
-          --configuration Release
-          --output ./publish
-
-      - name: Zip published app
-        run: >
-          (cd ./publish && zip -r ../app.zip .
-          -x "._*" -x "*.DS_Store")
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: app.zip
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
     runs-on: ubuntu-latest
@@ -56,13 +47,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_AAB3D960D1614562ACE603C72163BD14 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5DAC6FBE9D1D447B84C21BB2E8FE39AE }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_20ACA0A00C024B32B53FE741F5BD0870 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F471AC94B17747B78E72F152AA8BD2B7 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_BA865FD895494F67848552D6B232A52A }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D19378E297BB4164A419832114924871 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -70,5 +61,5 @@ jobs:
         with:
           app-name: 'eatonville-dance-portal'
           slot-name: 'Production'
-          package: app.zip
-
+          package: .
+          
