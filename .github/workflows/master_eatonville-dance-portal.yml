@@ -34,7 +34,9 @@ jobs:
           --output ./publish
 
       - name: Zip published app
-        run: (cd ./publish && zip -r ../app.zip .)
+        run: >
+          (cd ./publish && zip -r ../app.zip .
+          -x "._*" -x "*.DS_Store")
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -69,3 +71,4 @@ jobs:
           app-name: 'eatonville-dance-portal'
           slot-name: 'Production'
           package: app.zip
+
