@@ -1,0 +1,45 @@
+# Checks static CSS and JavaScript files under wwwroot for basic syntax
+# health on pull requests and pushes to master.
+name: Frontend Asset Check
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+jobs:
+  frontend-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out repository code so static assets can be inspected
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Node.js so we can syntax-check JavaScript files cleanly
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Check JS syntax with node --check and verify balanced CSS braces
+      - name: Validate static CSS and JS assets
+        shell: bash
+        run: |
+          if [ -d "EatonvilleDanceStudio/wwwroot" ]; then
+            while IFS= read -r js_file; do
+              node --check "$js_file"
+            done < <(find EatonvilleDanceStudio/wwwroot -name '*.js')
+
+            while IFS= read -r css_file; do
+              open_cnt=$(tr -cd '{' < "$css_file" | wc -c)
+              close_cnt=$(tr -cd '}' < "$css_file" | wc -c)
+              if [ "$open_cnt" -ne "$close_cnt" ]; then
+                echo "Unbalanced braces in $css_file"
+                exit 1
+              fi
+            done < <(find EatonvilleDanceStudio/wwwroot -name '*.css')
+          else
+            echo "wwwroot folder not found; skipping."
+          fi
